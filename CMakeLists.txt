@@ -87,9 +87,11 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(SGL_TIDY_EXTRA_ARGS "-extra-arg=-Wno-unknown-warning-option")
         # clang-tidy needs explicit libstdc++ paths when the compile DB was produced by GCC.
         if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-            # libstdc++ 14 exposes std::expected only for C++23 with concepts >= 202002.
-            # clang-tidy-18 drops or ignores the compile DB -std and then misses it.
-            list(APPEND SGL_TIDY_EXTRA_ARGS "-extra-arg=-std=c++23")
+            # libstdc++ 14 exposes std::expected only when __cpp_concepts >= 202002.
+            # clang-tidy-18 keeps that macro at 201907 even with -std=c++23.
+            list(APPEND SGL_TIDY_EXTRA_ARGS
+                "-extra-arg=-std=c++23"
+                "-extra-arg=-D__cpp_concepts=202002L")
             execute_process(
                 COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=include
                 OUTPUT_VARIABLE SGL_GCC_INCLUDE

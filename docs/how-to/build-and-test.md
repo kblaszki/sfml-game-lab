@@ -19,7 +19,7 @@ related_docs:
   - ../reference/source-layout.md
   - ../reference/engine-audio.md
 keywords: [build, test, ctest, format, presets, build_ut, debug, release, asan, coverage, tidy, arkanoid, tetris, SFML, Audio]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-28
 ---
 
 # Build, test, and format
@@ -103,7 +103,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 
 - `build` — Debug `build_ut` + `ctest`, then Release `arkanoid` and `tetris`, on `ubuntu-24.04` (g++-14) and `windows-2022` (MSVC)
 - `asan` — Linux g++-14, preset `asan`, `build_ut` + `ctest`
-- `tidy` — Linux: `build_ut` with g++-14, then the blocking `tidy` target (clang-tidy reads that compile database, with `-std=c++23` so clang-tidy-18 sees `std::expected` in libstdc++ 14) over `engine/` and `games/`
+- `tidy` — Linux: `build_ut` with g++-14, then the blocking `tidy` target (clang-tidy reads that compile database; `-std=c++23` and `-D__cpp_concepts=202002L` so clang-tidy-18 sees `std::expected` in libstdc++ 14) over `engine/` and `games/`
 - Linux jobs install `libvorbis-dev` and `libflac-dev` because SFML uses system audio codecs there (`SFML_USE_SYSTEM_DEPS`)
 - `coverage` — Linux g++-14, preset `coverage`, gcovr with `--fail-under-line 90` and `--gcov-executable gcov-14` (notes must match that compiler), filtered to `engine/` (excluding `engine/sfml`) and `games/*/sim`; HTML artifact uploaded
 
