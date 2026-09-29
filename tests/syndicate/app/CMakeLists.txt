@@ -18,3 +18,17 @@ add_unit_test(syndicate_pawn_animator_test
     DEPENDENCIES
         syndicate_app
 )
+
+add_unit_test(syndicate_hud_model_test
+    SOURCES
+        HudModelTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_play_scene_test
+    SOURCES
+        PlaySceneTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)

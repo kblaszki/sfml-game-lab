@@ -3,6 +3,9 @@ add_library(syndicate_app STATIC
     src/LayoutView.cpp
     src/BoardRender.cpp
     src/PawnAnimator.cpp
+    src/Bindings.cpp
+    src/HudModel.cpp
+    src/PlayScene.cpp
 )
 target_include_directories(syndicate_app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -14,4 +17,6 @@ target_link_libraries(syndicate_app PUBLIC
     sgl_render
     sgl_scene
     sgl_core
+    sgl_input
+    sgl_ui
 )
