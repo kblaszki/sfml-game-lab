@@ -8,10 +8,13 @@
 #include <sgl/input/InputState.hpp>
 #include <sgl/input/Key.hpp>
 #include <sgl/render/AssetIds.hpp>
+#include <sgl/render/DrawCommand.hpp>
+#include <sgl/render/RenderQueue.hpp>
 #include <sgl/scene/SceneI.hpp>
 #include <sgl/scene/SceneStack.hpp>
 #include <string>
 #include <syndicate/app/Bindings.hpp>
+#include <syndicate/app/Describe.hpp>
 #include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/PlayScene.hpp>
 #include <syndicate/sim/BoardGraph.hpp>
@@ -339,4 +342,52 @@ TEST(PlaySceneTest, humanBuysViaNumAndAppliesManageUpgradeOrPlayCard)
     EXPECT_TRUE(bought) << "human never reached AwaitPurchase to buy via Num";
     EXPECT_GE(boughtCount, 1);
     EXPECT_TRUE(manageAction) << "human never applied Upgrade/PlayCard/RespondTrade via slot";
+}
+
+TEST(PlaySceneTest, hoveringTileShowsDescribeTooltip)
+{
+    Fixture f;
+    MatchConfig cfg{
+        .seed = 1,
+        .seats = 2,
+        .maxRounds = 5,
+        .targetNetWorth = Money{100000000},
+    };
+    std::vector<Seat> seats{Seat{.bot = false}, Seat{.bot = true}};
+    auto scene = std::make_unique<PlayScene>(cfg, seats, f.font, f.actions);
+    PlayScene* play = scene.get();
+
+    sgl::SceneStack stack{unusedPauseFactory()};
+    stack.push(std::move(scene));
+
+    ASSERT_NE(play->match(), nullptr);
+    const LayoutView layout{sgl::Vec2f{640.f, 360.f}, 280.f};
+    const NodeId node{5};
+    const sgl::Vec2f center = layout.position(play->match()->state().board.node(node).at);
+    const std::string expected = sgl::syndicate::describeTile(play->match()->state(), node);
+
+    sgl::InputState hover;
+    hover.apply(sgl::MouseMove{.pos = center}, f.map);
+
+    for(int i = 0; i < 8; ++i)
+    {
+        stack.update(hover, sgl::Seconds{0.05f});
+    }
+
+    sgl::RenderQueue queue;
+    play->render(queue);
+
+    bool found = false;
+    for(const sgl::Entry& e: queue.sorted())
+    {
+        if(const auto* text = std::get_if<sgl::TextCmd>(&e.command))
+        {
+            if(text->text.find(expected) != std::string::npos || expected.find(text->text) != std::string::npos)
+            {
+                found = true;
+                break;
+            }
+        }
+    }
+    EXPECT_TRUE(found) << "tooltip missing describeTile for node 5: " << expected;
 }

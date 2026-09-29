@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <memory>
 #include <sgl/core/Color.hpp>
+#include <sgl/core/Rect.hpp>
 #include <sgl/core/Vec2.hpp>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/scene/SceneContext.hpp>
@@ -10,10 +11,12 @@
 #include <sgl/ui/MenuStyle.hpp>
 #include <string>
 #include <syndicate/app/BoardRender.hpp>
+#include <syndicate/app/Describe.hpp>
 #include <syndicate/app/GameOverScene.hpp>
 #include <syndicate/app/Scenes.hpp>
 #include <utility>
 #include <variant>
+#include <vector>
 
 namespace sgl::syndicate
 {
@@ -373,6 +376,68 @@ void PlayScene::trySelectTile(const sgl::InputState& input)
     }
 }
 
+sgl::FontId PlayScene::tooltipFont() const noexcept
+{
+    if(services_.has_value() && services_->bodyFont.id != 0)
+    {
+        return services_->bodyFont;
+    }
+    return font_;
+}
+
+void PlayScene::updateTooltips(const sgl::InputState& input, sgl::Seconds dt)
+{
+    if(!match_.has_value())
+    {
+        return;
+    }
+
+    const GameState& state = match_->state();
+    const PlayerId actor = match_->actingPlayer();
+    const std::size_t actorIdx = seatIndex(actor);
+    if(actorIdx < state.hands.size())
+    {
+        handView_.sync(state.hands[actorIdx], dt);
+    }
+
+    std::vector<sgl::Hotspot> hotspots;
+    const float side = layout_.nodeRadius() * 2.f;
+    for(std::size_t i = 0; i < state.board.size(); ++i)
+    {
+        const NodeId id{static_cast<std::uint16_t>(i)};
+        const sgl::Vec2f center = layout_.position(state.board.node(id).at);
+        const std::string desc = describeTile(state, id);
+        hotspots.push_back(sgl::Hotspot{
+            .area = sgl::Rect<float>{.pos = {center.x - side * 0.5f, center.y - side * 0.5f}, .size = {side, side}},
+            .title = desc,
+            .body = desc,
+        });
+    }
+
+    for(const sgl::Hotspot& spot: actionBar_.hotspots())
+    {
+        hotspots.push_back(spot);
+    }
+    for(const sgl::Hotspot& spot: handView_.hotspots())
+    {
+        hotspots.push_back(spot);
+    }
+    for(int i = 0; i < state.seats; ++i)
+    {
+        const Money cash = state.cash[static_cast<std::size_t>(i)];
+        const std::string title = "P" + std::to_string(i + 1) + " " + formatMoney(cash);
+        hotspots.push_back(sgl::Hotspot{
+            .area = playerPanelRect(i),
+            .title = title,
+            .body = title,
+        });
+    }
+
+    const sgl::Vec2f pointer = input.pointer().value_or(sgl::Vec2f{0.f, 0.f});
+    const sgl::TooltipStyle style{.font = tooltipFont()};
+    tooltip_.update(pointer, hotspots, dt, style);
+}
+
 const Match* PlayScene::match() const noexcept
 {
     return match_.has_value() ? &*match_ : nullptr;
@@ -402,9 +467,9 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
     animator_.update(dt);
     hud_.update(dt);
 
+    const sgl::InputState& input = ctx.input();
     if(!gameOver())
     {
-        const sgl::InputState& input = ctx.input();
         if(input.action(actions_.pause).pressed)
         {
             ctx.request(sgl::RequestPause{});
@@ -442,6 +507,8 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
         }
         updateHover(input, dt);
     }
+
+    updateTooltips(input, dt);
 
     if(gameOver() && !endPushed_)
     {
@@ -483,7 +550,8 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     {
         highlighted = path->options;
     }
-    renderBoard(queue, s.board, s.ownership, layout_, theme_, highlighted);
+    const SpriteBank* sprites = services_.has_value() ? &services_->sprites : nullptr;
+    renderBoard(queue, s.board, s.ownership, layout_, theme_, highlighted, font_, sprites);
 
     for(int i = 0; i < s.seats; ++i)
     {
@@ -500,7 +568,9 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     }
 
     hud_.render(queue, *match_, font_, theme_);
+    handView_.render(queue, font_, theme_);
     actionBar_.render(queue, makeActionBarStyle(font_), hover_);
+    tooltip_.render(queue, sgl::TooltipStyle{.font = tooltipFont()});
 }
 
 sgl::SceneTraits PlayScene::traits() const

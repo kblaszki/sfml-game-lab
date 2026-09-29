@@ -12,6 +12,13 @@ add_unit_test(syndicate_board_render_test
         syndicate_app
 )
 
+add_unit_test(syndicate_hand_view_test
+    SOURCES
+        HandViewTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_pawn_animator_test
     SOURCES
         PawnAnimatorTest.cpp

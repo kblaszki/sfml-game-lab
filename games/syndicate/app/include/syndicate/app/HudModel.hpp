@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <sgl/core/Rect.hpp>
 #include <sgl/core/Time.hpp>
 #include <sgl/render/AssetIds.hpp>
 #include <sgl/render/RenderQueue.hpp>
@@ -18,6 +19,11 @@ struct HudNote
     std::string text;
     float ttl{};
 };
+
+[[nodiscard]] inline sgl::Rect<float> playerPanelRect(int seatIndex) noexcept
+{
+    return sgl::Rect<float>{.pos = {16.f, 48.f + static_cast<float>(seatIndex) * 36.f}, .size = {300.f, 32.f}};
+}
 
 class HudModel
 {

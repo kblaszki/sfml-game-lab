@@ -12,9 +12,11 @@
 #include <sgl/save/HighScoreTable.hpp>
 #include <sgl/scene/SceneI.hpp>
 #include <sgl/ui/HoverAnim.hpp>
+#include <sgl/ui/TooltipSystem.hpp>
 #include <syndicate/app/ActionBar.hpp>
 #include <syndicate/app/Bindings.hpp>
 #include <syndicate/app/Feedback.hpp>
+#include <syndicate/app/HandView.hpp>
 #include <syndicate/app/HudModel.hpp>
 #include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
@@ -47,6 +49,7 @@ struct SyndicateServices
     std::filesystem::path scoresPath{};
     sgl::HighScoreTable& highScores;
     SpriteBank sprites{};
+    sgl::FontId bodyFont{};
 };
 
 [[nodiscard]] std::optional<Command> commandFromInput(const Match& match,
@@ -74,6 +77,8 @@ private:
     void drainFeedback();
     void updateHover(const sgl::InputState& input, sgl::Seconds dt);
     void trySelectTile(const sgl::InputState& input);
+    void updateTooltips(const sgl::InputState& input, sgl::Seconds dt);
+    [[nodiscard]] sgl::FontId tooltipFont() const noexcept;
 
     std::vector<Seat> seats_;
     sgl::FontId font_{};
@@ -85,7 +90,9 @@ private:
     PawnAnimator animator_{layout_};
     HudModel hud_{};
     ActionBar actionBar_{};
+    HandView handView_{};
     sgl::HoverAnim hover_{};
+    sgl::TooltipSystem tooltip_{};
     std::optional<NodeId> selectedTile_{};
     std::optional<Match> match_;
     bool setupFailed_{false};

@@ -68,6 +68,19 @@ namespace
     return pairs.size();
 }
 
+[[nodiscard]] std::size_t countTexts(sgl::RenderQueue& queue)
+{
+    std::size_t n = 0;
+    for(const sgl::Entry& e: queue.sorted())
+    {
+        if(std::holds_alternative<sgl::TextCmd>(e.command))
+        {
+            ++n;
+        }
+    }
+    return n;
+}
+
 } // namespace
 
 TEST(BoardRenderTest, circlesAndUniqueEdges)
@@ -83,6 +96,7 @@ TEST(BoardRenderTest, circlesAndUniqueEdges)
     renderBoard(queue, board, ownership, layout, theme, {});
 
     EXPECT_EQ(countCircles(queue), 40u);
+    EXPECT_EQ(countTexts(queue), 40u);
 
     const auto expectedLines = uniqueUnorderedEdgeCount(board);
     EXPECT_EQ(countLines(queue), expectedLines);
@@ -106,4 +120,17 @@ TEST(BoardRenderTest, circlesAndUniqueEdges)
         }
         EXPECT_TRUE(found) << "missing circle for node " << i;
     }
+
+    bool sawPay = false;
+    for(const sgl::Entry& e: queue.sorted())
+    {
+        if(const auto* t = std::get_if<sgl::TextCmd>(&e.command))
+        {
+            if(t->text == "PAY")
+            {
+                sawPay = true;
+            }
+        }
+    }
+    EXPECT_TRUE(sawPay);
 }

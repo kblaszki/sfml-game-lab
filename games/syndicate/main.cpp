@@ -65,6 +65,14 @@ int main()
     }
     const sgl::FontId fontId = *fontLoaded;
 
+    const auto bodyLoaded =
+        platform.assets().font("body", std::filesystem::path{ASSET_DIR} / sgl::syndicate::bodyFontRelativePath);
+    if(!bodyLoaded)
+    {
+        return fail(bodyLoaded.error());
+    }
+    const sgl::FontId bodyFontId = *bodyLoaded;
+
     const auto atlasPng = std::filesystem::path{ASSET_DIR} / "syndicate" / "atlas.png";
     const auto atlasTxt = std::filesystem::path{ASSET_DIR} / "syndicate" / "atlas.txt";
     sgl::syndicate::SpriteBank sprites{};
@@ -110,7 +118,7 @@ int main()
     const auto seed = static_cast<std::uint64_t>(
         std::chrono::steady_clock::now().time_since_epoch().count());
     const sgl::syndicate::SyndicateServices services{
-        actions, fontId, seed, platform.audio(), sounds, scoresPath, highScores, sprites};
+        actions, fontId, seed, platform.audio(), sounds, scoresPath, highScores, sprites, bodyFontId};
 
     sgl::SceneStack stack{sgl::syndicate::pause(services)};
     stack.push(sgl::syndicate::mainMenu(services)());

@@ -1,6 +1,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <set>
+#include <sgl/core/Overloaded.hpp>
+#include <sgl/render/DrawCommand.hpp>
+#include <string>
+#include <string_view>
 #include <syndicate/app/BoardRender.hpp>
 #include <type_traits>
 #include <utility>
@@ -60,6 +64,77 @@ namespace
     return false;
 }
 
+[[nodiscard]] std::string shortLabel(const TileKind& kind)
+{
+    return std::visit(
+        sgl::Overloaded{
+            [](const SectorTile& tile) -> std::string {
+                switch(tile.sector)
+                {
+                case Sector::AI:
+                    return "AI";
+                case Sector::CleanEnergy:
+                    return "CLN";
+                case Sector::Biotech:
+                    return "BIO";
+                case Sector::CyberSec:
+                    return "CYB";
+                case Sector::Logistics:
+                    return "LOG";
+                case Sector::Fintech:
+                    return "FIN";
+                }
+                return "???";
+            },
+            [](const Payday&) -> std::string { return "PAY"; },
+            [](const Exchange&) -> std::string { return "EXC"; },
+            [](const Hub&) -> std::string { return "HUB"; },
+            [](const AuditTile&) -> std::string { return "AUD"; },
+            [](const Grant&) -> std::string { return "GRA"; },
+        },
+        kind);
+}
+
+[[nodiscard]] std::string_view spriteName(const TileKind& kind)
+{
+    return std::visit(
+        sgl::Overloaded{
+            [](const SectorTile& tile) -> std::string_view {
+                switch(tile.sector)
+                {
+                case Sector::AI:
+                    return "sector/ai";
+                case Sector::CleanEnergy:
+                    return "sector/clean-energy";
+                case Sector::Biotech:
+                    return "sector/biotech";
+                case Sector::CyberSec:
+                    return "sector/cybersec";
+                case Sector::Logistics:
+                    return "sector/logistics";
+                case Sector::Fintech:
+                    return "sector/fintech";
+                }
+                return {};
+            },
+            [](const Payday&) -> std::string_view { return "tile/payday"; },
+            [](const Exchange&) -> std::string_view { return "tile/exchange"; },
+            [](const Hub&) -> std::string_view { return "tile/hub"; },
+            [](const AuditTile&) -> std::string_view { return "tile/audit"; },
+            [](const Grant&) -> std::string_view { return "tile/grant"; },
+        },
+        kind);
+}
+
+[[nodiscard]] sgl::Color spriteTint(const TileKind& kind, const Theme& theme)
+{
+    if(const auto* sector = std::get_if<SectorTile>(&kind))
+    {
+        return theme.sector[static_cast<std::size_t>(sector->sector)];
+    }
+    return sgl::Color{255, 255, 255, 255};
+}
+
 } // namespace
 
 void renderBoard(sgl::RenderQueue& queue,
@@ -67,7 +142,9 @@ void renderBoard(sgl::RenderQueue& queue,
                  const Ownership& ownership,
                  const LayoutView& layout,
                  const Theme& theme,
-                 const std::vector<MoveOption>& highlighted)
+                 const std::vector<MoveOption>& highlighted,
+                 sgl::FontId font,
+                 const SpriteBank* sprites)
 {
     std::set<std::pair<std::uint16_t, std::uint16_t>> undirected;
     for(std::size_t i = 0; i < board.size(); ++i)
@@ -107,6 +184,7 @@ void renderBoard(sgl::RenderQueue& queue,
         const auto& node = board.node(id);
         const auto& hold = ownership.holdings(id);
         const bool hi = isHighlighted(id, highlighted);
+        const sgl::Vec2f center = layout.position(node.at);
 
         sgl::Color outline = theme.edge;
         if(hi)
@@ -119,12 +197,33 @@ void renderBoard(sgl::RenderQueue& queue,
         }
 
         queue.push(sgl::Layer::World, 1000.f + static_cast<float>(i),
-                   sgl::CircleCmd{.center = layout.position(node.at),
+                   sgl::CircleCmd{.center = center,
                                   .radius = r,
                                   .fill = tileFill(node.kind, theme),
                                   .outline = outline,
                                   .outlineThickness = static_cast<float>(hold.level) + 1.f,
                                   .points = 32});
+
+        if(sprites != nullptr)
+        {
+            const float side = r * 1.2f;
+            const sgl::Vec2f size{side, side};
+            const sgl::Vec2f pos{center.x - size.x * 0.5f, center.y - size.y * 0.5f};
+            if(const auto spr = sprites->sprite(spriteName(node.kind), pos, size, spriteTint(node.kind, theme)))
+            {
+                queue.push(sgl::Layer::World, 1500.f + static_cast<float>(i), *spr);
+            }
+        }
+
+        queue.push(sgl::Layer::Hud, 2000.f + static_cast<float>(i),
+                   sgl::TextCmd{
+                       .font = font,
+                       .text = shortLabel(node.kind),
+                       .size = 11,
+                       .position = {center.x, center.y + r + 2.f},
+                       .color = sgl::Color{240, 240, 245},
+                       .anchor = sgl::Anchor::Center,
+                   });
     }
 }
 

@@ -6,6 +6,7 @@ add_library(syndicate_app STATIC
     src/Bindings.cpp
     src/Describe.cpp
     src/ActionBar.cpp
+    src/HandView.cpp
     src/HudModel.cpp
     src/PlayScene.cpp
     src/Sounds.cpp
@@ -28,6 +29,7 @@ target_link_libraries(syndicate_app PUBLIC
     sgl_core
     sgl_input
     sgl_ui
+    sgl_anim
     sgl_audio
     sgl_fx
     sgl_save

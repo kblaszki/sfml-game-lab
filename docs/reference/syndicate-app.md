@@ -13,6 +13,7 @@ related_code:
   - games/syndicate/app/include/syndicate/app/Bindings.hpp
   - games/syndicate/app/include/syndicate/app/Describe.hpp
   - games/syndicate/app/include/syndicate/app/ActionBar.hpp
+  - games/syndicate/app/include/syndicate/app/HandView.hpp
   - games/syndicate/app/include/syndicate/app/HudModel.hpp
   - games/syndicate/app/include/syndicate/app/PlayScene.hpp
   - games/syndicate/app/include/syndicate/app/Scenes.hpp
@@ -29,6 +30,7 @@ related_code:
   - games/syndicate/app/src/Bindings.cpp
   - games/syndicate/app/src/Describe.cpp
   - games/syndicate/app/src/ActionBar.cpp
+  - games/syndicate/app/src/HandView.cpp
   - games/syndicate/app/src/HudModel.cpp
   - games/syndicate/app/src/PlayScene.cpp
   - games/syndicate/app/src/Sounds.cpp
@@ -41,6 +43,7 @@ related_code:
   - tests/syndicate/app/CMakeLists.txt
   - tests/syndicate/app/LayoutViewTest.cpp
   - tests/syndicate/app/BoardRenderTest.cpp
+  - tests/syndicate/app/HandViewTest.cpp
   - tests/syndicate/app/PawnAnimatorTest.cpp
   - tests/syndicate/app/HudModelTest.cpp
   - tests/syndicate/app/DescribeTest.cpp
@@ -59,17 +62,17 @@ related_docs:
   - engine-save.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, Describe, ActionBar, HudModel, PlayScene, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, PawnAnimator, Bindings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate app
 
-Presentation layer and playable executable for Syndicate in `namespace sgl::syndicate`. Static library `syndicate_app` links `PUBLIC` `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_audio`, `sgl_fx`, `sgl_save`, and `sgl_resources`. No SFML includes in the library — drawing uses `sgl::RenderQueue` and `CircleCmd` / `LineCmd` / `RectCmd` / `TextCmd` / optional `SpriteCmd`. Include as `<syndicate/app/X.hpp>`. Design size **1280×720**. Executable target `syndicate` (`games/syndicate/main.cpp`) links `syndicate_app` and `sgl_sfml`.
+Presentation layer and playable executable for Syndicate in `namespace sgl::syndicate`. Static library `syndicate_app` links `PUBLIC` `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_anim`, `sgl_audio`, `sgl_fx`, `sgl_save`, and `sgl_resources`. No SFML includes in the library — drawing uses `sgl::RenderQueue` and `CircleCmd` / `LineCmd` / `RectCmd` / `TextCmd` / optional `SpriteCmd`. Include as `<syndicate/app/X.hpp>`. Design size **1280×720**. Executable target `syndicate` (`games/syndicate/main.cpp`) links `syndicate_app` and `sgl_sfml`.
 
 ## SyndicateServices
 
-`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`, and `sprites` (`SpriteBank`, default empty). Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references).
+`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`, `sprites` (`SpriteBank`, default empty), and `bodyFont` (body / tooltip TTF; id 0 means fall back to `font`). Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references). Font path constants: `uiFontRelativePath`, `bodyFontRelativePath`.
 
 | Factory | Scene |
 |---------|--------|
@@ -95,7 +98,15 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## Theme / layout / board / HUD
 
-Unchanged from prior slices: `Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `HudModel`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
+`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `HudModel`, `HandView`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
+
+`renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`).
+
+`HudModel` draws one rounded player panel per seat (`playerPanelRect`, x=16, y=48+i×36, 300×32) with `P{n} {formatMoney(cash)}`; the acting seat gets a brighter outline. Phase prompt and note TTL are unchanged.
+
+## HandView
+
+`HandView` mirrors the acting player's `Hand` (cap 5). Cards are 96×134; layout is a column at x=24 starting y=420 (8px gap) because five row strides do not fit in the left panel width. Newly appeared cards tween from x=−120 with `easeOutBack` over 0.35s; removed cards slide toward x=400 and fade out over 0.35s. `hit` / hotspots use settled slot rects; `render` uses the animated position. Hotspot body is `describeCard`.
 
 ## Describe helpers
 
@@ -111,23 +122,24 @@ Unchanged from prior slices: `Theme` / `defaultTheme()`, `LayoutView`, `renderBo
 
 ## PlayScene
 
-Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar` + `HoverAnim`. On a human turn while the pawn animator is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). Renders the action bar after the HUD. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Feedback` after each applied command.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, and `TooltipSystem`. On a human turn while the pawn animator is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders HUD, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Feedback` after each applied command.
 
 ## main.cpp
 
-`SfmlPlatform` **1280×720** titled **"Syndicate"**, loads `uiFontRelativePath` under `ASSET_DIR`, optionally loads the syndicate atlas into `SpriteBank`, uploads sounds, resolves `userDataDir("syndicate") / "syndicate.scores"` (temp fallback), `bindSyndicate`, pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
+`SfmlPlatform` **1280×720** titled **"Syndicate"**, loads `uiFontRelativePath` then `bodyFontRelativePath` under `ASSET_DIR` (same `fail()` on either), optionally loads the syndicate atlas into `SpriteBank`, uploads sounds, resolves `userDataDir("syndicate") / "syndicate.scores"` (temp fallback), `bindSyndicate`, pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
 
 ## Tests
 
 | Suite | Focus |
 |-------|-------|
 | `syndicate_layout_view_test` | Outer spacing, slot 0 above origin, ring 2 closer |
-| `syndicate_board_render_test` | 40 circles, line count = unique unordered edges, centers match layout |
+| `syndicate_board_render_test` | 40 circles, 40 short labels, line count = unique unordered edges, centers match layout |
+| `syndicate_hand_view_test` | Appear tween: x off-screen at dt=0, at slot x after 0.35s |
 | `syndicate_pawn_animator_test` | 400px path at 400 px/s, `busy()`, distinct same-slot positions |
 | `syndicate_hud_model_test` | phasePrompt words; note TTL expiry |
 | `syndicate_describe_test` | `formatMoney` scales; Biotech `BuyShares{1}` label facts |
 | `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot |
-| `syndicate_play_scene_test` | 4-bot GameOver; human roll ignored on bot turn; human Num buy + Manage Upgrade/PlayCard |
+| `syndicate_play_scene_test` | 4-bot GameOver; human roll ignored on bot turn; human Num buy + Manage Upgrade/PlayCard; tile hover tooltip |
 | `syndicate_scenes_test` | Menu cancel quits; Play pushes setup; setup Confirm replaces with PlayScene |
 | `syndicate_feedback_test` | `Rolled` / `FeePaid` each play ≥1 sound via `AudioSpy` |
 | `syndicate_sprite_bank_test` | Empty bank nullopt; manifest entry → matching `SpriteCmd` source |
