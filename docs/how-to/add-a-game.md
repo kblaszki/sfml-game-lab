@@ -12,18 +12,20 @@ related_code:
   - cmake/AddUnitTest.cmake
   - tests/CMakeLists.txt
 related_docs:
+  - ../tutorials/create_new_game.md
+  - add-a-scene.md
+  - write-headless-tests.md
   - build-and-test.md
   - ../reference/source-layout.md
-  - ../../games/tetris/docs/reference/sim.md
-  - ../../games/tetris/docs/reference/app.md
+  - ../../games/tetris/docs/index.md
   - ../explanation/architecture.md
-keywords: [game, tetris, arkanoid, cmake, check_boundaries, SceneI, sim, app]
+keywords: [game, new game, checklist, cmake, check_boundaries, SceneI, sim, app, games docs]
 last_reviewed: 2026-09-29
 ---
 
 # Add a game
 
-Add a title under `games/<name>/` the way Tetris sits beside Arkanoid. The simulation stays headless. Only `games/<name>/main.cpp` may include SFML.
+This is the checklist. For a full worked example with compiled code, follow [create_new_game.md](../tutorials/create_new_game.md). The simulation stays headless. Only `games/<name>/main.cpp` may include SFML.
 
 ## 1. Directories
 
@@ -37,21 +39,23 @@ games/<name>/
   app/include/<name>/app/
   app/src/
   app/CMakeLists.txt
+  docs/index.md
+  docs/{tutorials,how-to,reference,explanation}/
 tests/<name>/sim/
 tests/<name>/app/
 ```
 
-Namespace is `sgl::<name>`. Includes are `<name>/sim/X.hpp>` and `<name>/app/X.hpp>`. Register the directory from [`games/CMakeLists.txt`](../../games/CMakeLists.txt) and the test tree from [`tests/CMakeLists.txt`](../../tests/CMakeLists.txt).
+The namespace is `sgl::<name>`, and includes are `<<name>/sim/X.hpp>` and `<<name>/app/X.hpp>`. Register the game directory in [`games/CMakeLists.txt`](../../games/CMakeLists.txt) and the test leaves in [`tests/CMakeLists.txt`](../../tests/CMakeLists.txt).
 
 ## 2. Targets
 
 | Target | Kind | Links |
 |--------|------|--------|
 | `<name>_sim` | STATIC | `sgl_core`, plus `sgl_collision` only if the sim sweeps shapes. No SFML. |
-| `<name>_app` | STATIC | `<name>_sim`, `sgl_loop`, `sgl_resources`. Add `sgl_audio`, `sgl_fx`, and `sgl_save` when the game plays sound, particles, or high scores. No SFML includes. |
-| `<name>` | executable | `<name>_app`, `sgl_sfml`. Defines `ASSET_DIR` to the repo `assets/` root. |
+| `<name>_app` | STATIC | `<name>_sim` and the engine modules the scenes use: `sgl_scene`, `sgl_render`, `sgl_ui`, and as needed `sgl_audio`, `sgl_fx`, `sgl_anim`, `sgl_save`, `sgl_resources`. No SFML includes. |
+| `<name>` | executable | `<name>_app`, `sgl_sfml`. Defines `ASSET_DIR` as the repo's `assets/` root. |
 
-List every new `.cpp` in that module's own `CMakeLists.txt`. Mirror [`games/tetris/CMakeLists.txt`](../../games/tetris/CMakeLists.txt): `cxx_std_23`, `${BASE_COMPILE_FLAGS}`, and `add_dependencies(<name> check_boundaries)`.
+List every new `.cpp` in its own module's `CMakeLists.txt`. Mirror [`games/tetris/CMakeLists.txt`](../../games/tetris/CMakeLists.txt): `cxx_std_23`, `${BASE_COMPILE_FLAGS}`, and `add_dependencies(<name> check_boundaries)`.
 
 ## 3. Boundaries
 
@@ -65,11 +69,11 @@ Keep randomness on `sgl::Pcg32`. Do not call `std::*_distribution`, `std::shuffl
 
 ## 4. Scenes and the loop
 
-App scenes implement `sgl::SceneI` and talk to the stack with `SceneRequest` (`PushScene`, `PopScene`, `ReplaceScene`, `RequestPause`, `QuitApp`). A scene must not close the platform. Pause is `RequestPause` when the top scene is `pausable`; the overlay is not opaque. `main.cpp` builds `SfmlPlatform`, loads assets, pushes the menu, and runs `sgl::App`.
+App scenes implement `sgl::SceneI` and change the stack only through `SceneRequest`. `main.cpp` builds `SfmlPlatform`, loads assets, constructs `SceneStack{pauseFactory}`, pushes the first scene, and runs `sgl::App`. See [add-a-scene.md](add-a-scene.md).
 
 ## 5. Tests
 
-Register each suite with `add_unit_test` under `tests/<name>/sim/` and `tests/<name>/app/`. Suites are headless. Cover the sim rules before the window, and pass a temp directory into any high-score test.
+Register each suite with `add_unit_test` under `tests/<name>/sim/` and `tests/<name>/app/`. Cover the sim rules, including a same-seed determinism test, before the window. See [write-headless-tests.md](write-headless-tests.md).
 
 ```sh
 cmake --preset debug
@@ -81,9 +85,11 @@ ctest --preset debug
 
 In the same change:
 
-- add `docs/reference/<name>-sim.md` and `docs/reference/<name>-app.md` with `related_code` listing every new header and `.cpp`
-- add both pages to [`docs/index.md`](../index.md)
-- add the targets and suites to [`docs/reference/source-layout.md`](../reference/source-layout.md)
-- mention the executable in [`README.md`](../../README.md)
+- Create `games/<name>/docs/index.md` listing all four Diátaxis quadrants.
+- Add `games/<name>/docs/reference/sim.md` and `reference/app.md`, with `related_code` listing every new header and `.cpp`.
+- Add an explanation page with a Mermaid `stateDiagram-v2` of the game flow.
+- Add the game to the "Game documentation" table in [`docs/index.md`](../index.md).
+- Add the targets and suites to [`docs/reference/source-layout.md`](../reference/source-layout.md).
+- Mention the executable in [`README.md`](../../README.md).
 
 Set `last_reviewed` to the day you edit the page.

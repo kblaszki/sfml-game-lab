@@ -21,6 +21,7 @@ related_code:
   - engine/resources/include/sgl/resources/ResourceCache.hpp
   - engine/sfml/include/sgl/sfml/SfmlAssets.hpp
 related_docs:
+  - engine-events.md
   - engine-core.md
   - engine-input.md
   - engine-scene.md
@@ -45,7 +46,7 @@ Generic engine terms and the real `sgl` types that fill each role. Types without
 | Scene transition | `PushScene{factory}`, `PopScene{}`, `ReplaceScene{factory}`, `RequestPause{}`, `QuitApp{}` | `<sgl/scene/SceneRequest.hpp>` | [engine-scene.md](engine-scene.md) |
 | Input manager | `InputState` (per-frame `ActionState` and axes, pointer) plus `ActionMap` (key to action bindings) | `<sgl/input/InputState.hpp>`, `<sgl/input/ActionMap.hpp>` | [engine-input.md](engine-input.md) |
 | Raw input event | `InputEvent` variant: `KeyDown`, `KeyUp`, `MouseMove`, `MouseDown`, `MouseUp`, `WindowClosed`, `FocusLost`, `FocusGained` | `<sgl/input/InputEvent.hpp>` | [engine-input.md](engine-input.md) |
-| Event manager / event bus | None. See [Events](#events) below | | [input-and-events.md](input-and-events.md) |
+| Event manager / event bus | None. See [Events](#events) below | | [engine-events.md](engine-events.md) |
 | Resource manager | `ResourceCache<Id, T>` (keyed, stable addresses, `std::expected` loads), owned by `sfml::SfmlAssets` (textures, fonts) and `sfml::SfmlAudio` (sound buffers) | `<sgl/resources/ResourceCache.hpp>`, `<sgl/sfml/SfmlAssets.hpp>` | [engine-resources.md](engine-resources.md) |
 | Sprite sheet | `Atlas` / `parseAtlas` (text manifest of named rects) | `<sgl/resources/Atlas.hpp>` | [engine-resources.md](engine-resources.md) |
 | Application / main loop | `App` (`run`, `runFrames`) with `FixedStepLoop` | `<sgl/loop/App.hpp>` | [engine-loop.md](engine-loop.md) |

@@ -13,6 +13,7 @@ related_code:
   - games/syndicate/main.cpp
   - .github/workflows/ci.yml
 related_docs:
+  - create_new_game.md
   - ../how-to/build-and-test.md
   - ../reference/source-layout.md
   - ../reference/input-and-events.md
@@ -81,4 +82,4 @@ The lab also ships Tetris and Syndicate. Build Tetris with `cmake --build --pres
 
 ## Next steps
 
-Everyday commands and tests: [../how-to/build-and-test.md](../how-to/build-and-test.md). Layout: [../reference/source-layout.md](../reference/source-layout.md). Input: [../reference/input-and-events.md](../reference/input-and-events.md). Pause: [../reference/pause-overlay.md](../reference/pause-overlay.md). Sim rules: [games/arkanoid/docs/reference/sim.md](../../games/arkanoid/docs/reference/sim.md).
+Everyday commands and tests: [../how-to/build-and-test.md](../how-to/build-and-test.md). Layout: [../reference/source-layout.md](../reference/source-layout.md). Input: [../reference/input-and-events.md](../reference/input-and-events.md). Pause: [../reference/pause-overlay.md](../reference/pause-overlay.md). Sim rules: [games/arkanoid/docs/reference/sim.md](../../games/arkanoid/docs/reference/sim.md). Build your own game next: [create_new_game.md](create_new_game.md).

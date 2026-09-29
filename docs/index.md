@@ -7,8 +7,13 @@ related_code:
   - games/CMakeLists.txt
 related_docs:
   - tutorials/getting-started.md
+  - tutorials/create_new_game.md
   - how-to/build-and-test.md
   - how-to/add-a-game.md
+  - how-to/add-a-scene.md
+  - how-to/add-a-ui-component.md
+  - how-to/write-headless-tests.md
+  - reference/engine-events.md
   - reference/source-layout.md
   - reference/engine-core.md
   - reference/engine-audio.md
@@ -74,15 +79,19 @@ flowchart TD
 |--------------------|------------|
 | The engine (`engine/`) | [explanation/architecture.md](explanation/architecture.md), [reference/engine-api-map.md](reference/engine-api-map.md), then the matching `reference/engine-*.md` |
 | An existing game | That game's `games/<game>/docs/index.md` |
-| A new game | [how-to/add-a-game.md](how-to/add-a-game.md) and a sibling game's docs as a model |
+| A new game | [tutorials/create_new_game.md](tutorials/create_new_game.md), then [how-to/add-a-game.md](how-to/add-a-game.md), with a sibling game's docs as a model |
 
 ## Engine and cross-game documents
 
 | Document | Type | Keywords |
 |----------|------|----------|
 | [tutorials/getting-started.md](tutorials/getting-started.md) | tutorial | setup, toolchain, build, run, msys2 |
+| [tutorials/create_new_game.md](tutorials/create_new_game.md) | tutorial | new game, Dodger, sim, SceneI, ActionMap, RenderQueue, App |
 | [how-to/build-and-test.md](how-to/build-and-test.md) | how-to | build, test, ctest, format, presets |
-| [how-to/add-a-game.md](how-to/add-a-game.md) | how-to | game, cmake, check_boundaries, sim, app |
+| [how-to/add-a-game.md](how-to/add-a-game.md) | how-to | game, checklist, cmake, check_boundaries, sim, app |
+| [how-to/add-a-scene.md](how-to/add-a-scene.md) | how-to | SceneI, traits, PushScene, ReplaceScene, pause, menu |
+| [how-to/add-a-ui-component.md](how-to/add-a-ui-component.md) | how-to | sgl_ui, widget, style, Shapes, ProgressBar |
+| [how-to/write-headless-tests.md](how-to/write-headless-tests.md) | how-to | gtest, mocks, SceneStack, runFrames, AudioSpy |
 | [reference/source-layout.md](reference/source-layout.md) | reference | layout, directories, sgl, targets, suites |
 | [reference/engine-core.md](reference/engine-core.md) | reference | sgl, Vec2, Rect, Handle, Image, Overloaded |
 | [reference/engine-audio.md](reference/engine-audio.md) | reference | sgl, AudioI, tone, Pcm, SfmlAudio |
@@ -101,6 +110,7 @@ flowchart TD
 | [reference/pause-overlay.md](reference/pause-overlay.md) | reference | PauseScene, RequestPause, FocusLost, pausable |
 | [explanation/roadmap.md](explanation/roadmap.md) | explanation | roadmap, stages, power-ups, engine split |
 | [reference/engine-api-map.md](reference/engine-api-map.md) | reference | SceneManager, InputManager, ResourceManager, EventManager, real types |
+| [reference/engine-events.md](reference/engine-events.md) | reference | InputEvent, SceneRequest, SimEvent, GameEvent, drainEvents |
 | [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, boundaries, ECS, game loop, scene lifecycle, mermaid |
 | [explanation/cpp23-and-ownership.md](explanation/cpp23-and-ownership.md) | explanation | C++23, RAII, unique_ptr, expected, variant, zero-cost |
 | [explanation/sfml-integration.md](explanation/sfml-integration.md) | explanation | SFML 3.1, adapters, Vector2f, transforms, letterbox |
