@@ -1,0 +1,2 @@
+add_unit_test(syndicate_match_test SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/MatchTest.cpp DEPENDENCIES syndicate_sim)
+add_unit_test(syndicate_match_property_test SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/MatchPropertyTest.cpp DEPENDENCIES syndicate_sim)

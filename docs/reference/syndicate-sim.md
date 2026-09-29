@@ -8,20 +8,32 @@ related_code:
   - games/syndicate/sim/include/syndicate/sim/BoardGraph.hpp
   - games/syndicate/sim/include/syndicate/sim/BoardLayouts.hpp
   - games/syndicate/sim/include/syndicate/sim/Pathing.hpp
+  - games/syndicate/sim/include/syndicate/sim/Match.hpp
+  - games/syndicate/sim/include/syndicate/sim/GameState.hpp
+  - games/syndicate/sim/include/syndicate/sim/Commands.hpp
+  - games/syndicate/sim/include/syndicate/sim/Events.hpp
   - games/syndicate/sim/src/BoardGraph.cpp
   - games/syndicate/sim/src/BoardLayouts.cpp
   - games/syndicate/sim/src/Pathing.cpp
+  - games/syndicate/sim/src/Match.cpp
+  - games/syndicate/sim/parts/match.cmake
   - games/syndicate/sim/CMakeLists.txt
   - tests/syndicate/sim/MoneyTest.cpp
   - tests/syndicate/sim/BoardGraphTest.cpp
   - tests/syndicate/sim/BoardLayoutsTest.cpp
   - tests/syndicate/sim/PathingTest.cpp
+  - tests/syndicate/sim/MatchTest.cpp
+  - tests/syndicate/sim/MatchPropertyTest.cpp
+  - tests/syndicate/sim/parts/match.cmake
   - tests/syndicate/sim/CMakeLists.txt
 related_docs:
   - ../explanation/syndicate-design.md
+  - syndicate-economy.md
+  - syndicate-cards.md
+  - syndicate-auction.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, sim, Money, BoardGraph, standardBoard, moveOptions, Payday, CSR, NodeId]
+keywords: [syndicate, sim, Money, BoardGraph, standardBoard, moveOptions, Match, turn machine, Payday, CSR, NodeId]
 last_reviewed: 2026-09-29
 ---
 
@@ -141,3 +153,35 @@ Outer prices/fees: 100/10. Inner: 150/15. Core: 300/30. Audit tax 10%. Grant amo
 - `path` length is `steps+1` and includes the start node.
 - `passesPayday` iff some node **after** the start equals the unique Payday node.
 - Dedupe by `(destination, passesPayday)` keeping the lexicographically smaller path; sort by destination, then `passesPayday` (false before true), then path.
+
+## Turn machine (`Match.hpp`)
+
+Closed command API over `GameState` in `namespace sgl::syndicate`. Headers: `Match.hpp`, `GameState.hpp`, `Commands.hpp`, `Events.hpp`. Wired via `parts/match.cmake`. Calls Economy / Cards / Auction / Trade; does not reimplement fee, deck, or auction math.
+
+| API | Role |
+|-----|------|
+| `Match::create(MatchConfig)` | Seats **2..4** else `SetupError::BadSeats`. `standardBoard()`, cash/`startCash`, all at Payday node 0, market indexes 100, influence `Deck::fillAndShuffle`, 12-card market-event deck (±20 per sector), phase `AwaitRoll`, acting seat 0, round 1. One `Pcg32` from `config.seed`. |
+| `apply(actor, Command)` | Only `actingPlayer()`; `GameOver` / wrong phase → `WrongPhase`; else command-specific `InvalidArgument` / `InsufficientFunds` / `NotYourTurn`. |
+| `legalCommands(actor)` | Empty if not acting or `GameOver`. Every returned command must `apply` successfully (property tests rely on this). `ProposeTrade` is omitted from the enumeration. |
+| `drainEvents()` | Moves out and clears the event buffer. |
+
+### Phase flow
+
+`AwaitRoll` → `AwaitPath` (2d4 via `nextU32()%4+1`, optional Momentum ±1 for 25) → `ChooseDestination` → optional payday (salary 200 + dividends, then 10% interest if still negative) → land resolve:
+
+| Landing | Next phase |
+|---------|------------|
+| `SectorTile` free shares > 0 | `AwaitPurchase` (buy up to `min(3,free)` or decline) |
+| `SectorTile` free == 0 | fee (embargo zeroes; else `landingFee` + optional `liquidationPlan`) → `Manage` |
+| `Hub` | draw into hand if not full → `Manage` |
+| `Exchange` / `Grant` / `AuditTile` / `Payday` | resolve tile effect → `Manage` |
+
+Decline with ≥3 free opens `InAuction` (3-share block at 50% mark). After auction Sold/Unsold → `Manage`. Manage allows one card, up to three trades (hot-seat `AwaitTradeResponse`), upgrade/sell/buy-card, then `EndTurn`. Last seat ending a round: `round++`, draw/apply one market event (`applyShift` then `revertTowardCenter`; Insider peek consumes that card), then game-over check (`round > maxRounds` or any `netWorth >= target`) else next seat `AwaitRoll`.
+
+### Events
+
+`GameEvent` variant includes at least: `Rolled`, `Moved`, `PaydayPaid`, `FeePaid`, `Liquidated`, `SharesBought`, `AuctionDone`, `CardPlayed`, `TradeResolved`, `MarketShifted`, `GameEnded`.
+
+### Tests
+
+`syndicate_match_test` (seeded scenarios, each `CommandError`, max-rounds `GameOver`). `syndicate_match_property_test` (seeds 1..200, 4 seats, 8 rounds, share invariant bank+players==10). Full `Match` fork is not available; first-step legality is re-checked on fresh creates with the same seed.
