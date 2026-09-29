@@ -3,6 +3,7 @@
 #include <sgl/render/AssetIds.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <syndicate/app/LayoutView.hpp>
+#include <syndicate/app/PathHighlighter.hpp>
 #include <syndicate/app/SpriteBank.hpp>
 #include <syndicate/app/Theme.hpp>
 #include <syndicate/sim/BoardGraph.hpp>
@@ -15,6 +16,7 @@ namespace sgl::syndicate
 
 /// Emits one `CircleCmd` per node and one `LineCmd` per unique unordered edge pair on `Layer::World`.
 /// Optional short labels (40 `TextCmd`) and atlas sprites when `sprites` is non-null.
+/// When `highlights` is non-null, destination nodes use a thicker outline.
 void renderBoard(sgl::RenderQueue& queue,
                  const BoardGraph& board,
                  const Ownership& ownership,
@@ -22,6 +24,7 @@ void renderBoard(sgl::RenderQueue& queue,
                  const Theme& theme,
                  const std::vector<MoveOption>& highlighted,
                  sgl::FontId font = {},
-                 const SpriteBank* sprites = nullptr);
+                 const SpriteBank* sprites = nullptr,
+                 const HighlightModel* highlights = nullptr);
 
 } // namespace sgl::syndicate

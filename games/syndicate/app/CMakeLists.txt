@@ -9,6 +9,9 @@ add_library(syndicate_app STATIC
     src/Describe.cpp
     src/ActionBar.cpp
     src/HandView.cpp
+    src/MarketHistory.cpp
+    src/TrendChart.cpp
+    src/PathHighlighter.cpp
     src/HudModel.cpp
     src/PlayScene.cpp
     src/Sounds.cpp

@@ -40,6 +40,27 @@ add_unit_test(syndicate_presentation_test
         syndicate_app
 )
 
+add_unit_test(syndicate_market_history_test
+    SOURCES
+        MarketHistoryTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_trend_chart_test
+    SOURCES
+        TrendChartTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_path_highlighter_test
+    SOURCES
+        PathHighlighterTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_hud_model_test
     SOURCES
         HudModelTest.cpp

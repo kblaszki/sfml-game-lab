@@ -64,6 +64,22 @@ namespace
     return false;
 }
 
+[[nodiscard]] bool isHighlightDestination(NodeId id, const HighlightModel* highlights)
+{
+    if(highlights == nullptr)
+    {
+        return false;
+    }
+    for(const NodeId dest: highlights->destinations)
+    {
+        if(dest == id)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 [[nodiscard]] std::string shortLabel(const TileKind& kind)
 {
     return std::visit(
@@ -144,7 +160,8 @@ void renderBoard(sgl::RenderQueue& queue,
                  const Theme& theme,
                  const std::vector<MoveOption>& highlighted,
                  sgl::FontId font,
-                 const SpriteBank* sprites)
+                 const SpriteBank* sprites,
+                 const HighlightModel* highlights)
 {
     std::set<std::pair<std::uint16_t, std::uint16_t>> undirected;
     for(std::size_t i = 0; i < board.size(); ++i)
@@ -184,10 +201,11 @@ void renderBoard(sgl::RenderQueue& queue,
         const auto& node = board.node(id);
         const auto& hold = ownership.holdings(id);
         const bool hi = isHighlighted(id, highlighted);
+        const bool pathDest = isHighlightDestination(id, highlights);
         const sgl::Vec2f center = layout.position(node.at);
 
         sgl::Color outline = theme.edge;
-        if(hi)
+        if(hi || pathDest)
         {
             outline = theme.highlight;
         }
@@ -196,12 +214,18 @@ void renderBoard(sgl::RenderQueue& queue,
             outline = theme.pawn[static_cast<std::size_t>(*ctrl)];
         }
 
+        float outlineThickness = static_cast<float>(hold.level) + 1.f;
+        if(pathDest)
+        {
+            outlineThickness += 2.f;
+        }
+
         queue.push(sgl::Layer::World, 1000.f + static_cast<float>(i),
                    sgl::CircleCmd{.center = center,
                                   .radius = r,
                                   .fill = tileFill(node.kind, theme),
                                   .outline = outline,
-                                  .outlineThickness = static_cast<float>(hold.level) + 1.f,
+                                  .outlineThickness = outlineThickness,
                                   .points = 32});
 
         if(sprites != nullptr)

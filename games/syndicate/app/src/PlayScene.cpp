@@ -223,6 +223,7 @@ PlayScene::PlayScene(MatchConfig config, std::vector<Seat> seats, sgl::FontId fo
     }
     match_ = std::move(*created);
     resetPawns();
+    hud_.recordMarket(match_->state().market);
 }
 
 PlayScene::PlayScene(const SyndicateServices& services, MatchConfig config, std::vector<Seat> seats)
@@ -246,6 +247,7 @@ PlayScene::PlayScene(const SyndicateServices& services, MatchConfig config, std:
     }
     match_ = std::move(*created);
     resetPawns();
+    hud_.recordMarket(match_->state().market);
 }
 
 void PlayScene::resetPawns()
@@ -328,6 +330,7 @@ void PlayScene::applyCommand(PlayerId actor, const Command& cmd)
         return;
     }
     drainFeedback();
+    hud_.recordMarket(match->state().market);
     botThink_ = 0.f;
 }
 
@@ -434,6 +437,10 @@ void PlayScene::updateTooltips(const sgl::InputState& input, sgl::Seconds dt)
     {
         hotspots.push_back(spot);
     }
+    for(const sgl::Hotspot& spot: hud_.chartHotspots())
+    {
+        hotspots.push_back(spot);
+    }
     for(int i = 0; i < state.seats; ++i)
     {
         const Money cash = state.cash[static_cast<std::size_t>(i)];
@@ -480,6 +487,18 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
     hud_.update(dt);
 
     const sgl::InputState& input = ctx.input();
+    const sgl::Vec2f pointer = input.pointer().value_or(sgl::Vec2f{0.f, 0.f});
+
+    if(const auto* path = std::get_if<AwaitPath>(&match_->state().phase))
+    {
+        highlighter_.build(path->options, match_->state().board, layout_);
+    }
+    else
+    {
+        highlighter_.build({}, match_->state().board, layout_);
+    }
+    highlighter_.update(dt, pointer);
+
     if(!gameOver())
     {
         if(input.action(actions_.pause).pressed)
@@ -570,7 +589,16 @@ void PlayScene::render(sgl::RenderQueue& queue) const
         highlighted = path->options;
     }
     const SpriteBank* sprites = services_.has_value() ? &services_->sprites : nullptr;
-    renderBoard(queue, s.board, s.ownership, layout_, theme_, highlighted, font_, sprites);
+    const HighlightModel* highlights = nullptr;
+    if(std::holds_alternative<AwaitPath>(s.phase))
+    {
+        highlights = &highlighter_.model();
+    }
+    renderBoard(queue, s.board, s.ownership, layout_, theme_, highlighted, font_, sprites, highlights);
+    if(highlights != nullptr)
+    {
+        highlighter_.render(queue, theme_);
+    }
 
     for(int i = 0; i < s.seats; ++i)
     {

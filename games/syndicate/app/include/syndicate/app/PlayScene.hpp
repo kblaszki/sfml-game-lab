@@ -19,6 +19,7 @@
 #include <syndicate/app/HandView.hpp>
 #include <syndicate/app/HudModel.hpp>
 #include <syndicate/app/LayoutView.hpp>
+#include <syndicate/app/PathHighlighter.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
 #include <syndicate/app/Presentation.hpp>
 #include <syndicate/app/Sounds.hpp>
@@ -91,6 +92,7 @@ private:
     PawnAnimator animator_{layout_};
     Presentation presentation_;
     HudModel hud_{};
+    PathHighlighter highlighter_{};
     ActionBar actionBar_{};
     HandView handView_{};
     sgl::HoverAnim hover_{};

@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <sgl/core/Color.hpp>
@@ -10,6 +9,7 @@
 #include <string>
 #include <syndicate/app/Describe.hpp>
 #include <syndicate/app/HudModel.hpp>
+#include <syndicate/app/TrendChart.hpp>
 #include <utility>
 #include <variant>
 
@@ -19,6 +19,11 @@ namespace sgl::syndicate
 void HudModel::pushNote(std::string text, float ttl)
 {
     notes_.push_back(HudNote{.text = std::move(text), .ttl = ttl});
+}
+
+void HudModel::recordMarket(const Market& market)
+{
+    history_.record(market);
 }
 
 void HudModel::update(sgl::Seconds dt)
@@ -69,6 +74,11 @@ std::size_t HudModel::noteCount() const noexcept
     return notes_.size();
 }
 
+std::vector<sgl::Hotspot> HudModel::chartHotspots() const
+{
+    return sgl::syndicate::chartHotspots(history_, marketChartRect());
+}
+
 void HudModel::render(sgl::RenderQueue& queue, const Match& match, sgl::FontId font, const Theme& theme) const
 {
     const GameState& state = match.state();
@@ -115,22 +125,7 @@ void HudModel::render(sgl::RenderQueue& queue, const Match& match, sgl::FontId f
                    });
     }
 
-    constexpr float kBarX0 = 1040.f;
-    constexpr float kBarYBase = 640.f;
-    constexpr float kBarW = 28.f;
-    constexpr float kBarGap = 12.f;
-    for(std::size_t i = 0; i < state.market.index.size(); ++i)
-    {
-        const float t = std::clamp(static_cast<float>(state.market.index[i].v) / 200.f, 0.f, 1.f);
-        const float h = 50.f + t * 150.f;
-        const float x = kBarX0 + static_cast<float>(i) * (kBarW + kBarGap);
-        queue.push(sgl::Layer::Hud,
-                   depth++,
-                   sgl::RectCmd{
-                       .rect = sgl::Rect<float>{.pos = {x, kBarYBase - h}, .size = {kBarW, h}},
-                       .fill = theme.sector[i],
-                   });
-    }
+    renderTrendChart(queue, history_, marketChartRect(), theme, font);
 
     float noteY = 200.f;
     for(const HudNote& note: notes_)

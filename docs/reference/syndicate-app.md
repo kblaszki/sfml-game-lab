@@ -16,6 +16,9 @@ related_code:
   - games/syndicate/app/include/syndicate/app/Describe.hpp
   - games/syndicate/app/include/syndicate/app/ActionBar.hpp
   - games/syndicate/app/include/syndicate/app/HandView.hpp
+  - games/syndicate/app/include/syndicate/app/MarketHistory.hpp
+  - games/syndicate/app/include/syndicate/app/TrendChart.hpp
+  - games/syndicate/app/include/syndicate/app/PathHighlighter.hpp
   - games/syndicate/app/include/syndicate/app/HudModel.hpp
   - games/syndicate/app/include/syndicate/app/PlayScene.hpp
   - games/syndicate/app/include/syndicate/app/Scenes.hpp
@@ -35,6 +38,9 @@ related_code:
   - games/syndicate/app/src/Describe.cpp
   - games/syndicate/app/src/ActionBar.cpp
   - games/syndicate/app/src/HandView.cpp
+  - games/syndicate/app/src/MarketHistory.cpp
+  - games/syndicate/app/src/TrendChart.cpp
+  - games/syndicate/app/src/PathHighlighter.cpp
   - games/syndicate/app/src/HudModel.cpp
   - games/syndicate/app/src/PlayScene.cpp
   - games/syndicate/app/src/Sounds.cpp
@@ -51,6 +57,9 @@ related_code:
   - tests/syndicate/app/PawnAnimatorTest.cpp
   - tests/syndicate/app/DiceAnimatorTest.cpp
   - tests/syndicate/app/PresentationTest.cpp
+  - tests/syndicate/app/MarketHistoryTest.cpp
+  - tests/syndicate/app/TrendChartTest.cpp
+  - tests/syndicate/app/PathHighlighterTest.cpp
   - tests/syndicate/app/HudModelTest.cpp
   - tests/syndicate/app/DescribeTest.cpp
   - tests/syndicate/app/ActionBarTest.cpp
@@ -68,7 +77,7 @@ related_docs:
   - engine-save.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, PawnAnimator, DiceAnimator, Presentation, Bindings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, MarketHistory, TrendChart, PathHighlighter, PawnAnimator, DiceAnimator, Presentation, Bindings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
@@ -104,11 +113,13 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## Theme / layout / board / HUD
 
-`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `DiceAnimator`, `Presentation`, `HudModel`, `HandView`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
+`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `DiceAnimator`, `Presentation`, `HudModel`, `HandView`, `MarketHistory`, `TrendChart`, `PathHighlighter`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
 
-`renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`).
+`renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` + `HighlightModel*` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`); when `highlights` is non-null, destination nodes use a thicker outline.
 
-`HudModel` draws one rounded player panel per seat (`playerPanelRect`, x=16, y=48+i×36, 300×32) with `P{n} {formatMoney(cash)}`; the acting seat gets a brighter outline. Phase prompt and note TTL are unchanged.
+`HudModel` draws one rounded player panel per seat (`playerPanelRect`, x=16, y=48+i×36, 300×32) with `P{n} {formatMoney(cash)}`; the acting seat gets a brighter outline. Phase prompt and note TTL are unchanged. Market bars are replaced by `renderTrendChart` in the right panel (`marketChartRect`, x=940, y=16, w=324, h=284): six stacked sparklines from an internal `MarketHistory` (ring of 32 samples per sector). `recordMarket` appends the current `Market` index; `chartHotspots()` returns one hotspot per sector row.
+
+`PathHighlighter` builds legal-move destinations and junction arrows from `MoveOption` paths (arrow tip at 60% along a diverging edge). `update` pulses radius in `[0.88, 1.12]` and sets `hovered` when the pointer is within `1.5 * nodeRadius` of a destination. `render` draws `radialGlow`, `arrowHead`, and a thickness-5 path polyline for the hovered option.
 
 ## Dice / pawn presentation
 
@@ -134,7 +145,7 @@ Match rolls are **d4+d4** (faces 1..4, total 2..8). `DiceAnimator` shows two pro
 
 ## PlayScene
 
-Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, `TooltipSystem`, and `Presentation` (seed from `MatchConfig::seed` or `services.seed`). On a human turn while presentation is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/pawns, HUD, dice at layout origin, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled` and `Feedback` after each applied command.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, `TooltipSystem`, `Presentation` (seed from `MatchConfig::seed` or `services.seed`), and `PathHighlighter`. Records the market into `HudModel` at startup and after each successful `apply`. On a human turn while presentation is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. In `AwaitPath`, builds/updates the path highlighter and passes `&highlighter.model()` into `renderBoard`, then `highlighter.render` after the board. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, market chart rows, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/highlights/pawns, HUD, dice at layout origin, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled` and `Feedback` after each applied command.
 
 ## main.cpp
 
@@ -150,6 +161,9 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | `syndicate_pawn_animator_test` | Catmull-Rom ease-in-out path, `busy()`, distinct same-slot positions |
 | `syndicate_dice_animator_test` | d4+d4 tumble intervals non-decreasing, settle on roll 7, fast-forward |
 | `syndicate_presentation_test` | Path waits for dice; fast-forward ends both |
+| `syndicate_market_history_test` | Ring capacity 32; oldest dropped; series match recorded index |
+| `syndicate_trend_chart_test` | Mesh vertices inside chart rect; ≥6 labels; hotspot body |
+| `syndicate_path_highlighter_test` | Pulse range; single option → 0 arrows; multi-option destinations + hover |
 | `syndicate_hud_model_test` | phasePrompt words; note TTL expiry |
 | `syndicate_describe_test` | `formatMoney` scales; Biotech `BuyShares{1}` label facts |
 | `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot |
