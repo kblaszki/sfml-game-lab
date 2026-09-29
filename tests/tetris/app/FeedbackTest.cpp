@@ -2,11 +2,11 @@
 
 #include <cmath>
 #include <gtest/gtest.h>
+#include <set>
 #include <sgl/core/Random.hpp>
 #include <sgl/core/Time.hpp>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
-#include <set>
 #include <span>
 #include <tetris/app/BoardRender.hpp>
 #include <tetris/app/Feedback.hpp>
@@ -36,8 +36,7 @@ sgl::tetris::SoundIds makeIds()
 {
     const sgl::tetris::Layout layout = sgl::tetris::defaultLayout();
     return layout.wellOrigin.y
-           + layout.cell
-                 * (static_cast<float>(sgl::tetris::Grid::kVisibleHeight - 1 - static_cast<int>(row)) + 0.5f);
+           + layout.cell * (static_cast<float>(sgl::tetris::Grid::kVisibleHeight - 1 - static_cast<int>(row)) + 0.5f);
 }
 
 } // namespace

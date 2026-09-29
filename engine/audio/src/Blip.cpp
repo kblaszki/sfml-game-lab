@@ -1,6 +1,5 @@
-#include <sgl/audio/Blip.hpp>
-
 #include <cstdint>
+#include <sgl/audio/Blip.hpp>
 #include <sgl/audio/Envelope.hpp>
 #include <sgl/audio/Tone.hpp>
 #include <sgl/core/Time.hpp>

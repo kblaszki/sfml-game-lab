@@ -1,8 +1,7 @@
-#include <sgl/ui/PauseOverlay.hpp>
-
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/scene/SceneContext.hpp>
+#include <sgl/ui/PauseOverlay.hpp>
 #include <sgl/ui/RenderMenu.hpp>
 #include <vector>
 

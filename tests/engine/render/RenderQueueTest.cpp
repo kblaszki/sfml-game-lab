@@ -97,41 +97,46 @@ TEST(RenderQueueTest, ClearResetsSeq)
 TEST(RenderQueueTest, MixedCommandsStableSortByLayerDepthSeq)
 {
     sgl::RenderQueue queue;
-    queue.push(sgl::Layer::Hud, 0.f,
-              sgl::TextCmd{
-                  .font = {},
-                  .text = "hud",
-                  .size = 12,
-                  .position = {0.f, 0.f},
-                  .color = {1, 0, 0, 255},
-              });
-    queue.push(sgl::Layer::World, 1.f,
-              sgl::SpriteCmd{
-                  .texture = {},
-                  .source = {.pos = {0.f, 0.f}, .size = {1.f, 1.f}},
-                  .position = {0.f, 0.f},
-              });
-    queue.push(sgl::Layer::World, 1.f,
-              sgl::LineCmd{
-                  .from = {0.f, 0.f},
-                  .to = {1.f, 0.f},
-                  .thickness = 1.f,
-                  .color = {2, 0, 0, 255},
-              });
+    queue.push(sgl::Layer::Hud,
+               0.f,
+               sgl::TextCmd{
+                   .font = {},
+                   .text = "hud",
+                   .size = 12,
+                   .position = {0.f, 0.f},
+                   .color = {1, 0, 0, 255},
+               });
+    queue.push(sgl::Layer::World,
+               1.f,
+               sgl::SpriteCmd{
+                   .texture = {},
+                   .source = {.pos = {0.f, 0.f}, .size = {1.f, 1.f}},
+                   .position = {0.f, 0.f},
+               });
+    queue.push(sgl::Layer::World,
+               1.f,
+               sgl::LineCmd{
+                   .from = {0.f, 0.f},
+                   .to = {1.f, 0.f},
+                   .thickness = 1.f,
+                   .color = {2, 0, 0, 255},
+               });
     queue.push(sgl::Layer::Background, 0.f, makeRect({3, 0, 0, 255}));
-    queue.push(sgl::Layer::World, 1.f,
-              sgl::CircleCmd{
-                  .center = {0.f, 0.f},
-                  .radius = 1.f,
-                  .fill = {4, 0, 0, 255},
-              });
-    queue.push(sgl::Layer::World, 0.f,
-              sgl::LineCmd{
-                  .from = {0.f, 0.f},
-                  .to = {0.f, 1.f},
-                  .thickness = 2.f,
-                  .color = {5, 0, 0, 255},
-              });
+    queue.push(sgl::Layer::World,
+               1.f,
+               sgl::CircleCmd{
+                   .center = {0.f, 0.f},
+                   .radius = 1.f,
+                   .fill = {4, 0, 0, 255},
+               });
+    queue.push(sgl::Layer::World,
+               0.f,
+               sgl::LineCmd{
+                   .from = {0.f, 0.f},
+                   .to = {0.f, 1.f},
+                   .thickness = 2.f,
+                   .color = {5, 0, 0, 255},
+               });
 
     const auto sorted = queue.sorted();
     ASSERT_EQ(sorted.size(), 6u);

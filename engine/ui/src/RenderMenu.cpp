@@ -1,7 +1,6 @@
-#include <sgl/ui/RenderMenu.hpp>
-
 #include <algorithm>
 #include <sgl/render/DrawCommand.hpp>
+#include <sgl/ui/RenderMenu.hpp>
 
 namespace sgl
 {

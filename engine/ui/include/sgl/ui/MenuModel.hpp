@@ -2,10 +2,10 @@
 
 #include <cstddef>
 #include <optional>
-#include <span>
 #include <sgl/input/InputState.hpp>
 #include <sgl/ui/Button.hpp>
 #include <sgl/ui/MenuActions.hpp>
+#include <span>
 #include <vector>
 
 namespace sgl

@@ -1,7 +1,6 @@
-#include <sgl/save/ScoreStore.hpp>
-
 #include <sgl/save/SaveFile.hpp>
 #include <sgl/save/SaveFormat.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <system_error>
 
 namespace sgl
