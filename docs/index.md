@@ -12,6 +12,7 @@ related_docs:
   - reference/source-layout.md
   - reference/engine-core.md
   - reference/engine-audio.md
+  - reference/engine-ui.md
   - reference/engine-input.md
   - reference/engine-scene.md
   - reference/engine-loop.md
@@ -68,6 +69,7 @@ flowchart TD
 | [reference/source-layout.md](reference/source-layout.md) | reference | layout, directories, sgl, arkanoid, tetris, targets |
 | [reference/engine-core.md](reference/engine-core.md) | reference | sgl, Vec2, Rect, Handle, Image, Overloaded |
 | [reference/engine-audio.md](reference/engine-audio.md) | reference | sgl, AudioI, tone, Pcm, SfmlAudio |
+| [reference/engine-ui.md](reference/engine-ui.md) | reference | sgl, MenuModel, renderMenu, PauseOverlay |
 | [reference/engine-input.md](reference/engine-input.md) | reference | InputEvent, ActionMap, InputState |
 | [reference/engine-scene.md](reference/engine-scene.md) | reference | SceneStack, SceneRequest, pause |
 | [reference/engine-loop.md](reference/engine-loop.md) | reference | FixedStepLoop, App, PlatformI |

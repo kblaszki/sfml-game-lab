@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <sgl/core/Color.hpp>
 #include <sgl/core/Rect.hpp>
@@ -64,7 +65,25 @@ struct TextCmd
     Anchor anchor{Anchor::TopLeft};
 };
 
-using DrawCommand = std::variant<SpriteCmd, RectCmd, TextCmd>;
+struct LineCmd
+{
+    Vec2f from;
+    Vec2f to;
+    float thickness{1.f};
+    Color color;
+};
+
+struct CircleCmd
+{
+    Vec2f center;
+    float radius;
+    Color fill;
+    Color outline{};
+    float outlineThickness{};
+    std::size_t points{32};
+};
+
+using DrawCommand = std::variant<SpriteCmd, RectCmd, TextCmd, LineCmd, CircleCmd>;
 
 struct Entry
 {

@@ -69,12 +69,12 @@ const SfmlAssets& SfmlPlatform::assets() const
     return assets_;
 }
 
-sgl::AudioI& SfmlPlatform::audio()
+SfmlAudio& SfmlPlatform::audio()
 {
     return *audio_;
 }
 
-const sgl::AudioI& SfmlPlatform::audio() const
+const SfmlAudio& SfmlPlatform::audio() const
 {
     return *audio_;
 }

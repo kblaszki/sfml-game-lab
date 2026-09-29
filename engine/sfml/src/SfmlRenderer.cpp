@@ -76,6 +76,10 @@ void SfmlRenderer::submit(sgl::RenderQueue& queue)
                     text.setPosition({cmd.position.x, cmd.position.y});
                     target_.draw(text);
                 }
+                else if constexpr(std::is_same_v<T, sgl::LineCmd> || std::is_same_v<T, sgl::CircleCmd>)
+                {
+                    target_.draw(toShape(cmd));
+                }
             },
             entry.command);
     }

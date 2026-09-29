@@ -76,7 +76,7 @@ GPU caches over `ResourceCache`:
 `SfmlRenderer(sf::RenderTarget&, const SfmlAssets&)` implements `RendererI`:
 
 - `begin()` — clear target; reset `skippedCommands()`
-- `submit(RenderQueue&)` — walk `queue.sorted()`, `std::visit` `SpriteCmd` / `RectCmd` / `TextCmd`; missing texture (or font) skips and increments the counter; `Anchor::Center` origins text at local-bounds center. `SfmlDraw.hpp` builds the sprite and the rectangle with origin at the center and position at top-left plus half the size, so `rotationDeg` turns around the center of the unrotated bounds. `rotationDeg == 0` draws as before.
+- `submit(RenderQueue&)` — walk `queue.sorted()`, `std::visit` `SpriteCmd` / `RectCmd` / `TextCmd` / `LineCmd` / `CircleCmd`; missing texture (or font) skips and increments the counter; `Anchor::Center` origins text at local-bounds center. `SfmlDraw.hpp` builds the sprite and the rectangle with origin at the center and position at top-left plus half the size, so `rotationDeg` turns around the center of the unrotated bounds. `rotationDeg == 0` draws as before. `LineCmd` becomes a rotated `sf::RectangleShape` of length `|to-from|` and height `thickness`, origin at the left-middle, positioned at `from`. `CircleCmd` becomes an `sf::CircleShape` with origin at the center.
 - `end()` — `display()` only when the target is an `sf::RenderWindow`
 
 ## SfmlPlatform
@@ -89,4 +89,4 @@ Constructor `(Vec2u designSize, title)`: window at design size, `Style::Default`
 
 **Letterbox:** on `Resized`, recompute a centered viewport that preserves design aspect (pillarbox or letterbox bars). Resize is consumed inside `poll()` and is not forwarded as an `InputEvent`. Mouse pixel positions from `pointerPixel` (`MouseMoved` / `MouseButtonPressed` / `MouseButtonReleased`) are mapped with `mapPixelToCoords` before `translate`.
 
-`assets()` exposes the cache for loading after construction. `renderer()` returns the `SfmlRenderer`.
+`assets()` exposes the cache for loading after construction. `renderer()` returns the `SfmlRenderer`. `audio()` returns `SfmlAudio&` so callers can `upload` PCM without a downcast.

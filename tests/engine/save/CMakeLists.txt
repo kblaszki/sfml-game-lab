@@ -18,3 +18,10 @@ add_unit_test(save_file_test
     DEPENDENCIES
         sgl_save
 )
+
+add_unit_test(score_store_test
+    SOURCES
+        ScoreStoreTest.cpp
+    DEPENDENCIES
+        sgl_save
+)

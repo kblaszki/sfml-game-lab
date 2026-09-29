@@ -17,7 +17,7 @@ related_docs:
   - source-layout.md
   - engine-fx.md
   - ../explanation/architecture.md
-keywords: [eng, RenderQueue, RendererI, DrawCommand, SortKey, Layer, Projection, Orthographic, Isometric, Camera, rotationDeg]
+keywords: [eng, RenderQueue, RendererI, DrawCommand, SortKey, Layer, Projection, Orthographic, Isometric, Camera, rotationDeg, LineCmd, CircleCmd]
 last_reviewed: 2026-09-29
 ---
 
@@ -31,15 +31,19 @@ CPU-side draw list and 2.5D helpers in `namespace sgl`, included as `<sgl/render
 
 ## Draw commands
 
-`DrawCommand` is `std::variant<SpriteCmd, RectCmd, TextCmd>`.
+`DrawCommand` is `std::variant<SpriteCmd, RectCmd, TextCmd, LineCmd, CircleCmd>`.
 
 | Type | Role |
 |------|------|
 | `SpriteCmd` | textured quad: `texture`, `source`, `position`, `scale`, `tint`, `rotationDeg` |
 | `RectCmd` | filled/outlined AABB: `rect`, `fill`, `outline`, `outlineThickness`, `rotationDeg` |
 | `TextCmd` | string: `font`, `text`, `size`, `position`, `color`, `anchor` (`TopLeft` / `Center`) |
+| `LineCmd` | segment: `from`, `to`, `thickness` (default `1`), `color` |
+| `CircleCmd` | filled disk: `center`, `radius`, `fill`, optional `outline` / `outlineThickness`, `points` (default `32`) |
 
 `SpriteCmd::position` and `RectCmd::rect.pos` are the **top-left of the unrotated bounds**. `rotationDeg` rotates around the center of those bounds (default `0` — identical to the previous unrotated draw).
+
+`LineCmd` spans `from` → `to`; thickness is the stroke width. `CircleCmd::center` is the circle center.
 
 `Entry` pairs a `SortKey` with a `DrawCommand`. `SortKey` orders by `Layer` (Background → Overlay), then `depth`, then `seq`.
 

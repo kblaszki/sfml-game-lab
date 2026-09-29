@@ -10,13 +10,16 @@ related_code:
   - engine/audio/include/sgl/audio/AudioI.hpp
   - engine/audio/include/sgl/audio/NullAudio.hpp
   - engine/audio/include/sgl/audio/Tone.hpp
+  - engine/audio/include/sgl/audio/Blip.hpp
   - engine/audio/src/Tone.cpp
+  - engine/audio/src/Blip.cpp
   - engine/audio/src/NullAudio.cpp
   - engine/audio/src/AudioI.cpp
   - engine/audio/CMakeLists.txt
   - engine/sfml/include/sgl/sfml/SfmlAudio.hpp
   - engine/sfml/src/SfmlAudio.cpp
   - tests/engine/audio/ToneTest.cpp
+  - tests/engine/audio/BlipTest.cpp
   - tests/mocks/AudioSpy.hpp
 related_docs:
   - source-layout.md
@@ -24,8 +27,8 @@ related_docs:
   - engine-core.md
   - ../explanation/architecture.md
   - ../how-to/build-and-test.md
-keywords: [sgl, audio, AudioI, NullAudio, SfmlAudio, SoundId, Pcm, tone, Waveform, Envelope]
-last_reviewed: 2026-09-25
+keywords: [sgl, audio, AudioI, NullAudio, SfmlAudio, SoundId, Pcm, tone, blip, Waveform, Envelope]
+last_reviewed: 2026-09-29
 ---
 
 # Engine audio
@@ -46,6 +49,10 @@ SFML playback lives in `sgl::sfml::SfmlAudio` (`sgl_sfml`, links `SFML::Audio` P
 `Envelope` holds `Seconds attack` and `Seconds release`. Linear fades: attack from silence to full, release from full to silence; sustain between them is full gain.
 
 `tone(waveform, freqHz, duration, sampleRate, envelope, amplitude)` builds mono PCM. Sample count is `duration * sampleRate`. Peak magnitude never exceeds `amplitude` (scaled to int16). Noise samples use `sgl::Pcg32` from `<sgl/core/Random.hpp>`.
+
+## blip
+
+`blip(hz, seconds, waveform, gain)` is a short UI/SFX helper over `tone`: sample rate `22050`, envelope attack `0.005s` / release `0.03s`, amplitude `gain`.
 
 ## AudioI and NullAudio
 

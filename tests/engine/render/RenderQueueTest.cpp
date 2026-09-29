@@ -93,3 +93,74 @@ TEST(RenderQueueTest, ClearResetsSeq)
     ASSERT_EQ(sorted.size(), 1u);
     EXPECT_EQ(sorted[0].key.seq, 0u);
 }
+
+TEST(RenderQueueTest, MixedCommandsStableSortByLayerDepthSeq)
+{
+    sgl::RenderQueue queue;
+    queue.push(sgl::Layer::Hud, 0.f,
+              sgl::TextCmd{
+                  .font = {},
+                  .text = "hud",
+                  .size = 12,
+                  .position = {0.f, 0.f},
+                  .color = {1, 0, 0, 255},
+              });
+    queue.push(sgl::Layer::World, 1.f,
+              sgl::SpriteCmd{
+                  .texture = {},
+                  .source = {.pos = {0.f, 0.f}, .size = {1.f, 1.f}},
+                  .position = {0.f, 0.f},
+              });
+    queue.push(sgl::Layer::World, 1.f,
+              sgl::LineCmd{
+                  .from = {0.f, 0.f},
+                  .to = {1.f, 0.f},
+                  .thickness = 1.f,
+                  .color = {2, 0, 0, 255},
+              });
+    queue.push(sgl::Layer::Background, 0.f, makeRect({3, 0, 0, 255}));
+    queue.push(sgl::Layer::World, 1.f,
+              sgl::CircleCmd{
+                  .center = {0.f, 0.f},
+                  .radius = 1.f,
+                  .fill = {4, 0, 0, 255},
+              });
+    queue.push(sgl::Layer::World, 0.f,
+              sgl::LineCmd{
+                  .from = {0.f, 0.f},
+                  .to = {0.f, 1.f},
+                  .thickness = 2.f,
+                  .color = {5, 0, 0, 255},
+              });
+
+    const auto sorted = queue.sorted();
+    ASSERT_EQ(sorted.size(), 6u);
+
+    EXPECT_EQ(sorted[0].key.layer, sgl::Layer::Background);
+    EXPECT_TRUE(std::holds_alternative<sgl::RectCmd>(sorted[0].command));
+
+    EXPECT_EQ(sorted[1].key.layer, sgl::Layer::World);
+    EXPECT_FLOAT_EQ(sorted[1].key.depth, 0.f);
+    EXPECT_TRUE(std::holds_alternative<sgl::LineCmd>(sorted[1].command));
+    EXPECT_EQ(std::get<sgl::LineCmd>(sorted[1].command).color.r, 5);
+
+    EXPECT_EQ(sorted[2].key.layer, sgl::Layer::World);
+    EXPECT_FLOAT_EQ(sorted[2].key.depth, 1.f);
+    EXPECT_EQ(sorted[2].key.seq, 1u);
+    EXPECT_TRUE(std::holds_alternative<sgl::SpriteCmd>(sorted[2].command));
+
+    EXPECT_EQ(sorted[3].key.layer, sgl::Layer::World);
+    EXPECT_FLOAT_EQ(sorted[3].key.depth, 1.f);
+    EXPECT_EQ(sorted[3].key.seq, 2u);
+    EXPECT_TRUE(std::holds_alternative<sgl::LineCmd>(sorted[3].command));
+    EXPECT_EQ(std::get<sgl::LineCmd>(sorted[3].command).color.r, 2);
+
+    EXPECT_EQ(sorted[4].key.layer, sgl::Layer::World);
+    EXPECT_FLOAT_EQ(sorted[4].key.depth, 1.f);
+    EXPECT_EQ(sorted[4].key.seq, 4u);
+    EXPECT_TRUE(std::holds_alternative<sgl::CircleCmd>(sorted[4].command));
+    EXPECT_EQ(std::get<sgl::CircleCmd>(sorted[4].command).fill.r, 4);
+
+    EXPECT_EQ(sorted[5].key.layer, sgl::Layer::Hud);
+    EXPECT_TRUE(std::holds_alternative<sgl::TextCmd>(sorted[5].command));
+}

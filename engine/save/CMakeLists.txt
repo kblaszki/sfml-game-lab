@@ -3,6 +3,7 @@ add_library(sgl_save STATIC
     src/SaveError.cpp
     src/SaveFile.cpp
     src/SaveFormat.cpp
+    src/ScoreStore.cpp
 )
 target_include_directories(sgl_save PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

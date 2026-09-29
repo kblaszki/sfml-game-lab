@@ -33,8 +33,8 @@ public:
     [[nodiscard]] SfmlAssets& assets();
     [[nodiscard]] const SfmlAssets& assets() const;
 
-    [[nodiscard]] sgl::AudioI& audio();
-    [[nodiscard]] const sgl::AudioI& audio() const;
+    [[nodiscard]] SfmlAudio& audio();
+    [[nodiscard]] const SfmlAudio& audio() const;
 
 private:
     void applyLetterbox(sf::Vector2u windowSize);

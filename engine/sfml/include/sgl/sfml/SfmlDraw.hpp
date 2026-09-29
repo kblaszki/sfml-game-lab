@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
@@ -29,6 +30,34 @@ inline sf::RectangleShape toShape(const sgl::RectCmd& cmd)
     shape.setOrigin({halfW, halfH});
     shape.setPosition({cmd.rect.pos.x + halfW, cmd.rect.pos.y + halfH});
     shape.setRotation(sf::degrees(cmd.rotationDeg));
+    shape.setFillColor(detail::toSfColor(cmd.fill));
+    if(cmd.outlineThickness != 0.f)
+    {
+        shape.setOutlineThickness(cmd.outlineThickness);
+        shape.setOutlineColor(detail::toSfColor(cmd.outline));
+    }
+    return shape;
+}
+
+// Length is |to-from|, height is thickness; origin at left-middle so position is `from`.
+inline sf::RectangleShape toShape(const sgl::LineCmd& cmd)
+{
+    const float dx = cmd.to.x - cmd.from.x;
+    const float dy = cmd.to.y - cmd.from.y;
+    const float length = std::sqrt(dx * dx + dy * dy);
+    sf::RectangleShape shape{{length, cmd.thickness}};
+    shape.setOrigin({0.f, cmd.thickness * 0.5f});
+    shape.setPosition({cmd.from.x, cmd.from.y});
+    shape.setRotation(sf::radians(std::atan2(dy, dx)));
+    shape.setFillColor(detail::toSfColor(cmd.color));
+    return shape;
+}
+
+inline sf::CircleShape toShape(const sgl::CircleCmd& cmd)
+{
+    sf::CircleShape shape{cmd.radius, static_cast<std::size_t>(cmd.points)};
+    shape.setOrigin({cmd.radius, cmd.radius});
+    shape.setPosition({cmd.center.x, cmd.center.y});
     shape.setFillColor(detail::toSfColor(cmd.fill));
     if(cmd.outlineThickness != 0.f)
     {
