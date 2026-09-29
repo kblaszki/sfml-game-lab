@@ -12,11 +12,14 @@ related_code:
   - games/syndicate/sim/include/syndicate/sim/GameState.hpp
   - games/syndicate/sim/include/syndicate/sim/Commands.hpp
   - games/syndicate/sim/include/syndicate/sim/Events.hpp
+  - games/syndicate/sim/include/syndicate/sim/Bot.hpp
   - games/syndicate/sim/src/BoardGraph.cpp
   - games/syndicate/sim/src/BoardLayouts.cpp
   - games/syndicate/sim/src/Pathing.cpp
   - games/syndicate/sim/src/Match.cpp
+  - games/syndicate/sim/src/Bot.cpp
   - games/syndicate/sim/parts/match.cmake
+  - games/syndicate/sim/parts/bot.cmake
   - games/syndicate/sim/CMakeLists.txt
   - tests/syndicate/sim/MoneyTest.cpp
   - tests/syndicate/sim/BoardGraphTest.cpp
@@ -24,7 +27,9 @@ related_code:
   - tests/syndicate/sim/PathingTest.cpp
   - tests/syndicate/sim/MatchTest.cpp
   - tests/syndicate/sim/MatchPropertyTest.cpp
+  - tests/syndicate/sim/BotTest.cpp
   - tests/syndicate/sim/parts/match.cmake
+  - tests/syndicate/sim/parts/bot.cmake
   - tests/syndicate/sim/CMakeLists.txt
 related_docs:
   - ../explanation/syndicate-design.md
@@ -33,7 +38,7 @@ related_docs:
   - syndicate-auction.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, sim, Money, BoardGraph, standardBoard, moveOptions, Match, turn machine, Payday, CSR, NodeId]
+keywords: [syndicate, sim, Money, BoardGraph, standardBoard, moveOptions, Match, turn machine, Payday, CSR, NodeId, Bot, BotPersona]
 last_reviewed: 2026-09-29
 ---
 
@@ -185,3 +190,16 @@ Decline with ≥3 free opens `InAuction` (3-share block at 50% mark). After auct
 ### Tests
 
 `syndicate_match_test` (seeded scenarios, each `CommandError`, max-rounds `GameOver`). `syndicate_match_property_test` (seeds 1..200, 4 seats, 8 rounds, share invariant bank+players==10). Full `Match` fork is not available; first-step legality is re-checked on fresh creates with the same seed.
+
+## Bot (`Bot.hpp`)
+
+Deterministic heuristic over `Match::legalCommands`. Wired via `parts/bot.cmake`.
+
+| API | Role |
+|-----|------|
+| `BotPersona` | `riskAppetite` (`Percent`, default 100) and `cashReserve` (`Money`, default 200). |
+| `chooseCommand(match, self, persona)` | Scores each legal command with fixed integers; picks the max score (lowest index on ties). No RNG. Empty legal → `EndTurn{}`. |
+
+Heuristic highlights: `RollDice` 100; `ChooseDestination` path/fee/payday/free-share bonuses; `BuyShares` / `Bid` respect `cashReserve` (else −100); `Upgrade` 35 if affordable; `PlayCard` 25; `BuyMomentum` 10; `PassBid` 5; `DeclinePurchase` 1; `EndTurn` and other commands 0.
+
+Tests: `syndicate_bot_test` (fresh `RollDice`, 50 seeds × 4 seats × 6 rounds to `GameOver` with share invariant, no `BuyShares` into negative cash, chosen command always legal).

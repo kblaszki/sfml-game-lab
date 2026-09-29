@@ -28,6 +28,7 @@ related_docs:
   - reference/syndicate-economy.md
   - reference/syndicate-cards.md
   - reference/syndicate-auction.md
+  - reference/syndicate-app.md
   - reference/arkanoid-app.md
   - reference/tetris-app.md
   - reference/input-and-events.md
@@ -90,6 +91,7 @@ flowchart TD
 | [reference/syndicate-economy.md](reference/syndicate-economy.md) | reference | syndicate, Market, landing fee, dividends |
 | [reference/syndicate-cards.md](reference/syndicate-cards.md) | reference | syndicate, Deck, CardKind, CardEffect |
 | [reference/syndicate-auction.md](reference/syndicate-auction.md) | reference | syndicate, Auction, TradeOffer |
+| [reference/syndicate-app.md](reference/syndicate-app.md) | reference | syndicate app, Theme, LayoutView, renderBoard, PawnAnimator |
 | [reference/arkanoid-app.md](reference/arkanoid-app.md) | reference | Theme, Assets, HudModel, Sounds, Feedback, ResultScene, high score |
 | [reference/tetris-app.md](reference/tetris-app.md) | reference | Theme, Bindings, BoardRender, Sounds, Feedback, high score |
 | [reference/input-and-events.md](reference/input-and-events.md) | reference | InputEvent, ActionMap, defaultBindings |
