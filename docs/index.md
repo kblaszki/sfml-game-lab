@@ -119,9 +119,9 @@ flowchart TD
 
 | Game | Index | Covers |
 |------|-------|--------|
-| Arkanoid | [games/arkanoid/docs/index.md](../games/arkanoid/docs/index.md) | sim, app |
+| Arkanoid | [games/arkanoid/docs/index.md](../games/arkanoid/docs/index.md) | sim, app, physics-and-states, add-stage-or-powerup |
 | Tetris | [games/tetris/docs/index.md](../games/tetris/docs/index.md) | sim, app |
-| Syndicate | [games/syndicate/docs/index.md](../games/syndicate/docs/index.md) | design, UI, sim, economy, cards, auction, app, assets |
+| Syndicate | [games/syndicate/docs/index.md](../games/syndicate/docs/index.md) | design, UI, board-graph, economy, sim, cards, auction, app, assets, dice-animation, add-an-influence-card, navigate-ui-settings-help |
 
 ## Design notes (not Diátaxis)
 
