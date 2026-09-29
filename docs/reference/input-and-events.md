@@ -22,8 +22,8 @@ related_docs:
   - source-layout.md
   - ../tutorials/getting-started.md
   - ../../mvp/03-events-and-input.md
-keywords: [input, InputEvent, ActionMap, InputState, defaultBindings, confirm, pause, cancel, paddle]
-last_reviewed: 2026-09-25
+keywords: [input, InputEvent, ActionMap, InputState, defaultBindings, confirm, pause, cancel, paddle, Key, Num1, H]
+last_reviewed: 2026-09-29
 ---
 
 # Input and events
@@ -35,6 +35,7 @@ Facts about the running tree. Engine types: [engine-input.md](engine-input.md). 
 | Type | Role |
 |------|------|
 | `sgl::InputEvent` | Variant: `KeyDown` / `KeyUp`, mouse move/down/up, `WindowClosed`, `FocusLost` / `FocusGained` |
+| `sgl::Key` | Includes `H`, `Num1`–`Num9` (top-row digits), gameplay letters, arrows, Enter/Escape/Backspace/Space/LShift; `Unknown` last |
 | `sgl::ActionMap` | Binds keys to `ActionId`s and key pairs to an `AxisId`; `keysFor` lists keys per action |
 | `sgl::InputState` | Per-frame edges (`pressed` / `released`, pointer press/release), holds, axes, pointer, `closeRequested`, `focusLost` |
 

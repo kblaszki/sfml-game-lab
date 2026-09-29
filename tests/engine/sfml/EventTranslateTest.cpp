@@ -20,6 +20,16 @@ TEST(EventTranslateTest, ToKeyMapsKnownKeys)
     EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::C), sgl::Key::C);
     EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::P), sgl::Key::P);
     EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::LShift), sgl::Key::LShift);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::H), sgl::Key::H);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num1), sgl::Key::Num1);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num2), sgl::Key::Num2);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num3), sgl::Key::Num3);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num4), sgl::Key::Num4);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num5), sgl::Key::Num5);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num6), sgl::Key::Num6);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num7), sgl::Key::Num7);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num8), sgl::Key::Num8);
+    EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Num9), sgl::Key::Num9);
     EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Left), sgl::Key::Left);
     EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Right), sgl::Key::Right);
     EXPECT_EQ(sgl::sfml::toKey(sf::Keyboard::Key::Up), sgl::Key::Up);

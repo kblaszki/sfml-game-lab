@@ -7,6 +7,7 @@
 #include <sgl/audio/AudioI.hpp>
 #include <sgl/core/Vec2.hpp>
 #include <sgl/loop/PlatformI.hpp>
+#include <sgl/save/Settings.hpp>
 #include <sgl/sfml/SfmlAssets.hpp>
 #include <sgl/sfml/SfmlRenderer.hpp>
 #include <string>
@@ -30,6 +31,8 @@ public:
     std::optional<sgl::InputEvent> poll() override;
     sgl::RendererI& renderer() override;
 
+    void setDisplay(sgl::WindowMode mode, sgl::Vec2u size);
+
     [[nodiscard]] SfmlAssets& assets();
     [[nodiscard]] const SfmlAssets& assets() const;
 
@@ -37,6 +40,7 @@ public:
     [[nodiscard]] const SfmlAudio& audio() const;
 
 private:
+    void openDisplay(sgl::WindowMode mode, sgl::Vec2u size);
     void applyLetterbox(sf::Vector2u windowSize);
 
     // window, assets, audio, then renderer — GL context and audio device outlive users.
@@ -46,6 +50,7 @@ private:
     SfmlRenderer renderer_;
     sgl::Vec2u designSize_{};
     sf::View view_{};
+    std::string title_;
 };
 
 } // namespace sgl::sfml

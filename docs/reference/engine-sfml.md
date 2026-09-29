@@ -15,6 +15,7 @@ related_code:
   - engine/sfml/src/SfmlAudio.cpp
   - engine/sfml/include/sgl/sfml/SfmlPlatform.hpp
   - engine/sfml/src/SfmlPlatform.cpp
+  - engine/save/include/sgl/save/Settings.hpp
   - engine/sfml/CMakeLists.txt
   - tests/engine/sfml/EventTranslateTest.cpp
   - tests/engine/sfml/SfmlDrawTest.cpp
@@ -25,13 +26,14 @@ related_docs:
   - engine-render.md
   - engine-resources.md
   - engine-input.md
-keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, SfmlClock, EventTranslate, letterbox, MeshCmd, antiAliasingLevel]
+  - engine-save.md
+keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, SfmlClock, EventTranslate, setDisplay, WindowMode, letterbox, MeshCmd, antiAliasingLevel]
 last_reviewed: 2026-09-29
 ---
 
 # Engine SFML backend
 
-Only SFML-facing engine module (`namespace sgl::sfml`). Target `sgl_sfml` is a STATIC library that PUBLIC-links `sgl_loop` and `sgl_resources`, and PRIVATE-links `SFML::Graphics`, `SFML::Window`, `SFML::System`, and `SFML::Audio`. `SfmlAudio` implements `AudioI` (16 voices). Includes are `<sgl/sfml/X.hpp>`.
+Only SFML-facing engine module (`namespace sgl::sfml`). Target `sgl_sfml` is a STATIC library that PUBLIC-links `sgl_loop`, `sgl_resources`, `sgl_audio`, and `sgl_save`, and PRIVATE-links `SFML::Graphics`, `SFML::Window`, `SFML::System`, and `SFML::Audio`. `SfmlAudio` implements `AudioI` (16 voices). Includes are `<sgl/sfml/X.hpp>`.
 
 ## EventTranslate
 
@@ -39,7 +41,8 @@ Only SFML-facing engine module (`namespace sgl::sfml`). Target `sgl_sfml` is a S
 
 | SFML key | `sgl::Key` |
 |----------|------------|
-| A, D, W, S, Z, X, C, P | A, D, W, S, Z, X, C, P |
+| A, D, W, S, Z, X, C, P, H | A, D, W, S, Z, X, C, P, H |
+| Num1–Num9 (top-row digits, not numpad) | Num1–Num9 |
 | Left, Right, Up, Down | Left, Right, Up, Down |
 | Enter, Escape, Backspace, Space, LShift | Enter, Escape, Backspace, Space, LShift |
 | any other | Unknown |
@@ -90,11 +93,20 @@ GPU caches over `ResourceCache`:
 
 ## SfmlPlatform
 
-`SfmlPlatform : PlatformI` owns window + assets + renderer.
+`SfmlPlatform : PlatformI` owns window + assets + renderer. `setDisplay` is on `SfmlPlatform` only — not on `PlatformI`. Scenes must not call it; wiring happens outside scenes.
 
-**Member order:** `sf::RenderWindow window_` first, then `SfmlAssets assets_`, then `SfmlRenderer renderer_` — assets destroy before the window so GL textures die while the context still lives.
+**Member order:** `sf::RenderWindow window_` first, then `SfmlAssets assets_`, `SfmlAudio` (unique_ptr), then `SfmlRenderer renderer_` — assets destroy before the window so GL textures die while the context still lives. Stores constructor `title_` for recreate.
 
-Constructor `(Vec2u designSize, title)`: window at design size, `Style::Default`, `State::Windowed`, `ContextSettings` with `antiAliasingLevel = 4` (4x MSAA), key-repeat off, framerate 60, `sf::View` sized to design space.
+Constructor `(Vec2u designSize, title)`: opens windowed at design size via shared `openDisplay` (same path as `setDisplay`).
+
+`setDisplay(WindowMode mode, Vec2u size)` recreates the SFML window:
+
+| Mode | VideoMode | Style / State |
+|------|-----------|---------------|
+| `Windowed` | `{size.x, size.y}` | `Style::Default`, `State::Windowed` |
+| `Fullscreen` | `VideoMode::getDesktopMode()` (size ignored) | `Style::Default`, `State::Fullscreen` |
+
+Shared create details: `ContextSettings` with `antiAliasingLevel = 4`, key-repeat off, framerate 60. After create, rebuilds the design-size `sf::View` and reapplies letterbox using the new window size. `designSize_` stays the original ctor design size (letterbox reference); it is not replaced by the settings resolution. `WindowMode` comes from `<sgl/save/Settings.hpp>` (`sgl_sfml` PUBLIC-links `sgl_save`).
 
 **Letterbox:** on `Resized`, recompute a centered viewport that preserves design aspect (pillarbox or letterbox bars). Resize is consumed inside `poll()` and is not forwarded as an `InputEvent`. Mouse pixel positions from `pointerPixel` (`MouseMoved` / `MouseButtonPressed` / `MouseButtonReleased`) are mapped with `mapPixelToCoords` before `translate`.
 

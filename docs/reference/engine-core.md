@@ -22,7 +22,7 @@ related_docs:
   - source-layout.md
   - engine-fx.md
 keywords: [eng, Vec2, Vec3, Vec2f, Vec2u, Vec3f, Rect, Color, Time, Seconds, kTick, Handle, EntityId, Image, Pcg32, Random, Overloaded]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Engine core value types
@@ -31,7 +31,7 @@ Header-only POD-style types in `namespace sgl`, included as `<sgl/core/X.hpp>`. 
 
 ## Vectors
 
-`Vec2<T>` / `Vec3<T>` require `std::floating_point T`. Aliases: `Vec2f`, `Vec3f`. `Vec2u` is a separate integer size type (`x`, `y` as `uint32_t`) used for design resolutions.
+`Vec2<T>` / `Vec3<T>` require `std::floating_point T`. Aliases: `Vec2f`, `Vec3f`. `Vec2u` is a separate integer size type (`x`, `y` as `uint32_t`) used for design resolutions. `Vec2u` defaults `==` and `<=>` so settings and other aggregates can compare it.
 
 - Arithmetic: `+`, `-`, `*` (scalar either side), `+=`
 - Comparison: defaulted `==` and `<=>`

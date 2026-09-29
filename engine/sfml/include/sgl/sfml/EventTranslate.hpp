@@ -34,6 +34,26 @@ namespace sgl::sfml
             return sgl::Key::P;
         case sf::Keyboard::Key::LShift:
             return sgl::Key::LShift;
+        case sf::Keyboard::Key::H:
+            return sgl::Key::H;
+        case sf::Keyboard::Key::Num1:
+            return sgl::Key::Num1;
+        case sf::Keyboard::Key::Num2:
+            return sgl::Key::Num2;
+        case sf::Keyboard::Key::Num3:
+            return sgl::Key::Num3;
+        case sf::Keyboard::Key::Num4:
+            return sgl::Key::Num4;
+        case sf::Keyboard::Key::Num5:
+            return sgl::Key::Num5;
+        case sf::Keyboard::Key::Num6:
+            return sgl::Key::Num6;
+        case sf::Keyboard::Key::Num7:
+            return sgl::Key::Num7;
+        case sf::Keyboard::Key::Num8:
+            return sgl::Key::Num8;
+        case sf::Keyboard::Key::Num9:
+            return sgl::Key::Num9;
         case sf::Keyboard::Key::Left:
             return sgl::Key::Left;
         case sf::Keyboard::Key::Right:

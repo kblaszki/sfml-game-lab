@@ -15,6 +15,7 @@ target_link_libraries(sgl_sfml
         sgl_loop
         sgl_resources
         sgl_audio
+        sgl_save
         SFML::Graphics
         SFML::Window
         SFML::System

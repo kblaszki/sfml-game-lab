@@ -11,3 +11,10 @@ add_unit_test(blip_test
     DEPENDENCIES
         sgl_audio
 )
+
+add_unit_test(scaled_audio_test
+    SOURCES
+        ScaledAudioTest.cpp
+    DEPENDENCIES
+        sgl_audio
+)

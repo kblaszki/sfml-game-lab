@@ -8,20 +8,23 @@ related_code:
   - engine/save/include/sgl/save/SaveFormat.hpp
   - engine/save/include/sgl/save/SaveFile.hpp
   - engine/save/include/sgl/save/ScoreStore.hpp
+  - engine/save/include/sgl/save/Settings.hpp
   - engine/save/src/SaveError.cpp
   - engine/save/src/HighScoreTable.cpp
   - engine/save/src/SaveFormat.cpp
   - engine/save/src/SaveFile.cpp
   - engine/save/src/ScoreStore.cpp
+  - engine/save/src/Settings.cpp
   - engine/save/CMakeLists.txt
   - tests/engine/save/HighScoreTableTest.cpp
   - tests/engine/save/SaveFormatTest.cpp
   - tests/engine/save/SaveFileTest.cpp
   - tests/engine/save/ScoreStoreTest.cpp
+  - tests/engine/save/SettingsTest.cpp
 related_docs:
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [eng, save, HighScoreTable, ScoreStore, SaveError, parse, serialize, atomic, userDataDir]
+keywords: [eng, save, HighScoreTable, ScoreStore, Settings, SettingsStore, WindowMode, SaveError, parse, serialize, atomic, userDataDir]
 last_reviewed: 2026-09-29
 ---
 
@@ -29,7 +32,7 @@ last_reviewed: 2026-09-29
 
 Static library target `sgl_save` (`namespace sgl`), linked `PUBLIC` to `sgl_core` only. No SFML. Include as `<sgl/save/X.hpp>`.
 
-Persists high-score tables as versioned text files under a platform user-data directory.
+Persists high-score tables and window/volume settings as versioned text files under a platform user-data directory.
 
 ## SaveError
 
@@ -67,3 +70,43 @@ Convenience load/save over the text format and atomic write. Never throws.
 |-----|----------|
 | `ScoreStore::load(path, capacity)` | `readTextFile` + `parse`. Missing, corrupt, or other IO failure → empty `HighScoreTable{capacity}` |
 | `ScoreStore::save(path, table)` | `create_directories` on the parent path, then `writeTextFileAtomic(path, serialize(table))`. Returns the write `SaveError` if any |
+
+## Settings
+
+`enum class WindowMode : uint8_t { Windowed, Fullscreen }`.
+
+`kResolutions` is `{1280x720, 1600x900, 1920x1080}`.
+
+```cpp
+struct Settings {
+    int masterVolume{80}; // 0..100
+    WindowMode mode{WindowMode::Windowed};
+    Vec2u resolution{1280, 720};
+};
+```
+
+### Settings text format (`parseSettings` / `serializeSettings`)
+
+Trailing newline. Example:
+
+```
+sgl-settings 1
+volume=80
+mode=windowed
+resolution=1280x720
+```
+
+| Rule | Behavior |
+|------|----------|
+| Header | Must be exactly `sgl-settings 1`; missing/wrong → `SaveError::Corrupt` |
+| `mode` | `windowed` or `fullscreen` |
+| `volume` | Parsed int clamped to 0..100 |
+| `resolution` | `WxH`; value not in `kResolutions` leaves the field at `{1280,720}` but parse still succeeds |
+| Unknown keys | Ignored |
+
+### SettingsStore
+
+| API | Behavior |
+|-----|----------|
+| `SettingsStore::load(path)` | Missing or corrupt → default `Settings{}` (volume 80, windowed, 1280x720). Never throws |
+| `SettingsStore::save(path, settings)` | `create_directories` on parent, then `writeTextFileAtomic` of `serializeSettings` |

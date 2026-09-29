@@ -58,6 +58,7 @@ struct Vec2u
     std::uint32_t y{};
 
     constexpr bool operator==(const Vec2u&) const = default;
+    constexpr auto operator<=>(const Vec2u&) const = default;
 };
 
 template<std::floating_point T>

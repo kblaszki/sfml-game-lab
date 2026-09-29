@@ -3,28 +3,47 @@
 #include <sgl/sfml/EventTranslate.hpp>
 #include <sgl/sfml/SfmlAudio.hpp>
 #include <sgl/sfml/SfmlPlatform.hpp>
+#include <utility>
 
 namespace sgl::sfml
 {
 
 SfmlPlatform::SfmlPlatform(sgl::Vec2u designSize, std::string title)
-    : window_{sf::VideoMode{{designSize.x, designSize.y}},
-              title,
-              sf::Style::Default,
-              sf::State::Windowed,
-              sf::ContextSettings{.antiAliasingLevel = 4}}
+    : window_{}
     , assets_{}
     , audio_{std::make_unique<SfmlAudio>()}
     , renderer_{window_, assets_}
     , designSize_{designSize}
     , view_{sf::FloatRect{{0.f, 0.f}, {static_cast<float>(designSize.x), static_cast<float>(designSize.y)}}}
+    , title_{std::move(title)}
 {
-    window_.setKeyRepeatEnabled(false);
-    window_.setFramerateLimit(60);
-    window_.setView(view_);
+    openDisplay(sgl::WindowMode::Windowed, designSize);
 }
 
 SfmlPlatform::~SfmlPlatform() = default;
+
+void SfmlPlatform::setDisplay(sgl::WindowMode mode, sgl::Vec2u size)
+{
+    openDisplay(mode, size);
+}
+
+void SfmlPlatform::openDisplay(sgl::WindowMode mode, sgl::Vec2u size)
+{
+    const sf::ContextSettings settings{.antiAliasingLevel = 4};
+    if(mode == sgl::WindowMode::Fullscreen)
+    {
+        window_.create(sf::VideoMode::getDesktopMode(), title_, sf::Style::Default, sf::State::Fullscreen, settings);
+    }
+    else
+    {
+        window_.create(sf::VideoMode{{size.x, size.y}}, title_, sf::Style::Default, sf::State::Windowed, settings);
+    }
+
+    window_.setKeyRepeatEnabled(false);
+    window_.setFramerateLimit(60);
+    view_ = sf::View{sf::FloatRect{{0.f, 0.f}, {static_cast<float>(designSize_.x), static_cast<float>(designSize_.y)}}};
+    applyLetterbox(window_.getSize());
+}
 
 bool SfmlPlatform::isOpen() const
 {

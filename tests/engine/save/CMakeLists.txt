@@ -25,3 +25,10 @@ add_unit_test(score_store_test
     DEPENDENCIES
         sgl_save
 )
+
+add_unit_test(settings_test
+    SOURCES
+        SettingsTest.cpp
+    DEPENDENCIES
+        sgl_save
+)

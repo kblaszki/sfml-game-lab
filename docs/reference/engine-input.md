@@ -18,7 +18,7 @@ related_code:
 related_docs:
   - source-layout.md
   - engine-core.md
-keywords: [eng, sgl_input, Key, MouseButton, InputEvent, ActionMap, InputState, ActionId, AxisId, ActionState]
+keywords: [eng, sgl_input, Key, MouseButton, InputEvent, ActionMap, InputState, ActionId, AxisId, ActionState, Num1, H]
 last_reviewed: 2026-09-29
 ---
 
@@ -28,7 +28,7 @@ SFML-free input types in `namespace sgl`, included as `<sgl/input/X.hpp>`. Targe
 
 ## Keys and events
 
-`Key` enumerators include letters used by gameplay (`A`, `D`, `W`, `S`, `Z`, `X`, `C`, `P`), modifiers (`LShift`), navigation (`Left`/`Right`/`Up`/`Down`), and UI (`Enter`, `Escape`, `Backspace`, `Space`), plus `Unknown` as the last enumerator (so `keyIndex` stays valid). `MouseButton` is `Left`, `Right`, `Middle`.
+`Key` enumerators include letters used by gameplay (`A`, `D`, `W`, `S`, `Z`, `X`, `C`, `P`, `H`), top-row digits (`Num1`–`Num9`), modifiers (`LShift`), navigation (`Left`/`Right`/`Up`/`Down`), and UI (`Enter`, `Escape`, `Backspace`, `Space`), plus `Unknown` as the last enumerator (so `keyIndex` stays valid). `MouseButton` is `Left`, `Right`, `Middle`.
 
 `InputEvent` is a `std::variant` of:
 

@@ -9,6 +9,7 @@ related_code:
   - engine/audio/include/sgl/audio/Envelope.hpp
   - engine/audio/include/sgl/audio/AudioI.hpp
   - engine/audio/include/sgl/audio/NullAudio.hpp
+  - engine/audio/include/sgl/audio/ScaledAudio.hpp
   - engine/audio/include/sgl/audio/Tone.hpp
   - engine/audio/include/sgl/audio/Blip.hpp
   - engine/audio/src/Tone.cpp
@@ -20,6 +21,7 @@ related_code:
   - engine/sfml/src/SfmlAudio.cpp
   - tests/engine/audio/ToneTest.cpp
   - tests/engine/audio/BlipTest.cpp
+  - tests/engine/audio/ScaledAudioTest.cpp
   - tests/mocks/AudioSpy.hpp
 related_docs:
   - source-layout.md
@@ -27,7 +29,7 @@ related_docs:
   - engine-core.md
   - ../explanation/architecture.md
   - ../how-to/build-and-test.md
-keywords: [sgl, audio, AudioI, NullAudio, SfmlAudio, SoundId, Pcm, tone, blip, Waveform, Envelope]
+keywords: [sgl, audio, AudioI, NullAudio, ScaledAudio, SfmlAudio, SoundId, Pcm, tone, blip, Waveform, Envelope]
 last_reviewed: 2026-09-29
 ---
 
@@ -65,6 +67,18 @@ public:
 ```
 
 `NullAudio` implements `play` as a no-op (any id / volume accepted). Tests use `AudioSpy` (`tests/mocks/AudioSpy.hpp`) to record `{SoundId, volume}` plays.
+
+## ScaledAudio
+
+Header-only wrapper (`ScaledAudio.hpp`, no `.cpp`). Decorates an inner `AudioI&`:
+
+| API | Behavior |
+|-----|----------|
+| `ScaledAudio(AudioI& inner)` | Stores a reference; does not own |
+| `setMaster(float volume01)` | Clamps to `[0,1]` |
+| `play(id, volume)` | Forwards `inner.play(id, volume * master_)` |
+
+Use to apply a persisted master volume without changing `AudioI::play`'s signature. Scenes still call `play` on the scaled facade; they do not touch the platform.
 
 ## SfmlAudio
 

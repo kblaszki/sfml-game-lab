@@ -25,11 +25,14 @@ related_code:
   - engine/sfml/CMakeLists.txt
   - engine/sfml/include/sgl/sfml/SfmlPlatform.hpp
   - engine/audio/CMakeLists.txt
+  - engine/audio/include/sgl/audio/ScaledAudio.hpp
   - engine/ui/CMakeLists.txt
   - engine/fx/CMakeLists.txt
   - engine/anim/CMakeLists.txt
   - engine/anim/include/sgl/anim/Easing.hpp
   - engine/save/CMakeLists.txt
+  - engine/save/include/sgl/save/Settings.hpp
+  - engine/save/src/Settings.cpp
   - games/CMakeLists.txt
   - games/tetris/CMakeLists.txt
   - games/tetris/sim/CMakeLists.txt
@@ -55,10 +58,12 @@ related_code:
   - tests/arkanoid/sim/CMakeLists.txt
   - tests/arkanoid/app/CMakeLists.txt
   - tests/engine/audio/CMakeLists.txt
+  - tests/engine/audio/ScaledAudioTest.cpp
   - tests/engine/ui/CMakeLists.txt
   - tests/engine/fx/CMakeLists.txt
   - tests/engine/anim/CMakeLists.txt
   - tests/engine/save/CMakeLists.txt
+  - tests/engine/save/SettingsTest.cpp
   - tests/tetris/sim/CMakeLists.txt
   - tests/tetris/app/CMakeLists.txt
   - tests/syndicate/sim/CMakeLists.txt
@@ -115,11 +120,11 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `engine/collision/` | AABB / circle / sweep helpers; target `sgl_collision` |
 | `engine/resources/` | `ResourceCache`, `ResourceError`; target `sgl_resources` |
 | `engine/sfml/` | SFML adapters (`SfmlPlatform`, `SfmlAudio`, `EventTranslate`, …); only engine target that links SFML |
-| `engine/audio/` | `AudioI`, PCM `tone` / `blip`, `NullAudio`; target `sgl_audio` |
+| `engine/audio/` | `AudioI`, `ScaledAudio`, PCM `tone` / `blip`, `NullAudio`; target `sgl_audio` |
 | `engine/ui/` | Menu kit (`MenuModel`, `renderMenu`, `PauseOverlay`); target `sgl_ui` |
 | `engine/fx/` | Fixed-capacity particles; target `sgl_fx` |
 | `engine/anim/` | `Easing`, `Tween`, Catmull-Rom `Spline`, `ArcLengthTable`; target `sgl_anim` (links `sgl_core` only) |
-| `engine/save/` | High-score table, text format, atomic file write, `ScoreStore`; target `sgl_save` |
+| `engine/save/` | High-score table, settings (`Settings` / `SettingsStore`), text format, atomic file write, `ScoreStore`; target `sgl_save` |
 | `games/arkanoid/sim/` | Headless breakout (`State`, `step`, levels, `Effects` as timed variants); `arkanoid_sim` |
 | `games/arkanoid/app/` | Scenes, HUD, result overlay, sounds, particles, high scores; `arkanoid_app` |
 | `games/arkanoid/main.cpp` | Wires `SfmlPlatform`, assets, `SceneStack`, `sgl::App`; executable `arkanoid` |
@@ -153,7 +158,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `sgl_fx` | STATIC | → `sgl_core`, `sgl_render` |
 | `sgl_anim` | STATIC | → `sgl_core`; easing, tween, spline; no SFML |
 | `sgl_save` | STATIC | → `sgl_core`; no SFML |
-| `sgl_sfml` | STATIC | → `sgl_loop`, `sgl_resources`; links SFML Graphics/Window/System/Audio |
+| `sgl_sfml` | STATIC | → `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; links SFML Graphics/Window/System/Audio |
 | `arkanoid_sim` | STATIC | → `sgl_collision`; no SFML |
 | `arkanoid_app` | STATIC | → `arkanoid_sim`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_fx`, `sgl_save`; no SFML includes |
 | `arkanoid` | executable | `games/arkanoid/main.cpp` → `arkanoid_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
@@ -183,9 +188,9 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `resource_cache_test` | `tests/engine/resources/` |
 | `particle_system_test` | `tests/engine/fx/` |
 | `anim_test` | `tests/engine/anim/` |
-| `tone_test`, `blip_test` | `tests/engine/audio/` |
+| `tone_test`, `blip_test`, `scaled_audio_test` | `tests/engine/audio/` |
 | `menu_model_test`, `pause_overlay_test` | `tests/engine/ui/` |
-| `high_score_table_test`, `save_format_test`, `save_file_test`, `score_store_test` | `tests/engine/save/` |
+| `high_score_table_test`, `save_format_test`, `save_file_test`, `score_store_test`, `settings_test` | `tests/engine/save/` |
 | `event_translate_test`, `sfml_draw_test` | `tests/engine/sfml/` (`event_translate_test` links `SFML::Window`; neither opens a window) |
 | `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test` | `tests/arkanoid/sim/` |
 | `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test` | `tests/tetris/sim/` |
