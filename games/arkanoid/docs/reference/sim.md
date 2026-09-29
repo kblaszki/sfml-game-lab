@@ -22,6 +22,8 @@ related_docs:
   - ../../../../docs/reference/engine-collision.md
   - ../../../../docs/reference/engine-core.md
   - app.md
+  - ../explanation/physics-and-states.md
+  - ../how-to/add-stage-or-powerup.md
   - ../../../../docs/reference/source-layout.md
   - ../../../../docs/explanation/architecture.md
 keywords: [arkanoid, sim, State, Effects, step, SimInput, SimEvent, makeState, PowerUpKind, StageId, sweep, TOI, Wide, MultiBall, Slow, ExtraLife, PaddleHit, WallHit, BallLaunched, BallLost]
