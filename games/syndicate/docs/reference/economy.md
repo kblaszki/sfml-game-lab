@@ -16,6 +16,8 @@ related_code:
 related_docs:
   - sim.md
   - ../explanation/design.md
+  - ../explanation/economy.md
+  - ../explanation/board-graph.md
   - ../../../../docs/reference/source-layout.md
 keywords: [syndicate, economy, Market, Ownership, landingFee, sharePrice, dividends, netWorth, liquidation]
 last_reviewed: 2026-09-29

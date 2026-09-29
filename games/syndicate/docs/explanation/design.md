@@ -38,7 +38,7 @@ Match movement uses **2d4** (sum 2–8). Once per turn a player may buy **Moment
 - Share price: `basePrice/10 * index%`.
 - Landing fee: `F = baseFee * (100+50*level)% * index% * synergy%`, where `synergy = 100 + 20*(controlled tiles of that sector − 1)`. Payer pays `F * othersShares/10`; payouts split by share count (remainder to the largest holder, lower `PlayerId` on ties). Bank shares collect nothing. Inflows must equal outflows.
 - **Payday**: salary 200 plus dividend `baseFee*index%/10` per share. Debt accrues **10%** interest.
-- End of round: draw a market event (Pcg32-shuffled deck), shift one or all sectors by ±10..30, then mean-revert toward 100 by `(100-index)/10`, clamp 50–200.
+- End of round: draw a market event (Pcg32-shuffled deck), shift one sector by ±20 (12-card deck: +20 and −20 per sector), then mean-revert toward 100 by `(100-index)/10`, clamp 50–200.
 - **No bankruptcy elimination.** If a player cannot pay, shares sell to the bank at 80% price (cheapest first, deterministic); a shortfall becomes **debt** (negative cash). Debtors cannot buy, bid, or upgrade, but still move and collect dividends.
 - Game ends after `maxRounds` (default 15) or when someone reaches `targetNetWorth` (default 6000). Net worth = cash + share mark-to-market + 50% of upgrade cost. Ties: cash, then lower `PlayerId`.
 
@@ -50,7 +50,7 @@ Match movement uses **2d4** (sum 2–8). Once per turn a player may buy **Moment
 
 ## Influence cards (8 kinds)
 
-Draw at `Hub` and on Payday; buy a card for 100 at `Exchange`. Hand cap 5. Shared draw/discard, reshuffled with Pcg32. At most one card per turn in Manage.
+Draw free at `Hub`; buy a card for 100 at `Exchange`. Hand cap 5. Shared draw/discard, reshuffled with Pcg32. At most one card per turn in Manage.
 
 | Kind | Effect |
 |------|--------|

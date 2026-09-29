@@ -11,6 +11,8 @@ related_code:
 related_docs:
   - sim.md
   - ../explanation/design.md
+  - ../explanation/economy.md
+  - ../how-to/add-an-influence-card.md
 keywords: [syndicate, cards, Deck, Hand, CardKind, describeEffect, CardEffect, CardTarget]
 last_reviewed: 2026-09-29
 ---

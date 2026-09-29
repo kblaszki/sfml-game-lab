@@ -81,8 +81,11 @@ related_code:
 related_docs:
   - sim.md
   - assets.md
+  - dice-animation.md
   - ../explanation/design.md
   - ../explanation/ui.md
+  - ../explanation/board-graph.md
+  - ../how-to/navigate-ui-settings-help.md
   - ../../../../docs/reference/engine-render.md
   - ../../../../docs/reference/engine-ui.md
   - ../../../../docs/reference/engine-save.md

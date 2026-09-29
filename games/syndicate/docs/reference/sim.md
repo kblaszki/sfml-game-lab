@@ -33,6 +33,8 @@ related_code:
   - tests/syndicate/sim/CMakeLists.txt
 related_docs:
   - ../explanation/design.md
+  - ../explanation/board-graph.md
+  - ../explanation/economy.md
   - economy.md
   - cards.md
   - auction.md
