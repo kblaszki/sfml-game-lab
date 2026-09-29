@@ -117,7 +117,7 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `games/arkanoid/main.cpp` | Wires `SfmlPlatform`, assets, `SceneStack`, `sgl::App`; executable `arkanoid` |
 | `games/tetris/sim/` | Headless Tetris rules (`Bag`, scoring, `TetrisGame`, grid, SRS); `tetris_sim` links `sgl_core` only |
 | `games/tetris/app/` | Scenes, HUD, board render, sounds, particles, high scores; `tetris_app` |
-| `games/syndicate/sim/` | Headless Syndicate board/pathing (`Money`, `BoardGraph`, `standardBoard`, `moveOptions`); `syndicate_sim` links `sgl_core` only |
+| `games/syndicate/sim/` | Headless Syndicate (`BoardGraph`, `Market`/`Economy`, `Cards`, `Auction`/`Trade`); `syndicate_sim` links `sgl_core` only |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
 | `tests/engine/` | Per-module engine suites (Debug only) |
 | `tests/arkanoid/` | Sim and app suites (Debug only) |
@@ -175,7 +175,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `event_translate_test`, `sfml_draw_test` | `tests/engine/sfml/` (`event_translate_test` links `SFML::Window`; neither opens a window) |
 | `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test` | `tests/arkanoid/sim/` |
 | `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test` | `tests/tetris/sim/` |
-| `syndicate_money_test`, `syndicate_board_graph_test`, `syndicate_board_layouts_test`, `syndicate_pathing_test` | `tests/syndicate/sim/` |
+| `syndicate_money_test`, `syndicate_board_graph_test`, `syndicate_board_layouts_test`, `syndicate_pathing_test`, `syndicate_market_test`, `syndicate_economy_test`, `syndicate_cards_test`, `syndicate_auction_test`, `syndicate_trade_test` | `tests/syndicate/sim/` |
 | `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test` | `tests/arkanoid/app/` |
 | `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test` | `tests/tetris/app/` |
 
