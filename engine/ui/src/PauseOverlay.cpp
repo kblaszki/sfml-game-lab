@@ -32,6 +32,8 @@ constexpr Rect<float> kQuitRect{.pos = {400.f, 410.f}, .size = {480.f, 64.f}};
         .focused = Color{72, 96, 160, 255},
         .text = Color{255, 255, 255},
         .panel = Color{24, 28, 48, 230},
+        .cornerRadius = 0.f,
+        .bodyFont = font,
     };
 }
 

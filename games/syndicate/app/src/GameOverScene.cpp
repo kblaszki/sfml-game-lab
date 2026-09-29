@@ -46,6 +46,8 @@ constexpr sgl::Vec2f kButtonSize{360.f, 64.f};
         .focused = sgl::Color{72, 96, 160, 255},
         .text = sgl::Color{255, 255, 255},
         .panel = sgl::Color{24, 28, 48, 230},
+        .cornerRadius = 0.f,
+        .bodyFont = font,
     };
 }
 

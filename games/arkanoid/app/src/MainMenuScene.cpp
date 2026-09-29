@@ -44,6 +44,8 @@ constexpr float kBestY{260.f};
         .focused = startButtonHover,
         .text = startLabel,
         .panel = sgl::Color{24, 28, 48, 230},
+        .cornerRadius = 0.f,
+        .bodyFont = font,
     };
 }
 

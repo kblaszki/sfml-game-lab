@@ -30,6 +30,7 @@ related_docs:
   - reference/syndicate-cards.md
   - reference/syndicate-auction.md
   - reference/syndicate-app.md
+  - reference/syndicate-assets.md
   - reference/arkanoid-app.md
   - reference/tetris-app.md
   - reference/input-and-events.md
@@ -37,6 +38,7 @@ related_docs:
   - explanation/roadmap.md
   - explanation/architecture.md
   - explanation/syndicate-design.md
+  - explanation/syndicate-ui.md
   - ../mvp/README.md
   - ../mvp/10-engine-progress.md
 keywords: [documentation, diataxis, index, map, navigation, docs]
@@ -94,6 +96,7 @@ flowchart TD
 | [reference/syndicate-cards.md](reference/syndicate-cards.md) | reference | syndicate, Deck, CardKind, CardEffect |
 | [reference/syndicate-auction.md](reference/syndicate-auction.md) | reference | syndicate, Auction, TradeOffer |
 | [reference/syndicate-app.md](reference/syndicate-app.md) | reference | syndicate app, scenes, Feedback, executable syndicate |
+| [reference/syndicate-assets.md](reference/syndicate-assets.md) | reference | syndicate atlas, SpriteBank, PNG, theme, procedural fallback |
 | [reference/arkanoid-app.md](reference/arkanoid-app.md) | reference | Theme, Assets, HudModel, Sounds, Feedback, ResultScene, high score |
 | [reference/tetris-app.md](reference/tetris-app.md) | reference | Theme, Bindings, BoardRender, Sounds, Feedback, high score |
 | [reference/input-and-events.md](reference/input-and-events.md) | reference | InputEvent, ActionMap, defaultBindings |
@@ -101,6 +104,7 @@ flowchart TD
 | [explanation/roadmap.md](explanation/roadmap.md) | explanation | roadmap, stages, power-ups, engine split |
 | [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, arkanoid, tetris, boundaries, ECS |
 | [explanation/syndicate-design.md](explanation/syndicate-design.md) | explanation | syndicate rules, rings, economy, cards, phases |
+| [explanation/syndicate-ui.md](explanation/syndicate-ui.md) | explanation | syndicate UI, procedural chrome, hybrid atlas |
 | [../mvp/README.md](../mvp/README.md) | design notes (not Diátaxis) | prospective engine plan |
 | [../mvp/10-engine-progress.md](../mvp/10-engine-progress.md) | living tracker (not Diátaxis) | slices, sgl modules, arkanoid, tetris |
 

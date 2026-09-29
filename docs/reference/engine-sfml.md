@@ -27,7 +27,7 @@ related_docs:
   - engine-resources.md
   - engine-input.md
   - engine-save.md
-keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, SfmlClock, EventTranslate, setDisplay, WindowMode, letterbox, MeshCmd, antiAliasingLevel]
+keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, textureFile, SfmlClock, EventTranslate, setDisplay, WindowMode, letterbox, MeshCmd, antiAliasingLevel]
 last_reviewed: 2026-09-29
 ---
 
@@ -72,6 +72,7 @@ Windowless unit tests live in `event_translate_test` (links `SFML::Window` only)
 GPU caches over `ResourceCache`:
 
 - `texture(key, Image)` — build `sf::Image` from pixels, `loadFromImage`; failure → `DecodeFailed`
+- `textureFile(key, path, smooth)` — `sf::Texture::loadFromFile`; on success `setSmooth(smooth)` and insert via the cache; failure → `std::nullopt` (does not throw)
 - `font(key, path)` — missing path → `NotFound`; `openFromFile` failure → `DecodeFailed`
 - `get(TextureId)` / `get(FontId)` — raw SFML pointers (or null)
 

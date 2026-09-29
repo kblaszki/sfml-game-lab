@@ -14,6 +14,8 @@ struct MenuStyle
     Color focused;
     Color text;
     Color panel;
+    float cornerRadius{0.f};
+    FontId bodyFont{};
 };
 
 } // namespace sgl

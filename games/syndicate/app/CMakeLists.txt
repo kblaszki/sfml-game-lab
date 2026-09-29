@@ -12,6 +12,7 @@ add_library(syndicate_app STATIC
     src/MainMenuScene.cpp
     src/SetupScene.cpp
     src/GameOverScene.cpp
+    src/SpriteBank.cpp
 )
 target_include_directories(syndicate_app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -28,4 +29,5 @@ target_link_libraries(syndicate_app PUBLIC
     sgl_audio
     sgl_fx
     sgl_save
+    sgl_resources
 )

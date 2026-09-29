@@ -5,6 +5,7 @@
 
 #include <expected>
 #include <filesystem>
+#include <optional>
 #include <sgl/core/Image.hpp>
 #include <sgl/render/AssetIds.hpp>
 #include <sgl/resources/ResourceCache.hpp>
@@ -19,6 +20,9 @@ class SfmlAssets
 public:
     [[nodiscard]] std::expected<sgl::TextureId, sgl::ResourceError> texture(std::string_view key,
                                                                             const sgl::Image& image);
+    [[nodiscard]] std::optional<sgl::TextureId> textureFile(std::string_view key,
+                                                            const std::filesystem::path& path,
+                                                            bool smooth);
     [[nodiscard]] std::expected<sgl::FontId, sgl::ResourceError> font(std::string_view key,
                                                                       const std::filesystem::path& path);
 

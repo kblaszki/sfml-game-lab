@@ -16,6 +16,7 @@ related_code:
   - games/syndicate/app/include/syndicate/app/Scenes.hpp
   - games/syndicate/app/include/syndicate/app/Sounds.hpp
   - games/syndicate/app/include/syndicate/app/Feedback.hpp
+  - games/syndicate/app/include/syndicate/app/SpriteBank.hpp
   - games/syndicate/app/include/syndicate/app/MainMenuScene.hpp
   - games/syndicate/app/include/syndicate/app/SetupScene.hpp
   - games/syndicate/app/include/syndicate/app/GameOverScene.hpp
@@ -28,6 +29,7 @@ related_code:
   - games/syndicate/app/src/PlayScene.cpp
   - games/syndicate/app/src/Sounds.cpp
   - games/syndicate/app/src/Feedback.cpp
+  - games/syndicate/app/src/SpriteBank.cpp
   - games/syndicate/app/src/Scenes.cpp
   - games/syndicate/app/src/MainMenuScene.cpp
   - games/syndicate/app/src/SetupScene.cpp
@@ -40,25 +42,28 @@ related_code:
   - tests/syndicate/app/PlaySceneTest.cpp
   - tests/syndicate/app/ScenesTest.cpp
   - tests/syndicate/app/FeedbackTest.cpp
+  - tests/syndicate/app/SpriteBankTest.cpp
 related_docs:
   - syndicate-sim.md
+  - syndicate-assets.md
   - ../explanation/syndicate-design.md
+  - ../explanation/syndicate-ui.md
   - engine-render.md
   - engine-ui.md
   - engine-save.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, HudModel, PlayScene, Scenes, Feedback, Sounds, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, HudModel, PlayScene, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate app
 
-Presentation layer and playable executable for Syndicate in `namespace sgl::syndicate`. Static library `syndicate_app` links `PUBLIC` `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_audio`, `sgl_fx`, and `sgl_save`. No SFML includes in the library — drawing uses `sgl::RenderQueue` and `CircleCmd` / `LineCmd` / `RectCmd` / `TextCmd`. Include as `<syndicate/app/X.hpp>`. Design size **1280×720**. Executable target `syndicate` (`games/syndicate/main.cpp`) links `syndicate_app` and `sgl_sfml`.
+Presentation layer and playable executable for Syndicate in `namespace sgl::syndicate`. Static library `syndicate_app` links `PUBLIC` `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_audio`, `sgl_fx`, `sgl_save`, and `sgl_resources`. No SFML includes in the library — drawing uses `sgl::RenderQueue` and `CircleCmd` / `LineCmd` / `RectCmd` / `TextCmd` / optional `SpriteCmd`. Include as `<syndicate/app/X.hpp>`. Design size **1280×720**. Executable target `syndicate` (`games/syndicate/main.cpp`) links `syndicate_app` and `sgl_sfml`.
 
 ## SyndicateServices
 
-`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`. Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references).
+`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`, and `sprites` (`SpriteBank`, default empty). Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references).
 
 | Factory | Scene |
 |---------|--------|
@@ -67,6 +72,10 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 | `play` | `PlayScene` with `MatchConfig` + seats |
 | `pause` | `sgl::PauseOverlay` |
 | `makeGameOver` | `GameOverScene` with ranking + high-score save |
+
+## SpriteBank
+
+`SpriteBank` maps atlas region names to `SpriteCmd` (texture + source rect + position/scale/tint). Default / empty manifest: `sprite(...)` returns `nullopt` so callers keep procedural fallbacks. Optional load in `main.cpp` when both `assets/syndicate/atlas.png` and `atlas.txt` exist.
 
 ## Sounds / Feedback
 
@@ -88,7 +97,7 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 
 ## main.cpp
 
-`SfmlPlatform` **1280×720** titled **"Syndicate"**, loads `uiFontRelativePath` under `ASSET_DIR`, uploads sounds, resolves `userDataDir("syndicate") / "syndicate.scores"` (temp fallback), `bindSyndicate`, pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
+`SfmlPlatform` **1280×720** titled **"Syndicate"**, loads `uiFontRelativePath` under `ASSET_DIR`, optionally loads the syndicate atlas into `SpriteBank`, uploads sounds, resolves `userDataDir("syndicate") / "syndicate.scores"` (temp fallback), `bindSyndicate`, pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
 
 ## Tests
 
@@ -101,3 +110,4 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | `syndicate_play_scene_test` | 4-bot match reaches GameOver + PushScene; human roll ignored on bot turn at dt 0 |
 | `syndicate_scenes_test` | Menu cancel quits; Play pushes setup; setup Confirm replaces with PlayScene |
 | `syndicate_feedback_test` | `Rolled` / `FeePaid` each play ≥1 sound via `AudioSpy` |
+| `syndicate_sprite_bank_test` | Empty bank nullopt; manifest entry → matching `SpriteCmd` source |

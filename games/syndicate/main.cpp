@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sgl/loop/App.hpp>
 #include <sgl/render/RenderQueue.hpp>
+#include <sgl/resources/Atlas.hpp>
 #include <sgl/resources/ResourceError.hpp>
 #include <sgl/save/HighScoreTable.hpp>
 #include <sgl/save/SaveFile.hpp>
@@ -15,6 +16,7 @@
 #include <syndicate/app/Bindings.hpp>
 #include <syndicate/app/Scenes.hpp>
 #include <syndicate/app/Sounds.hpp>
+#include <syndicate/app/SpriteBank.hpp>
 
 namespace
 {
@@ -63,6 +65,23 @@ int main()
     }
     const sgl::FontId fontId = *fontLoaded;
 
+    const auto atlasPng = std::filesystem::path{ASSET_DIR} / "syndicate" / "atlas.png";
+    const auto atlasTxt = std::filesystem::path{ASSET_DIR} / "syndicate" / "atlas.txt";
+    sgl::syndicate::SpriteBank sprites{};
+    if(std::filesystem::exists(atlasPng) && std::filesystem::exists(atlasTxt))
+    {
+        if(const auto text = sgl::readTextFile(atlasTxt))
+        {
+            if(const auto manifest = sgl::parseAtlas(*text))
+            {
+                if(const auto id = platform.assets().textureFile("syndicate/atlas", atlasPng, true))
+                {
+                    sprites = sgl::syndicate::SpriteBank{*id, *manifest};
+                }
+            }
+        }
+    }
+
     auto& sfmlAudio = platform.audio();
     sgl::syndicate::SoundIds sounds{};
     for(const sgl::syndicate::SoundSpec& spec: sgl::syndicate::soundSpecs())
@@ -91,7 +110,7 @@ int main()
     const auto seed = static_cast<std::uint64_t>(
         std::chrono::steady_clock::now().time_since_epoch().count());
     const sgl::syndicate::SyndicateServices services{
-        actions, fontId, seed, platform.audio(), sounds, scoresPath, highScores};
+        actions, fontId, seed, platform.audio(), sounds, scoresPath, highScores, sprites};
 
     sgl::SceneStack stack{sgl::syndicate::pause(services)};
     stack.push(sgl::syndicate::mainMenu(services)());

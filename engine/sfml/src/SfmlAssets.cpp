@@ -63,6 +63,26 @@ std::expected<sgl::TextureId, sgl::ResourceError> SfmlAssets::texture(std::strin
     return textures_.load(key, [&]() { return loadTexture(image); });
 }
 
+std::optional<sgl::TextureId> SfmlAssets::textureFile(std::string_view key,
+                                                      const std::filesystem::path& path,
+                                                      bool smooth)
+{
+    const auto loaded = textures_.load(key, [&]() -> std::expected<sf::Texture, sgl::ResourceError> {
+        sf::Texture texture;
+        if(!texture.loadFromFile(path))
+        {
+            return std::unexpected(sgl::ResourceError::DecodeFailed);
+        }
+        texture.setSmooth(smooth);
+        return texture;
+    });
+    if(!loaded)
+    {
+        return std::nullopt;
+    }
+    return *loaded;
+}
+
 std::expected<sgl::FontId, sgl::ResourceError> SfmlAssets::font(std::string_view key, const std::filesystem::path& path)
 {
     return fonts_.load(key, [&]() { return loadFont(path); });

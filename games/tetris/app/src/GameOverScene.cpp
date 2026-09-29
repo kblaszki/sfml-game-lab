@@ -43,6 +43,8 @@ constexpr float kMenuY{480.f};
         .focused = startButtonHover,
         .text = startLabel,
         .panel = panelBox,
+        .cornerRadius = 0.f,
+        .bodyFont = font,
     };
 }
 

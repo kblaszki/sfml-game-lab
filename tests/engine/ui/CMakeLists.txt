@@ -12,3 +12,24 @@ add_unit_test(pause_overlay_test
     DEPENDENCIES
         sgl_ui
 )
+
+add_unit_test(text_layout_test
+    SOURCES
+        TextLayoutTest.cpp
+    DEPENDENCIES
+        sgl_ui
+)
+
+add_unit_test(tooltip_test
+    SOURCES
+        TooltipTest.cpp
+    DEPENDENCIES
+        sgl_ui
+)
+
+add_unit_test(hover_anim_test
+    SOURCES
+        HoverAnimTest.cpp
+    DEPENDENCIES
+        sgl_ui
+)

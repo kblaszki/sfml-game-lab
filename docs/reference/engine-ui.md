@@ -9,12 +9,21 @@ related_code:
   - engine/ui/include/sgl/ui/MenuStyle.hpp
   - engine/ui/include/sgl/ui/RenderMenu.hpp
   - engine/ui/include/sgl/ui/PauseOverlay.hpp
+  - engine/ui/include/sgl/ui/TextLayout.hpp
+  - engine/ui/include/sgl/ui/TooltipSystem.hpp
+  - engine/ui/include/sgl/ui/HoverAnim.hpp
   - engine/ui/src/MenuModel.cpp
   - engine/ui/src/RenderMenu.cpp
   - engine/ui/src/PauseOverlay.cpp
+  - engine/ui/src/TextLayout.cpp
+  - engine/ui/src/TooltipSystem.cpp
+  - engine/ui/src/HoverAnim.cpp
   - engine/ui/CMakeLists.txt
   - tests/engine/ui/MenuModelTest.cpp
   - tests/engine/ui/PauseOverlayTest.cpp
+  - tests/engine/ui/TextLayoutTest.cpp
+  - tests/engine/ui/TooltipTest.cpp
+  - tests/engine/ui/HoverAnimTest.cpp
 related_docs:
   - source-layout.md
   - engine-input.md
@@ -23,13 +32,13 @@ related_docs:
   - pause-overlay.md
   - ../explanation/architecture.md
   - ../how-to/build-and-test.md
-keywords: [sgl, ui, MenuModel, MenuActions, Button, renderMenu, PauseOverlay, MenuStyle]
+keywords: [sgl, ui, MenuModel, MenuActions, Button, renderMenu, PauseOverlay, MenuStyle, TextLayout, TooltipSystem, HoverAnim]
 last_reviewed: 2026-09-29
 ---
 
 # Engine UI
 
-Headless menu kit in `namespace sgl`, included as `<sgl/ui/X.hpp>`. Target `sgl_ui` is a STATIC library that PUBLIC-links `sgl_input`, `sgl_render`, and `sgl_scene`. No SFML dependency.
+Headless menu kit in `namespace sgl`, included as `<sgl/ui/X.hpp>`. Target `sgl_ui` is a STATIC library that PUBLIC-links `sgl_input`, `sgl_render`, `sgl_scene`, and `sgl_anim`. No SFML dependency.
 
 ## MenuActions, Button, MenuStyle
 
@@ -37,7 +46,7 @@ Headless menu kit in `namespace sgl`, included as `<sgl/ui/X.hpp>`. Target `sgl_
 
 `Button` is a hit rectangle plus `label` string.
 
-`MenuStyle` supplies `FontId`, `textSize`, and colors: `idle`, `focused`, `text`, and `panel`.
+`MenuStyle` supplies `FontId`, `textSize`, colors (`idle`, `focused`, `text`, `panel`), optional `cornerRadius` (default `0`), and `bodyFont` (default empty `FontId`).
 
 ## MenuModel
 
@@ -52,9 +61,30 @@ Owns a list of buttons and keyboard/pointer focus.
 
 Keyboard `up`/`down` wrap. Pointer hover moves focus to the hit button. A pointer click activates only when press and release both land inside the same button. `confirm` activates the focused row. `cancel` sets `cancelled()` and does not activate.
 
+## TextLayout
+
+Headless monospace width estimate and word wrap (no SFML).
+
+| API | Behavior |
+|-----|----------|
+| `estimateWidth(text, size, advance = 0.6)` | `text.size() * size * advance` (byte count) |
+| `wrap(text, size, maxWidth, advance = 0.6)` | Split on spaces so no line exceeds `maxWidth`, except a single word already wider; empty text yields an empty vector |
+
+## TooltipSystem
+
+Hover tooltip model. Hit-tests the first `Hotspot` whose `Rect<float>` contains the pointer (half-open). No tooltip until the pointer stays on the same hotspot for `TooltipStyle::delay` (default `0.35s`). Leaving or switching hotspot clears `active()` immediately and resets the timer. After the delay, `active()` holds a `TooltipView` with wrapped body lines; alpha fades `0→1` over `0.1s`. Panel is placed at pointer `+ {16, 20}` and flipped/clamped to stay inside `{0,0,1280,720}`.
+
+`render` emits `Layer::Overlay` commands only: one `roundedRect` mesh (radius 8) plus `TextCmd` title and lines. Emits nothing when inactive.
+
+## HoverAnim
+
+Per-button hover scale. `update(hovered, count, dt)` resizes to `count`. Unhovered slots ease toward `1.0`, hovered toward `1.06`, using `easeOutCubic` over `0.06s` per step. `scale(index)` returns `1` for indices past `count`.
+
 ## renderMenu
 
 `renderMenu(queue, model, style, layer)` draws a padded panel (`style.panel`) around the button bounds, then each button as `RectCmd` (`idle` / `focused`) with centered `TextCmd` labels.
+
+`renderMenu(queue, model, style, layer, hover)` delegates to the four-argument overload when `cornerRadius <= 0` and every `hover.scale(i) == 1`. Otherwise button (and panel) fills use `roundedRect` meshes when `cornerRadius > 0`, and any non-`1` scale grows that button rect about its center (text stays centered on the scaled rect).
 
 ## PauseOverlay
 

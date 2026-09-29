@@ -17,6 +17,7 @@
 #include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
 #include <syndicate/app/Sounds.hpp>
+#include <syndicate/app/SpriteBank.hpp>
 #include <syndicate/app/Theme.hpp>
 #include <syndicate/sim/Bot.hpp>
 #include <syndicate/sim/Commands.hpp>
@@ -43,6 +44,7 @@ struct SyndicateServices
     SoundIds sounds{};
     std::filesystem::path scoresPath{};
     sgl::HighScoreTable& highScores;
+    SpriteBank sprites{};
 };
 
 [[nodiscard]] std::optional<Command> commandFromInput(const Match& match,

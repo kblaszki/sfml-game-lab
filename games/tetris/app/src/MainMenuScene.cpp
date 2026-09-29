@@ -44,6 +44,8 @@ constexpr float kBestY{250.f};
         .focused = startButtonHover,
         .text = startLabel,
         .panel = panelBox,
+        .cornerRadius = 0.f,
+        .bodyFont = font,
     };
 }
 

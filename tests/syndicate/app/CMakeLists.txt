@@ -46,3 +46,10 @@ add_unit_test(syndicate_feedback_test
     DEPENDENCIES
         syndicate_app
 )
+
+add_unit_test(syndicate_sprite_bank_test
+    SOURCES
+        SpriteBankTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
