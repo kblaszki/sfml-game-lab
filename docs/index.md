@@ -24,16 +24,18 @@ related_docs:
   - reference/engine-sfml.md
   - reference/arkanoid-sim.md
   - reference/tetris-sim.md
+  - reference/syndicate-sim.md
   - reference/arkanoid-app.md
   - reference/tetris-app.md
   - reference/input-and-events.md
   - reference/pause-overlay.md
   - explanation/roadmap.md
   - explanation/architecture.md
+  - explanation/syndicate-design.md
   - ../mvp/README.md
   - ../mvp/10-engine-progress.md
 keywords: [documentation, diataxis, index, map, navigation, docs]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Documentation map
@@ -81,12 +83,14 @@ flowchart TD
 | [reference/engine-sfml.md](reference/engine-sfml.md) | reference | SfmlPlatform, EventTranslate, letterbox |
 | [reference/arkanoid-sim.md](reference/arkanoid-sim.md) | reference | arkanoid sim, StageId, power-ups |
 | [reference/tetris-sim.md](reference/tetris-sim.md) | reference | tetris sim, Grid, SRS, kicks |
+| [reference/syndicate-sim.md](reference/syndicate-sim.md) | reference | syndicate sim, Money, BoardGraph, pathing |
 | [reference/arkanoid-app.md](reference/arkanoid-app.md) | reference | Theme, Assets, HudModel, Sounds, Feedback, ResultScene, high score |
 | [reference/tetris-app.md](reference/tetris-app.md) | reference | Theme, Bindings, BoardRender, Sounds, Feedback, high score |
 | [reference/input-and-events.md](reference/input-and-events.md) | reference | InputEvent, ActionMap, defaultBindings |
 | [reference/pause-overlay.md](reference/pause-overlay.md) | reference | PauseScene, RequestPause, FocusLost, pausable |
 | [explanation/roadmap.md](explanation/roadmap.md) | explanation | roadmap, stages, power-ups, engine split |
 | [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, arkanoid, tetris, boundaries, ECS |
+| [explanation/syndicate-design.md](explanation/syndicate-design.md) | explanation | syndicate rules, rings, economy, cards, phases |
 | [../mvp/README.md](../mvp/README.md) | design notes (not Diátaxis) | prospective engine plan |
 | [../mvp/10-engine-progress.md](../mvp/10-engine-progress.md) | living tracker (not Diátaxis) | slices, sgl modules, arkanoid, tetris |
 

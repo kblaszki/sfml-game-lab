@@ -32,6 +32,8 @@ related_code:
   - games/tetris/CMakeLists.txt
   - games/tetris/sim/CMakeLists.txt
   - games/tetris/app/CMakeLists.txt
+  - games/syndicate/CMakeLists.txt
+  - games/syndicate/sim/CMakeLists.txt
   - cmake/CheckBoundaries.cmake
   - games/arkanoid/CMakeLists.txt
   - games/arkanoid/main.cpp
@@ -55,6 +57,7 @@ related_code:
   - tests/engine/save/CMakeLists.txt
   - tests/tetris/sim/CMakeLists.txt
   - tests/tetris/app/CMakeLists.txt
+  - tests/syndicate/sim/CMakeLists.txt
   - tests/mocks/ClockMock.hpp
   - tests/mocks/PlatformMock.hpp
   - tests/mocks/RendererMock.hpp
@@ -77,13 +80,15 @@ related_docs:
   - arkanoid-app.md
   - tetris-sim.md
   - tetris-app.md
+  - syndicate-sim.md
   - input-and-events.md
   - pause-overlay.md
   - ../how-to/build-and-test.md
   - ../how-to/add-a-game.md
   - ../explanation/architecture.md
+  - ../explanation/syndicate-design.md
   - ../../mvp/10-engine-progress.md
-keywords: [layout, directories, sgl, arkanoid, tetris, targets, cmake, SceneStack, App, SfmlPlatform]
+keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, targets, cmake, SceneStack, App, SfmlPlatform]
 last_reviewed: 2026-09-29
 ---
 
@@ -112,13 +117,15 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `games/arkanoid/main.cpp` | Wires `SfmlPlatform`, assets, `SceneStack`, `sgl::App`; executable `arkanoid` |
 | `games/tetris/sim/` | Headless Tetris rules (`Bag`, scoring, `TetrisGame`, grid, SRS); `tetris_sim` links `sgl_core` only |
 | `games/tetris/app/` | Scenes, HUD, board render, sounds, particles, high scores; `tetris_app` |
+| `games/syndicate/sim/` | Headless Syndicate board/pathing (`Money`, `BoardGraph`, `standardBoard`, `moveOptions`); `syndicate_sim` links `sgl_core` only |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
 | `tests/engine/` | Per-module engine suites (Debug only) |
 | `tests/arkanoid/` | Sim and app suites (Debug only) |
 | `tests/tetris/` | Sim and app suites (Debug only) |
+| `tests/syndicate/` | Sim suites (Debug only; app later) |
 | `tests/mocks/` | `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy` (engine ports) |
 
-Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
+Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/sim/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
 
 ## Build targets
 
@@ -142,6 +149,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `tetris_sim` | STATIC | → `sgl_core`; bag, scoring, `TetrisGame`, grid, SRS; no SFML |
 | `tetris_app` | STATIC | → `tetris_sim`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_fx`, `sgl_save`; no SFML includes |
 | `tetris` | executable | `games/tetris/main.cpp` → `tetris_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
+| `syndicate_sim` | STATIC | → `sgl_core`; Money, BoardGraph CSR, standardBoard, moveOptions; no SFML |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
 
@@ -149,7 +157,7 @@ Configure presets: `debug`, `release`, `asan` (`SGL_ENABLE_ASAN` on GCC/Clang), 
 
 ## Unit test suites (Debug)
 
-Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, and `tests/tetris/`:
+Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, and `tests/syndicate/`:
 
 | Suite | Leaf |
 |-------|------|
@@ -167,6 +175,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, and `t
 | `event_translate_test`, `sfml_draw_test` | `tests/engine/sfml/` (`event_translate_test` links `SFML::Window`; neither opens a window) |
 | `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test` | `tests/arkanoid/sim/` |
 | `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test` | `tests/tetris/sim/` |
+| `syndicate_money_test`, `syndicate_board_graph_test`, `syndicate_board_layouts_test`, `syndicate_pathing_test` | `tests/syndicate/sim/` |
 | `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test` | `tests/arkanoid/app/` |
 | `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test` | `tests/tetris/app/` |
 
