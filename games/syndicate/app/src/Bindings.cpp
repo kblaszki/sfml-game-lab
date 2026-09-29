@@ -1,4 +1,7 @@
 #include <syndicate/app/Bindings.hpp>
+
+#include <cstddef>
+#include <cstdint>
 #include <sgl/input/Key.hpp>
 
 namespace sgl::syndicate
@@ -6,7 +9,7 @@ namespace sgl::syndicate
 
 SyndicateActions bindSyndicate(sgl::ActionMap& map)
 {
-    const SyndicateActions actions{
+    SyndicateActions actions{
         .roll = sgl::ActionId{.id = 100},
         .endTurn = sgl::ActionId{.id = 101},
         .bid = sgl::ActionId{.id = 102},
@@ -19,7 +22,13 @@ SyndicateActions bindSyndicate(sgl::ActionMap& map)
                 .confirm = sgl::ActionId{.id = 107},
                 .cancel = sgl::ActionId{.id = 108},
             },
+        .slot = {},
     };
+
+    for(std::size_t i = 0; i < actions.slot.size(); ++i)
+    {
+        actions.slot[i] = sgl::ActionId{.id = static_cast<std::uint32_t>(110 + i)};
+    }
 
     map.bind(sgl::Key::Space, actions.roll);
     map.bind(sgl::Key::Enter, actions.endTurn);
@@ -30,6 +39,20 @@ SyndicateActions bindSyndicate(sgl::ActionMap& map)
     map.bind(sgl::Key::Down, actions.menu.down);
     map.bind(sgl::Key::Enter, actions.menu.confirm);
     map.bind(sgl::Key::Backspace, actions.menu.cancel);
+
+    constexpr sgl::Key kNums[9] = {sgl::Key::Num1,
+                                   sgl::Key::Num2,
+                                   sgl::Key::Num3,
+                                   sgl::Key::Num4,
+                                   sgl::Key::Num5,
+                                   sgl::Key::Num6,
+                                   sgl::Key::Num7,
+                                   sgl::Key::Num8,
+                                   sgl::Key::Num9};
+    for(std::size_t i = 0; i < actions.slot.size(); ++i)
+    {
+        map.bind(kNums[i], actions.slot[i]);
+    }
     return actions;
 }
 

@@ -11,6 +11,8 @@
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/save/HighScoreTable.hpp>
 #include <sgl/scene/SceneI.hpp>
+#include <sgl/ui/HoverAnim.hpp>
+#include <syndicate/app/ActionBar.hpp>
 #include <syndicate/app/Bindings.hpp>
 #include <syndicate/app/Feedback.hpp>
 #include <syndicate/app/HudModel.hpp>
@@ -70,6 +72,8 @@ private:
     void tryStartPathAnimation(const ChooseDestination& dest);
     void resetPawns();
     void drainFeedback();
+    void updateHover(const sgl::InputState& input, sgl::Seconds dt);
+    void trySelectTile(const sgl::InputState& input);
 
     std::vector<Seat> seats_;
     sgl::FontId font_{};
@@ -80,6 +84,9 @@ private:
     LayoutView layout_{sgl::Vec2f{640.f, 360.f}, 280.f};
     PawnAnimator animator_{layout_};
     HudModel hud_{};
+    ActionBar actionBar_{};
+    sgl::HoverAnim hover_{};
+    std::optional<NodeId> selectedTile_{};
     std::optional<Match> match_;
     bool setupFailed_{false};
     bool quitRequested_{false};

@@ -7,6 +7,7 @@
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/scene/SceneContext.hpp>
 #include <sgl/scene/SceneRequest.hpp>
+#include <sgl/ui/MenuStyle.hpp>
 #include <string>
 #include <syndicate/app/BoardRender.hpp>
 #include <syndicate/app/GameOverScene.hpp>
@@ -89,6 +90,32 @@ namespace
         }
     }
     return false;
+}
+
+[[nodiscard]] bool pointerOnActionBar(const ActionBar& bar, sgl::Vec2f pointer)
+{
+    for(const sgl::Hotspot& spot: bar.hotspots())
+    {
+        if(spot.area.contains(pointer))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+[[nodiscard]] sgl::MenuStyle makeActionBarStyle(sgl::FontId font)
+{
+    return sgl::MenuStyle{
+        .font = font,
+        .textSize = 14,
+        .idle = sgl::Color{48, 54, 72, 230},
+        .focused = sgl::Color{70, 90, 130, 240},
+        .text = sgl::Color{235, 238, 245},
+        .panel = sgl::Color{20, 24, 36, 200},
+        .cornerRadius = 6.f,
+        .bodyFont = {},
+    };
 }
 
 } // namespace
@@ -289,6 +316,63 @@ void PlayScene::applyCommand(PlayerId actor, const Command& cmd)
     botThink_ = 0.f;
 }
 
+void PlayScene::updateHover(const sgl::InputState& input, sgl::Seconds dt)
+{
+    std::optional<std::size_t> hovered;
+    if(const auto pointer = input.pointer())
+    {
+        const auto spots = actionBar_.hotspots();
+        for(std::size_t i = 0; i < spots.size(); ++i)
+        {
+            if(spots[i].area.contains(*pointer))
+            {
+                hovered = i;
+                break;
+            }
+        }
+    }
+    hover_.update(hovered, actionBar_.size(), dt);
+}
+
+void PlayScene::trySelectTile(const sgl::InputState& input)
+{
+    if(!match_.has_value() || !input.pointerReleased())
+    {
+        return;
+    }
+    const Phase& phase = match_->state().phase;
+    if(!std::holds_alternative<Manage>(phase) && !std::holds_alternative<AwaitPurchase>(phase))
+    {
+        return;
+    }
+    const auto pointer = input.pointer();
+    if(!pointer.has_value() || pointerOnActionBar(actionBar_, *pointer))
+    {
+        return;
+    }
+
+    const float maxDist = layout_.nodeRadius() * 1.5f;
+    const float maxDistSq = maxDist * maxDist;
+    std::optional<NodeId> hit;
+    float bestDistSq = maxDistSq;
+    for(std::size_t i = 0; i < match_->state().board.size(); ++i)
+    {
+        const NodeId id{static_cast<std::uint16_t>(i)};
+        const sgl::Vec2f center = layout_.position(match_->state().board.node(id).at);
+        const float distSq = sgl::lengthSq(*pointer - center);
+        if(distSq <= bestDistSq)
+        {
+            bestDistSq = distSq;
+            hit = id;
+        }
+    }
+    if(hit.has_value())
+    {
+        selectedTile_ = hit;
+        actionBar_.rebuild(*match_, match_->actingPlayer(), selectedTile_);
+    }
+}
+
 const Match* PlayScene::match() const noexcept
 {
     return match_.has_value() ? &*match_ : nullptr;
@@ -341,12 +425,22 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
                         applyCommand(actor, cmd);
                     }
                 }
-                else if(const auto cmd = commandFromInput(*match_, input, actions_, layout_))
+                else
                 {
-                    applyCommand(actor, *cmd);
+                    actionBar_.rebuild(*match_, actor, selectedTile_);
+                    trySelectTile(input);
+                    if(const auto barCmd = actionBar_.update(input, actions_))
+                    {
+                        applyCommand(actor, *barCmd);
+                    }
+                    else if(const auto cmd = commandFromInput(*match_, input, actions_, layout_))
+                    {
+                        applyCommand(actor, *cmd);
+                    }
                 }
             }
         }
+        updateHover(input, dt);
     }
 
     if(gameOver() && !endPushed_)
@@ -406,6 +500,7 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     }
 
     hud_.render(queue, *match_, font_, theme_);
+    actionBar_.render(queue, makeActionBarStyle(font_), hover_);
 }
 
 sgl::SceneTraits PlayScene::traits() const

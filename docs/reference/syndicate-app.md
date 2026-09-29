@@ -11,6 +11,8 @@ related_code:
   - games/syndicate/app/include/syndicate/app/BoardRender.hpp
   - games/syndicate/app/include/syndicate/app/PawnAnimator.hpp
   - games/syndicate/app/include/syndicate/app/Bindings.hpp
+  - games/syndicate/app/include/syndicate/app/Describe.hpp
+  - games/syndicate/app/include/syndicate/app/ActionBar.hpp
   - games/syndicate/app/include/syndicate/app/HudModel.hpp
   - games/syndicate/app/include/syndicate/app/PlayScene.hpp
   - games/syndicate/app/include/syndicate/app/Scenes.hpp
@@ -25,6 +27,8 @@ related_code:
   - games/syndicate/app/src/BoardRender.cpp
   - games/syndicate/app/src/PawnAnimator.cpp
   - games/syndicate/app/src/Bindings.cpp
+  - games/syndicate/app/src/Describe.cpp
+  - games/syndicate/app/src/ActionBar.cpp
   - games/syndicate/app/src/HudModel.cpp
   - games/syndicate/app/src/PlayScene.cpp
   - games/syndicate/app/src/Sounds.cpp
@@ -39,6 +43,8 @@ related_code:
   - tests/syndicate/app/BoardRenderTest.cpp
   - tests/syndicate/app/PawnAnimatorTest.cpp
   - tests/syndicate/app/HudModelTest.cpp
+  - tests/syndicate/app/DescribeTest.cpp
+  - tests/syndicate/app/ActionBarTest.cpp
   - tests/syndicate/app/PlaySceneTest.cpp
   - tests/syndicate/app/ScenesTest.cpp
   - tests/syndicate/app/FeedbackTest.cpp
@@ -53,7 +59,7 @@ related_docs:
   - engine-save.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, HudModel, PlayScene, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, Describe, ActionBar, HudModel, PlayScene, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
@@ -89,11 +95,23 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## Theme / layout / board / HUD
 
-Unchanged from prior slices: `Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `HudModel`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Up/Down** menu, **Backspace** cancel.
+Unchanged from prior slices: `Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `HudModel`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
+
+## Describe helpers
+
+`Describe.hpp` formats English UI copy for money, sectors, tiles, cards, and legal `Command`s:
+
+- `formatMoney` — 1 sim unit = $1k (`$0`, `$150k`, `$1M`, `$1.5M`); integer math only.
+- `sectorName` / `describeCard` / `describeTile` — sector labs include share price, holdings, level, and `landingFee`.
+- `describeCommand` — button label + one-sentence tooltip (costs via `sharePrice`, `upgradeCost`, buy-card `$100k`, momentum `$25k`).
+
+## ActionBar
+
+`ActionBar` rebuilds from `Match::legalCommands`, drops `ChooseDestination`, prefers commands for `selectedTile` when capping at 9, and lays out up to nine buttons in y 652..708 / x 16..1264. Slots bind to **Num1–Num9**; pointer release on a button applies that command. Enter is not treated as a bar click (legacy `EndTurn` path stays on Enter). Hotspots feed tooltips (`title` = label, `body` = tooltip).
 
 ## PlayScene
 
-Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Feedback` after each applied command.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar` + `HoverAnim`. On a human turn while the pawn animator is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). Renders the action bar after the HUD. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Feedback` after each applied command.
 
 ## main.cpp
 
@@ -107,7 +125,9 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | `syndicate_board_render_test` | 40 circles, line count = unique unordered edges, centers match layout |
 | `syndicate_pawn_animator_test` | 400px path at 400 px/s, `busy()`, distinct same-slot positions |
 | `syndicate_hud_model_test` | phasePrompt words; note TTL expiry |
-| `syndicate_play_scene_test` | 4-bot match reaches GameOver + PushScene; human roll ignored on bot turn at dt 0 |
+| `syndicate_describe_test` | `formatMoney` scales; Biotech `BuyShares{1}` label facts |
+| `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot |
+| `syndicate_play_scene_test` | 4-bot GameOver; human roll ignored on bot turn; human Num buy + Manage Upgrade/PlayCard |
 | `syndicate_scenes_test` | Menu cancel quits; Play pushes setup; setup Confirm replaces with PlayScene |
 | `syndicate_feedback_test` | `Rolled` / `FeePaid` each play ≥1 sound via `AudioSpy` |
 | `syndicate_sprite_bank_test` | Empty bank nullopt; manifest entry → matching `SpriteCmd` source |

@@ -26,6 +26,20 @@ add_unit_test(syndicate_hud_model_test
         syndicate_app
 )
 
+add_unit_test(syndicate_describe_test
+    SOURCES
+        DescribeTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_action_bar_test
+    SOURCES
+        ActionBarTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_play_scene_test
     SOURCES
         PlaySceneTest.cpp

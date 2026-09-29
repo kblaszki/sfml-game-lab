@@ -4,6 +4,8 @@ add_library(syndicate_app STATIC
     src/BoardRender.cpp
     src/PawnAnimator.cpp
     src/Bindings.cpp
+    src/Describe.cpp
+    src/ActionBar.cpp
     src/HudModel.cpp
     src/PlayScene.cpp
     src/Sounds.cpp
