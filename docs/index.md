@@ -27,6 +27,9 @@ related_docs:
   - reference/pause-overlay.md
   - explanation/roadmap.md
   - explanation/architecture.md
+  - explanation/cpp23-and-ownership.md
+  - explanation/sfml-integration.md
+  - reference/engine-api-map.md
   - ../games/arkanoid/docs/index.md
   - ../games/tetris/docs/index.md
   - ../games/syndicate/docs/index.md
@@ -69,7 +72,7 @@ flowchart TD
 
 | You are working on | Read first |
 |--------------------|------------|
-| The engine (`engine/`) | [explanation/architecture.md](explanation/architecture.md), then the matching `reference/engine-*.md` |
+| The engine (`engine/`) | [explanation/architecture.md](explanation/architecture.md), [reference/engine-api-map.md](reference/engine-api-map.md), then the matching `reference/engine-*.md` |
 | An existing game | That game's `games/<game>/docs/index.md` |
 | A new game | [how-to/add-a-game.md](how-to/add-a-game.md) and a sibling game's docs as a model |
 
@@ -97,7 +100,10 @@ flowchart TD
 | [reference/input-and-events.md](reference/input-and-events.md) | reference | InputEvent, ActionMap, defaultBindings |
 | [reference/pause-overlay.md](reference/pause-overlay.md) | reference | PauseScene, RequestPause, FocusLost, pausable |
 | [explanation/roadmap.md](explanation/roadmap.md) | explanation | roadmap, stages, power-ups, engine split |
-| [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, boundaries, ECS |
+| [reference/engine-api-map.md](reference/engine-api-map.md) | reference | SceneManager, InputManager, ResourceManager, EventManager, real types |
+| [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, boundaries, ECS, game loop, scene lifecycle, mermaid |
+| [explanation/cpp23-and-ownership.md](explanation/cpp23-and-ownership.md) | explanation | C++23, RAII, unique_ptr, expected, variant, zero-cost |
+| [explanation/sfml-integration.md](explanation/sfml-integration.md) | explanation | SFML 3.1, adapters, Vector2f, transforms, letterbox |
 
 ## Game documentation
 

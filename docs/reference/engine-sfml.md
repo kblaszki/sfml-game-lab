@@ -21,13 +21,14 @@ related_code:
   - tests/engine/sfml/SfmlDrawTest.cpp
   - tests/engine/sfml/CMakeLists.txt
 related_docs:
+  - ../explanation/sfml-integration.md
   - source-layout.md
   - engine-loop.md
   - engine-render.md
   - engine-resources.md
   - engine-input.md
   - engine-save.md
-keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, textureFile, SfmlClock, EventTranslate, setDisplay, WindowMode, letterbox, MeshCmd, antiAliasingLevel]
+keywords: [sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, textureFile, SfmlClock, EventTranslate, setDisplay, WindowMode, letterbox, MeshCmd, antiAliasingLevel]
 last_reviewed: 2026-09-29
 ---
 
