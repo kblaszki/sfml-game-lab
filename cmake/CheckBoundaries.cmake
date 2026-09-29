@@ -1,8 +1,8 @@
 # Usage: cmake -DSOURCE_DIR=<repo root> -P cmake/CheckBoundaries.cmake
 #
 # Fails if:
-# 1) any file under engine/ except engine/sfml includes SFML
-# 2) any file under games/ except games/<game>/main.cpp includes <SFML/
+# 1) any file under engine/ except engine/sfml includes SFML (<SFML/ or "SFML/)
+# 2) any file under games/ except games/<game>/main.cpp includes SFML (<SFML/ or "SFML/)
 # 3) any file under engine/ includes a game header <name/> for a directory under games/
 
 if(NOT DEFINED SOURCE_DIR)
@@ -85,9 +85,10 @@ foreach(_file IN LISTS GAMES_FILES)
 
     file(READ "${_file}" _contents)
     string(FIND "${_contents}" "#include <SFML/" _inc_angle)
-    if(NOT _inc_angle EQUAL -1)
+    string(FIND "${_contents}" "#include \"SFML/" _inc_quote)
+    if(NOT _inc_angle EQUAL -1 OR NOT _inc_quote EQUAL -1)
         list(APPEND _violations
-            "games (except <game>/main.cpp) must not include <SFML/: ${_file}")
+            "games (except <game>/main.cpp) must not include SFML: ${_file}")
     endif()
 endforeach()
 

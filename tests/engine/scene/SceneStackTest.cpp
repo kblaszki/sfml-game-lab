@@ -240,3 +240,52 @@ TEST(SceneStackShould, stopUpdateWalkAtFirstBlockingScene)
     EXPECT_EQ(mid.updateCount, 1u);
     EXPECT_EQ(below.updateCount, 0u);
 }
+
+TEST(SceneStackShould, pushThenPopInSameUpdateLeavesStackUnchanged)
+{
+    // Requests apply in enqueue order: push then pop removes the scene just pushed.
+    sgl::SceneStack stack{pauseOverlayFactory()};
+    sgl::SceneSpy& top = pushSpy(stack);
+
+    top.onUpdate = [](sgl::SceneContext& ctx) {
+        ctx.request(sgl::PushScene{[] { return std::make_unique<sgl::SceneSpy>(); }});
+        ctx.request(sgl::PopScene{});
+    };
+
+    EXPECT_EQ(stack.size(), 1u);
+    stack.update(makeInput(), sgl::kTick);
+    EXPECT_EQ(stack.size(), 1u);
+    EXPECT_EQ(stack.top(), &top);
+}
+
+TEST(SceneStackShould, popOnEmptyStackIsNoOp)
+{
+    // Two Pops in one apply walk: first empties the stack, second must not crash.
+    sgl::SceneStack stack{pauseOverlayFactory()};
+    sgl::SceneSpy& top = pushSpy(stack);
+
+    top.onUpdate = [](sgl::SceneContext& ctx) {
+        ctx.request(sgl::PopScene{});
+        ctx.request(sgl::PopScene{});
+    };
+
+    stack.update(makeInput(), sgl::kTick);
+    EXPECT_TRUE(stack.empty());
+    EXPECT_FALSE(stack.quitRequested());
+}
+
+TEST(SceneStackShould, quitWithPushSameFrameSetsQuitRequested)
+{
+    // QuitApp only sets quitWanted_; it does not clear the stack. App exits on the flag.
+    sgl::SceneStack stack{pauseOverlayFactory()};
+    sgl::SceneSpy& top = pushSpy(stack);
+
+    top.onUpdate = [](sgl::SceneContext& ctx) {
+        ctx.request(sgl::PushScene{[] { return std::make_unique<sgl::SceneSpy>(); }});
+        ctx.request(sgl::QuitApp{});
+    };
+
+    stack.update(makeInput(), sgl::kTick);
+    EXPECT_TRUE(stack.quitRequested());
+    EXPECT_EQ(stack.size(), 2u);
+}

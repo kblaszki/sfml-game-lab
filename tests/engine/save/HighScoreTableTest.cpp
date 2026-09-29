@@ -57,3 +57,11 @@ TEST(HighScoreTableTest, qualifiesWhenNotFull)
     EXPECT_FALSE(table.qualifies(10));
     EXPECT_TRUE(table.qualifies(31));
 }
+
+TEST(HighScoreTableTest, capacityZeroRejectsInsertAndStaysEmpty)
+{
+    sgl::HighScoreTable table(0);
+    EXPECT_FALSE(table.qualifies(100));
+    EXPECT_FALSE(table.insert(100).has_value());
+    EXPECT_TRUE(table.entries().empty());
+}

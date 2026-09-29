@@ -11,7 +11,7 @@ class RendererMock : public RendererI
 {
 public:
     MOCK_METHOD(void, begin, (), (override));
-    MOCK_METHOD(void, submit, (const RenderQueue&), (override));
+    MOCK_METHOD(void, submit, (RenderQueue&), (override));
     MOCK_METHOD(void, end, (), (override));
 };
 

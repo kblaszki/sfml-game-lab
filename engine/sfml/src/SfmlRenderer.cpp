@@ -37,9 +37,9 @@ void SfmlRenderer::begin()
     target_.clear();
 }
 
-void SfmlRenderer::submit(const sgl::RenderQueue& queue)
+void SfmlRenderer::submit(sgl::RenderQueue& queue)
 {
-    for(const sgl::Entry& entry: const_cast<sgl::RenderQueue&>(queue).sorted())
+    for(const sgl::Entry& entry: queue.sorted())
     {
         std::visit(
             [this](const auto& cmd) {

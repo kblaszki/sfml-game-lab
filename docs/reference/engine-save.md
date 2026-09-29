@@ -19,7 +19,7 @@ related_docs:
   - source-layout.md
   - ../explanation/architecture.md
 keywords: [eng, save, HighScoreTable, SaveError, parse, serialize, atomic, userDataDir]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Engine save
@@ -53,5 +53,5 @@ First line must be exactly `sgl-highscores 1`, then one unsigned integer per lin
 | API | Behavior |
 |-----|----------|
 | `readTextFile(path)` | Whole-file read; missing path → `NotFound`; other failures → `Io` |
-| `writeTextFileAtomic(path, contents)` | Write `path` + `.tmp`, then `std::filesystem::rename` (error_code overloads) |
+| `writeTextFileAtomic(path, contents)` | Write `path` + `.tmp`, then `std::filesystem::rename`. On rename failure (e.g. MinGW rename-over-existing), remove the target, retry rename once; still remove the `.tmp` if the retry fails |
 | `userDataDir(app)` | Windows: `APPDATA/<app>`; else `XDG_DATA_HOME/<app>` or `HOME/.local/share/<app>`; missing env → `Io` |

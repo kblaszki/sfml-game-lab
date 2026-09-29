@@ -18,7 +18,7 @@ related_docs:
   - engine-fx.md
   - ../explanation/architecture.md
 keywords: [eng, RenderQueue, RendererI, DrawCommand, SortKey, Layer, Projection, Orthographic, Isometric, Camera, rotationDeg]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Engine render queue and projections
@@ -46,12 +46,12 @@ CPU-side draw list and 2.5D helpers in `namespace sgl`, included as `<sgl/render
 ## RenderQueue
 
 - `push(layer, depth, command)` — assigns `seq` incrementally starting at 0
-- `sorted()` — `std::ranges::stable_sort` by `SortKey` once; stays cached until the next `push` or `clear`
+- `sorted()` — non-const; `std::ranges::stable_sort` by `SortKey` once; returns `std::span<const Entry>`; stays cached until the next `push` or `clear`
 - `size()` / `clear()` — `clear` empties entries and resets `seq` to 0
 
 ## RendererI
 
-Port for a backend: `begin()`, `submit(const RenderQueue&)`, `end()`. Tests use `RendererMock` (`tests/mocks/RendererMock.hpp`).
+Port for a backend: `begin()`, `submit(RenderQueue&)`, `end()`. `submit` takes a non-const queue so backends can call `sorted()` without casting. Tests use `RendererMock` (`tests/mocks/RendererMock.hpp`).
 
 ## Projection and camera
 

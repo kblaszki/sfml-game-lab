@@ -53,9 +53,16 @@ std::expected<void, SaveError> writeTextFileAtomic(const std::filesystem::path& 
     std::filesystem::rename(tmpPath, path, ec);
     if(ec)
     {
-        std::error_code removeEc;
-        std::filesystem::remove(tmpPath, removeEc);
-        return std::unexpected(SaveError::Io);
+        std::error_code removeTargetEc;
+        std::filesystem::remove(path, removeTargetEc);
+        ec.clear();
+        std::filesystem::rename(tmpPath, path, ec);
+        if(ec)
+        {
+            std::error_code removeTmpEc;
+            std::filesystem::remove(tmpPath, removeTmpEc);
+            return std::unexpected(SaveError::Io);
+        }
     }
     return {};
 }

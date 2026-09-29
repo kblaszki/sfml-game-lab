@@ -20,7 +20,7 @@ public:
     SfmlRenderer(sf::RenderTarget& target, const SfmlAssets& assets);
 
     void begin() override;
-    void submit(const sgl::RenderQueue& queue) override;
+    void submit(sgl::RenderQueue& queue) override;
     void end() override;
 
     [[nodiscard]] std::uint32_t skippedCommands() const;

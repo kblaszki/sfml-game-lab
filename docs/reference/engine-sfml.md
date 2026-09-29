@@ -25,7 +25,7 @@ related_docs:
   - engine-resources.md
   - engine-input.md
 keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, SfmlClock, EventTranslate, letterbox]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Engine SFML backend
@@ -42,6 +42,8 @@ Only SFML-facing engine module (`namespace sgl::sfml`). Target `sgl_sfml` is a S
 | Left, Right, Up, Down | Left, Right, Up, Down |
 | Enter, Escape, Backspace, Space, LShift | Enter, Escape, Backspace, Space, LShift |
 | any other | Unknown |
+
+`pointerPixel(event)` → `std::optional<sf::Vector2i>` for `MouseMoved` / `MouseButtonPressed` / `MouseButtonReleased` (pixel position); otherwise `nullopt`.
 
 `translate(event, designPosition)` → `std::optional<InputEvent>`:
 
@@ -74,7 +76,7 @@ GPU caches over `ResourceCache`:
 `SfmlRenderer(sf::RenderTarget&, const SfmlAssets&)` implements `RendererI`:
 
 - `begin()` — clear target; reset `skippedCommands()`
-- `submit` — walk `queue.sorted()`, `std::visit` `SpriteCmd` / `RectCmd` / `TextCmd`; missing texture (or font) skips and increments the counter; `Anchor::Center` origins text at local-bounds center. `SfmlDraw.hpp` builds the sprite and the rectangle with origin at the center and position at top-left plus half the size, so `rotationDeg` turns around the center of the unrotated bounds. `rotationDeg == 0` draws as before.
+- `submit(RenderQueue&)` — walk `queue.sorted()`, `std::visit` `SpriteCmd` / `RectCmd` / `TextCmd`; missing texture (or font) skips and increments the counter; `Anchor::Center` origins text at local-bounds center. `SfmlDraw.hpp` builds the sprite and the rectangle with origin at the center and position at top-left plus half the size, so `rotationDeg` turns around the center of the unrotated bounds. `rotationDeg == 0` draws as before.
 - `end()` — `display()` only when the target is an `sf::RenderWindow`
 
 ## SfmlPlatform
@@ -85,6 +87,6 @@ GPU caches over `ResourceCache`:
 
 Constructor `(Vec2u designSize, title)`: window at design size, `Style::Default`, key-repeat off, framerate 60, `sf::View` sized to design space.
 
-**Letterbox:** on `Resized`, recompute a centered viewport that preserves design aspect (pillarbox or letterbox bars). Resize is consumed inside `poll()` and is not forwarded as an `InputEvent`. Mouse pixel positions are mapped with `mapPixelToCoords` before `translate`.
+**Letterbox:** on `Resized`, recompute a centered viewport that preserves design aspect (pillarbox or letterbox bars). Resize is consumed inside `poll()` and is not forwarded as an `InputEvent`. Mouse pixel positions from `pointerPixel` (`MouseMoved` / `MouseButtonPressed` / `MouseButtonReleased`) are mapped with `mapPixelToCoords` before `translate`.
 
 `assets()` exposes the cache for loading after construction. `renderer()` returns the `SfmlRenderer`.

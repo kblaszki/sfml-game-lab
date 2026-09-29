@@ -68,10 +68,9 @@ TEST(ToneTest, peakNeverExceedsAmplitude)
     }
 }
 
-TEST(NullAudioTest, acceptsAnyId)
+TEST(NullAudioTest, playDoesNotThrow)
 {
     NullAudio audio;
-    audio.play(SoundId{.id = 0}, 0.f);
-    audio.play(SoundId{.id = 42}, 1.f);
-    audio.play(SoundId{.id = 999999}, 0.5f);
+    EXPECT_NO_THROW(audio.play(SoundId{}, 0.f));
+    EXPECT_NO_THROW(audio.play(SoundId{.id = 42}, 1.f));
 }

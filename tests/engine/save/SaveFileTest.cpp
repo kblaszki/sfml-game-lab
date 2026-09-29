@@ -25,6 +25,24 @@ TEST(SaveFileTest, writeThenReadInTempDir)
     std::filesystem::remove(tmpPath, ec);
 }
 
+TEST(SaveFileTest, overwritesExistingFile)
+{
+    const auto stamp = std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
+    const auto path = std::filesystem::temp_directory_path() / ("sgl_save_overwrite_" + stamp + ".txt");
+    const auto tmpPath = std::filesystem::path(path.native() + std::filesystem::path(".tmp").native());
+
+    ASSERT_TRUE(sgl::writeTextFileAtomic(path, "A").has_value());
+    ASSERT_TRUE(sgl::writeTextFileAtomic(path, "B").has_value());
+
+    const auto readResult = sgl::readTextFile(path);
+    ASSERT_TRUE(readResult.has_value()) << sgl::describe(readResult.error());
+    EXPECT_EQ(*readResult, "B");
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+    std::filesystem::remove(tmpPath, ec);
+}
+
 TEST(SaveFileTest, missingFileIsNotFound)
 {
     const auto stamp = std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());

@@ -70,6 +70,23 @@ namespace sgl::sfml
     }
 }
 
+[[nodiscard]] inline std::optional<sf::Vector2i> pointerPixel(const sf::Event& event) noexcept
+{
+    if(const auto* moved = event.getIf<sf::Event::MouseMoved>())
+    {
+        return moved->position;
+    }
+    if(const auto* pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    {
+        return pressed->position;
+    }
+    if(const auto* released = event.getIf<sf::Event::MouseButtonReleased>())
+    {
+        return released->position;
+    }
+    return std::nullopt;
+}
+
 [[nodiscard]] inline std::optional<sgl::InputEvent> translate(const sf::Event& event, sf::Vector2f designPosition)
 {
     if(event.is<sf::Event::Closed>())

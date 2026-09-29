@@ -81,7 +81,7 @@ related_docs:
   - ../explanation/architecture.md
   - ../../mvp/10-engine-progress.md
 keywords: [layout, directories, sgl, arkanoid, tetris, targets, cmake, SceneStack, App, SfmlPlatform]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Source layout reference
@@ -111,6 +111,7 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
 | `tests/engine/` | Per-module engine suites (Debug only) |
 | `tests/arkanoid/` | Sim and app suites (Debug only) |
+| `tests/tetris/` | Sim and app suites (Debug only) |
 | `tests/mocks/` | `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy` (engine ports) |
 
 Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
@@ -143,7 +144,7 @@ Configure presets: `debug`, `release`, `asan` (`SGL_ENABLE_ASAN` on GCC/Clang), 
 
 ## Unit test suites (Debug)
 
-Registered with `add_unit_test` under `tests/engine/` and `tests/arkanoid/`:
+Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, and `tests/tetris/`:
 
 | Suite | Leaf |
 |-------|------|

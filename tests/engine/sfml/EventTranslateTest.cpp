@@ -106,3 +106,38 @@ TEST(EventTranslateTest, TranslateMouseButtonReleasedUsesDesignPosition)
     EXPECT_FLOAT_EQ(up->pos.x, 50.f);
     EXPECT_FLOAT_EQ(up->pos.y, 75.f);
 }
+
+TEST(EventTranslateTest, PointerPixelFromMovedPressedReleased)
+{
+    sf::Event::MouseMoved moved{};
+    moved.position = {11, 22};
+    const auto movedPixel = sgl::sfml::pointerPixel(sf::Event{moved});
+    ASSERT_TRUE(movedPixel.has_value());
+    EXPECT_EQ(movedPixel->x, 11);
+    EXPECT_EQ(movedPixel->y, 22);
+
+    sf::Event::MouseButtonPressed pressed{};
+    pressed.button = sf::Mouse::Button::Left;
+    pressed.position = {33, 44};
+    const auto pressedPixel = sgl::sfml::pointerPixel(sf::Event{pressed});
+    ASSERT_TRUE(pressedPixel.has_value());
+    EXPECT_EQ(pressedPixel->x, 33);
+    EXPECT_EQ(pressedPixel->y, 44);
+
+    sf::Event::MouseButtonReleased released{};
+    released.button = sf::Mouse::Button::Right;
+    released.position = {55, 66};
+    const auto releasedPixel = sgl::sfml::pointerPixel(sf::Event{released});
+    ASSERT_TRUE(releasedPixel.has_value());
+    EXPECT_EQ(releasedPixel->x, 55);
+    EXPECT_EQ(releasedPixel->y, 66);
+}
+
+TEST(EventTranslateTest, PointerPixelIgnoresNonPointerEvents)
+{
+    EXPECT_FALSE(sgl::sfml::pointerPixel(sf::Event{sf::Event::Closed{}}).has_value());
+
+    sf::Event::KeyPressed pressed{};
+    pressed.code = sf::Keyboard::Key::A;
+    EXPECT_FALSE(sgl::sfml::pointerPixel(sf::Event{pressed}).has_value());
+}

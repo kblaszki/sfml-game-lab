@@ -37,6 +37,21 @@ TEST(InputStateTest, EdgeLastsOneFrame)
     EXPECT_FALSE(heldOnly.released);
 }
 
+TEST(InputStateTest, KeyDownThenKeyUpSameFrameYieldsPressedAndReleased)
+{
+    sgl::ActionMap map;
+    map.bind(sgl::Key::Space, kJump);
+
+    sgl::InputState state;
+    state.apply(sgl::KeyDown{.key = sgl::Key::Space}, map);
+    state.apply(sgl::KeyUp{.key = sgl::Key::Space}, map);
+
+    const sgl::ActionState sameFrame = state.action(kJump);
+    EXPECT_TRUE(sameFrame.pressed);
+    EXPECT_TRUE(sameFrame.released);
+    EXPECT_FALSE(sameFrame.held);
+}
+
 TEST(InputStateTest, HoldPersistsAcrossBeginFrame)
 {
     sgl::ActionMap map;

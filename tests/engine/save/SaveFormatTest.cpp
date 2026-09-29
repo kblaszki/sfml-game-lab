@@ -40,3 +40,38 @@ TEST(SaveFormatTest, rejectsNegative)
     ASSERT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), sgl::SaveError::Corrupt);
 }
+
+TEST(SaveFormatTest, blankLineMidFileIsCorrupt)
+{
+    // Trailing blank after the last score is allowed; a blank between scores is Corrupt.
+    const auto result = sgl::parse("sgl-highscores 1\n100\n\n50\n", 5);
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), sgl::SaveError::Corrupt);
+}
+
+TEST(SaveFormatTest, headerOnlyParsesToEmptyTable)
+{
+    const auto result = sgl::parse("sgl-highscores 1", 5);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_TRUE(result->entries().empty());
+}
+
+TEST(SaveFormatTest, truncatesScoresBeyondCapacity)
+{
+    const auto result = sgl::parse("sgl-highscores 1\n300\n200\n100\n50\n", 2);
+    ASSERT_TRUE(result.has_value());
+    const auto entries = result->entries();
+    ASSERT_EQ(entries.size(), 2u);
+    EXPECT_EQ(entries[0], 300u);
+    EXPECT_EQ(entries[1], 200u);
+}
+
+TEST(SaveFormatTest, parsesCrlfLineEndings)
+{
+    const auto result = sgl::parse("sgl-highscores 1\r\n300\r\n200\r\n", 5);
+    ASSERT_TRUE(result.has_value());
+    const auto entries = result->entries();
+    ASSERT_EQ(entries.size(), 2u);
+    EXPECT_EQ(entries[0], 300u);
+    EXPECT_EQ(entries[1], 200u);
+}

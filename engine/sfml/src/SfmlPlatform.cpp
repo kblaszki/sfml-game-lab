@@ -41,13 +41,9 @@ std::optional<sgl::InputEvent> SfmlPlatform::poll()
         }
 
         sf::Vector2f designPosition{};
-        if(const auto* moved = event->getIf<sf::Event::MouseMoved>())
+        if(const std::optional<sf::Vector2i> pixel = pointerPixel(*event))
         {
-            designPosition = window_.mapPixelToCoords(moved->position);
-        }
-        else if(const auto* pressed = event->getIf<sf::Event::MouseButtonPressed>())
-        {
-            designPosition = window_.mapPixelToCoords(pressed->position);
+            designPosition = window_.mapPixelToCoords(*pixel);
         }
 
         if(std::optional<sgl::InputEvent> input = translate(*event, designPosition))

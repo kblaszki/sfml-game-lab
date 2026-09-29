@@ -19,7 +19,7 @@ related_docs:
   - source-layout.md
   - engine-core.md
 keywords: [eng, sgl_input, Key, MouseButton, InputEvent, ActionMap, InputState, ActionId, AxisId, ActionState]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Engine input
@@ -64,6 +64,7 @@ Semantics:
 - Unbound keys leave action state unchanged (still update axis key holds when bound as axis ends)
 - `KeyDown` sets `pressed` and `held`
 - `KeyUp`: `held` stays true while any other bound key for that action is still down; `released` fires only when the last bound key goes up
+- Same-frame `KeyDown` then `KeyUp` (before the next `beginFrame`) yields `pressed && released && !held` — both edges latch for the frame; `held` clears on the release
 - Both axis keys held → `0`; only negative → `-1`; only positive → `+1`
 - `FocusLost` sets the focus-lost edge and clears all held keys/actions (axes become `0`)
 - `WindowClosed` sets `closeRequested` until the next `beginFrame`

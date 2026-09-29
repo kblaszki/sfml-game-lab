@@ -19,7 +19,7 @@ related_docs:
   - ../reference/source-layout.md
   - ../reference/engine-audio.md
 keywords: [build, test, ctest, format, presets, build_ut, debug, release, asan, coverage, tidy, arkanoid, tetris, SFML, Audio]
-last_reviewed: 2026-09-28
+last_reviewed: 2026-09-29
 ---
 
 # Build, test, and format
@@ -86,7 +86,7 @@ Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`):
 - Arkanoid: `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test`, `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test`
 - Tetris: `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test`, `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test`
 
-`build_ut` builds every suite registered with `add_unit_test(...)` (`cmake/AddUnitTest.cmake`).
+`build_ut` builds every suite registered with `add_unit_test(...)` (`cmake/AddUnitTest.cmake`). In Debug it also depends on `check_boundaries`, so building tests enforces the engine/games SFML and include-boundary rules.
 
 ## clang-tidy
 

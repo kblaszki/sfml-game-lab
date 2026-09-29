@@ -171,4 +171,5 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
     include(CTest)
     add_subdirectory(tests EXCLUDE_FROM_ALL)
+    add_dependencies(build_ut check_boundaries)
 endif()

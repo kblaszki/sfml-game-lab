@@ -1,7 +1,7 @@
 ---
 title: Engine implementation progress
 status: living
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 related_docs:
   - README.md
   - 09-rollout.md
@@ -35,7 +35,7 @@ This file is the **living register** of names and files that exist in the tree. 
 | Interfaces | Suffix `FooI` (`SceneI`, `RendererI`, `PlatformI`, `ClockI`) |
 | `mvp/` names with prefix `I` | Remap when that type lands — do not edit 01–09 |
 | Directories | Engine split **landed**: `engine/` (`sgl`) and `games/arkanoid/` (`sgl::arkanoid`, executable `arkanoid`). Contract: [`docs/explanation/architecture.md`](../docs/explanation/architecture.md) |
-| SFML | Only `engine/sfml` and `games/arkanoid/main.cpp` include SFML. `arkanoid/sim` stays headless |
+| SFML | Only `engine/sfml` and `games/<game>/main.cpp` (arkanoid, tetris) include SFML. `arkanoid/sim` and `tetris/sim` stay headless |
 | CMake | Each module owns its `CMakeLists.txt` |
 
 ### Name remap (when those types are added)
@@ -55,7 +55,7 @@ Check a box only after that slice is on `main`. Paths are what landed, not a pro
 |---|-------|--------|-------------|
 | 0–10 | Pre-cutover breakout under former `src/` | **superseded** | removed at cutover; historical notes below |
 | 11 | Engine split | **done** | see Slice 11 |
-| 12 | Phase II: `sgl`, Arkanoid fixes, Tetris | **in progress** | contract in [`architecture.md`](../docs/explanation/architecture.md); boxes below stay open until the code lands |
+| 12 | Phase II: `sgl`, Arkanoid fixes, Tetris | **done** | contract in [`architecture.md`](../docs/explanation/architecture.md); boxes below |
 
 Three stages and four power-ups live in `arkanoid_sim` / `arkanoid_app`. `01`–`09` stay prospective design notes.
 
