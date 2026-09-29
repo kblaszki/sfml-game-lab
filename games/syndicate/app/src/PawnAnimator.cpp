@@ -1,5 +1,6 @@
-#include <cmath>
+#include <algorithm>
 #include <cstddef>
+#include <sgl/anim/Easing.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
 #include <utility>
 
@@ -19,11 +20,6 @@ namespace
     return sgl::Vec2f{x, 0.f};
 }
 
-[[nodiscard]] float vecLength(sgl::Vec2f v) noexcept
-{
-    return std::sqrt(sgl::lengthSq(v));
-}
-
 } // namespace
 
 PawnAnimator::PawnAnimator(const LayoutView& layout)
@@ -31,39 +27,56 @@ PawnAnimator::PawnAnimator(const LayoutView& layout)
 {
 }
 
+void PawnAnimator::snapToEnd(State& s)
+{
+    if(!s.control.empty())
+    {
+        s.pos = s.control.back();
+    }
+    s.elapsed = s.duration;
+    s.animating = false;
+}
+
 void PawnAnimator::reset(PlayerId id, RingSlot at)
 {
     auto& s = states_[playerIndex(id)];
     s.pos = layout_->position(at);
-    s.points.clear();
-    s.segment = 0;
-    s.along = 0.f;
+    s.control.clear();
+    s.table = {};
+    s.elapsed = 0.f;
+    s.duration = 0.f;
     s.animating = false;
 }
 
 void PawnAnimator::start(PlayerId id, const std::vector<sgl::Vec2f>& points)
 {
     auto& s = states_[playerIndex(id)];
-    s.points = points;
-    s.segment = 0;
-    s.along = 0.f;
-    if(points.empty())
+    s.control = points;
+    s.elapsed = 0.f;
+    s.table = {};
+
+    if(points.size() < 2)
     {
+        if(!points.empty())
+        {
+            s.pos = points.back();
+        }
+        s.duration = 0.f;
         s.animating = false;
         return;
     }
+
+    const auto samples = sgl::catmullRom(points, 8);
+    s.table.build(samples);
+    const std::size_t hops = points.size() - 1u;
+    const float hopCount = static_cast<float>(hops < 1u ? 1u : hops);
+    s.duration = std::min(0.25f * hopCount, 1.6f);
     s.pos = points.front();
-    s.animating = points.size() > 1;
+    s.animating = true;
 }
 
 void PawnAnimator::update(sgl::Seconds dt)
 {
-    float budget = speed_ * dt.count();
-    if(budget <= 0.f)
-    {
-        return;
-    }
-
     for(auto& s: states_)
     {
         if(!s.animating)
@@ -71,48 +84,15 @@ void PawnAnimator::update(sgl::Seconds dt)
             continue;
         }
 
-        float remaining = budget;
-        while(s.animating && remaining > 0.f)
+        s.elapsed += dt.count();
+        if(s.elapsed >= s.duration || s.duration <= 0.f)
         {
-            if(s.segment + 1 >= s.points.size())
-            {
-                s.pos = s.points.back();
-                s.animating = false;
-                break;
-            }
-
-            const sgl::Vec2f a = s.points[s.segment];
-            const sgl::Vec2f b = s.points[s.segment + 1];
-            const sgl::Vec2f delta = b - a;
-            const float segLen = vecLength(delta);
-            if(segLen <= 0.f)
-            {
-                ++s.segment;
-                s.along = 0.f;
-                s.pos = b;
-                continue;
-            }
-
-            const float left = segLen - s.along;
-            if(remaining >= left)
-            {
-                remaining -= left;
-                ++s.segment;
-                s.along = 0.f;
-                s.pos = b;
-                if(s.segment + 1 >= s.points.size())
-                {
-                    s.animating = false;
-                }
-            }
-            else
-            {
-                s.along += remaining;
-                const float t = s.along / segLen;
-                s.pos = a + delta * t;
-                remaining = 0.f;
-            }
+            snapToEnd(s);
+            continue;
         }
+
+        const float u = sgl::easeInOutCubic(s.elapsed / s.duration);
+        s.pos = s.table.at(s.table.length() * u);
     }
 }
 
@@ -136,6 +116,22 @@ bool PawnAnimator::busy() const noexcept
 void PawnAnimator::setSpeed(float pixelsPerSecond)
 {
     speed_ = pixelsPerSecond;
+}
+
+void PawnAnimator::finish(PlayerId id)
+{
+    snapToEnd(states_[playerIndex(id)]);
+}
+
+void PawnAnimator::finishAll()
+{
+    for(auto& s: states_)
+    {
+        if(s.animating || !s.control.empty())
+        {
+            snapToEnd(s);
+        }
+    }
 }
 
 } // namespace sgl::syndicate

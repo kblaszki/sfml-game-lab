@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <sgl/anim/Spline.hpp>
 #include <sgl/core/Time.hpp>
 #include <sgl/core/Vec2.hpp>
 #include <syndicate/app/LayoutView.hpp>
@@ -11,7 +12,7 @@
 namespace sgl::syndicate
 {
 
-/// Constant-speed polyline motion for up to four pawns.
+/// Ease-in-out Catmull-Rom motion for up to four pawns.
 /// `position()` always adds `Vec2f{(id - 1.5f) * 12.f, 0}` so seats never stack.
 class PawnAnimator
 {
@@ -24,16 +25,21 @@ public:
     [[nodiscard]] sgl::Vec2f position(PlayerId id) const;
     [[nodiscard]] bool busy() const noexcept;
     void setSpeed(float pixelsPerSecond);
+    void finish(PlayerId id);
+    void finishAll();
 
 private:
     struct State
     {
         sgl::Vec2f pos{};
-        std::vector<sgl::Vec2f> points;
-        std::size_t segment{};
-        float along{};
+        std::vector<sgl::Vec2f> control;
+        sgl::ArcLengthTable table{};
+        float elapsed{0.f};
+        float duration{0.f};
         bool animating{};
     };
+
+    void snapToEnd(State& s);
 
     const LayoutView* layout_;
     float speed_{400.f};

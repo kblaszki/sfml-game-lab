@@ -10,6 +10,8 @@ related_code:
   - games/syndicate/app/include/syndicate/app/LayoutView.hpp
   - games/syndicate/app/include/syndicate/app/BoardRender.hpp
   - games/syndicate/app/include/syndicate/app/PawnAnimator.hpp
+  - games/syndicate/app/include/syndicate/app/DiceAnimator.hpp
+  - games/syndicate/app/include/syndicate/app/Presentation.hpp
   - games/syndicate/app/include/syndicate/app/Bindings.hpp
   - games/syndicate/app/include/syndicate/app/Describe.hpp
   - games/syndicate/app/include/syndicate/app/ActionBar.hpp
@@ -27,6 +29,8 @@ related_code:
   - games/syndicate/app/src/LayoutView.cpp
   - games/syndicate/app/src/BoardRender.cpp
   - games/syndicate/app/src/PawnAnimator.cpp
+  - games/syndicate/app/src/DiceAnimator.cpp
+  - games/syndicate/app/src/Presentation.cpp
   - games/syndicate/app/src/Bindings.cpp
   - games/syndicate/app/src/Describe.cpp
   - games/syndicate/app/src/ActionBar.cpp
@@ -45,6 +49,8 @@ related_code:
   - tests/syndicate/app/BoardRenderTest.cpp
   - tests/syndicate/app/HandViewTest.cpp
   - tests/syndicate/app/PawnAnimatorTest.cpp
+  - tests/syndicate/app/DiceAnimatorTest.cpp
+  - tests/syndicate/app/PresentationTest.cpp
   - tests/syndicate/app/HudModelTest.cpp
   - tests/syndicate/app/DescribeTest.cpp
   - tests/syndicate/app/ActionBarTest.cpp
@@ -62,7 +68,7 @@ related_docs:
   - engine-save.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, PawnAnimator, Bindings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, PawnAnimator, DiceAnimator, Presentation, Bindings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
@@ -98,11 +104,17 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## Theme / layout / board / HUD
 
-`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `HudModel`, `HandView`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
+`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `DiceAnimator`, `Presentation`, `HudModel`, `HandView`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
 
 `renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`).
 
 `HudModel` draws one rounded player panel per seat (`playerPanelRect`, x=16, y=48+i×36, 300×32) with `P{n} {formatMoney(cash)}`; the acting seat gets a brighter outline. Phase prompt and note TTL are unchanged.
+
+## Dice / pawn presentation
+
+Match rolls are **d4+d4** (faces 1..4, total 2..8). `DiceAnimator` shows two procedural dice (rounded rect + pip circles) with tumble intervals `0.04s * 1.35^k`, then an `easeOutBack` scale pop. It owns a cosmetic `sgl::Pcg32` seeded with `seed ^ 0xD1CE` — **not** `GameState::rng`, so match determinism is unchanged.
+
+`PawnAnimator` moves along a Catmull-Rom sample (`catmullRom(points, 8)` + `ArcLengthTable`) with distance `length * easeInOutCubic(elapsed/T)`, `T = min(0.25s * hops, 1.6s)`. `Presentation` sequences dice then path (queues path while dice busy); `fastForward` (click or roll key) finishes both. Human/bot commands are gated on `!presentation.busy()`.
 
 ## HandView
 
@@ -122,7 +134,7 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## PlayScene
 
-Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, and `TooltipSystem`. On a human turn while the pawn animator is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders HUD, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Feedback` after each applied command.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, `TooltipSystem`, and `Presentation` (seed from `MatchConfig::seed` or `services.seed`). On a human turn while presentation is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/pawns, HUD, dice at layout origin, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled` and `Feedback` after each applied command.
 
 ## main.cpp
 
@@ -135,7 +147,9 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | `syndicate_layout_view_test` | Outer spacing, slot 0 above origin, ring 2 closer |
 | `syndicate_board_render_test` | 40 circles, 40 short labels, line count = unique unordered edges, centers match layout |
 | `syndicate_hand_view_test` | Appear tween: x off-screen at dt=0, at slot x after 0.35s |
-| `syndicate_pawn_animator_test` | 400px path at 400 px/s, `busy()`, distinct same-slot positions |
+| `syndicate_pawn_animator_test` | Catmull-Rom ease-in-out path, `busy()`, distinct same-slot positions |
+| `syndicate_dice_animator_test` | d4+d4 tumble intervals non-decreasing, settle on roll 7, fast-forward |
+| `syndicate_presentation_test` | Path waits for dice; fast-forward ends both |
 | `syndicate_hud_model_test` | phasePrompt words; note TTL expiry |
 | `syndicate_describe_test` | `formatMoney` scales; Biotech `BuyShares{1}` label facts |
 | `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot |

@@ -26,6 +26,20 @@ add_unit_test(syndicate_pawn_animator_test
         syndicate_app
 )
 
+add_unit_test(syndicate_dice_animator_test
+    SOURCES
+        DiceAnimatorTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_presentation_test
+    SOURCES
+        PresentationTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_hud_model_test
     SOURCES
         HudModelTest.cpp

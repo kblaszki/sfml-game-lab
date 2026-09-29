@@ -20,6 +20,7 @@
 #include <syndicate/app/HudModel.hpp>
 #include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
+#include <syndicate/app/Presentation.hpp>
 #include <syndicate/app/Sounds.hpp>
 #include <syndicate/app/SpriteBank.hpp>
 #include <syndicate/app/Theme.hpp>
@@ -88,6 +89,7 @@ private:
     Theme theme_{defaultTheme()};
     LayoutView layout_{sgl::Vec2f{640.f, 360.f}, 280.f};
     PawnAnimator animator_{layout_};
+    Presentation presentation_;
     HudModel hud_{};
     ActionBar actionBar_{};
     HandView handView_{};

@@ -208,6 +208,7 @@ PlayScene::PlayScene(MatchConfig config, std::vector<Seat> seats, sgl::FontId fo
     : seats_{std::move(seats)}
     , font_{font}
     , actions_{actions}
+    , presentation_{animator_, config.seed}
 {
     if(std::cmp_not_equal(seats_.size(), config.seats))
     {
@@ -230,6 +231,7 @@ PlayScene::PlayScene(const SyndicateServices& services, MatchConfig config, std:
     , actions_{services.actions}
     , services_{services}
     , feedback_{Feedback{services.audio, services.sounds}}
+    , presentation_{animator_, services.seed}
 {
     if(std::cmp_not_equal(seats_.size(), config.seats))
     {
@@ -287,17 +289,27 @@ void PlayScene::tryStartPathAnimation(const ChooseDestination& dest)
     {
         points.push_back(layout_.position(match_->state().board.node(node).at));
     }
-    animator_.start(match_->actingPlayer(), points);
+    presentation_.onPath(match_->actingPlayer(), points);
 }
 
 void PlayScene::drainFeedback()
 {
-    if(!match_.has_value() || !feedback_.has_value())
+    if(!match_.has_value())
     {
         return;
     }
     const std::vector<GameEvent> events = match_->drainEvents();
-    feedback_->onEvents(events);
+    for(const GameEvent& event: events)
+    {
+        if(const auto* rolled = std::get_if<Rolled>(&event))
+        {
+            presentation_.onRolled(rolled->roll);
+        }
+    }
+    if(feedback_.has_value())
+    {
+        feedback_->onEvents(events);
+    }
 }
 
 void PlayScene::applyCommand(PlayerId actor, const Command& cmd)
@@ -464,7 +476,7 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
         return;
     }
 
-    animator_.update(dt);
+    presentation_.update(dt);
     hud_.update(dt);
 
     const sgl::InputState& input = ctx.input();
@@ -475,7 +487,14 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
             ctx.request(sgl::RequestPause{});
         }
 
-        if(!animator_.busy())
+        if(presentation_.busy())
+        {
+            if(input.pointerPressed() || input.action(actions_.roll).pressed)
+            {
+                presentation_.fastForward();
+            }
+        }
+        else
         {
             const PlayerId actor = match_->actingPlayer();
             const std::size_t idx = seatIndex(actor);
@@ -568,6 +587,7 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     }
 
     hud_.render(queue, *match_, font_, theme_);
+    presentation_.render(queue, layout_.origin(), theme_);
     handView_.render(queue, font_, theme_);
     actionBar_.render(queue, makeActionBarStyle(font_), hover_);
     tooltip_.render(queue, sgl::TooltipStyle{.font = tooltipFont()});

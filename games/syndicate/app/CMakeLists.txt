@@ -3,6 +3,8 @@ add_library(syndicate_app STATIC
     src/LayoutView.cpp
     src/BoardRender.cpp
     src/PawnAnimator.cpp
+    src/DiceAnimator.cpp
+    src/Presentation.cpp
     src/Bindings.cpp
     src/Describe.cpp
     src/ActionBar.cpp
