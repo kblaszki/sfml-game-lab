@@ -17,8 +17,8 @@ related_docs:
   - ../reference/source-layout.md
   - ../reference/input-and-events.md
   - ../reference/pause-overlay.md
-  - ../reference/arkanoid-sim.md
-  - ../reference/syndicate-app.md
+  - ../../games/arkanoid/docs/reference/sim.md
+  - ../../games/syndicate/docs/reference/app.md
   - ../explanation/architecture.md
   - ../../mvp/10-engine-progress.md
 keywords: [setup, toolchain, build, run, msys2, ninja, cmake, first time, arkanoid, tetris, syndicate]
@@ -81,4 +81,4 @@ The lab also ships Tetris and Syndicate. Build Tetris with `cmake --build --pres
 
 ## Next steps
 
-Everyday commands and tests: [../how-to/build-and-test.md](../how-to/build-and-test.md). Layout: [../reference/source-layout.md](../reference/source-layout.md). Input: [../reference/input-and-events.md](../reference/input-and-events.md). Pause: [../reference/pause-overlay.md](../reference/pause-overlay.md). Sim rules: [../reference/arkanoid-sim.md](../reference/arkanoid-sim.md).
+Everyday commands and tests: [../how-to/build-and-test.md](../how-to/build-and-test.md). Layout: [../reference/source-layout.md](../reference/source-layout.md). Input: [../reference/input-and-events.md](../reference/input-and-events.md). Pause: [../reference/pause-overlay.md](../reference/pause-overlay.md). Sim rules: [games/arkanoid/docs/reference/sim.md](../../games/arkanoid/docs/reference/sim.md).

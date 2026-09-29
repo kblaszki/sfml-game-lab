@@ -9,8 +9,8 @@ related_code:
   - tests/syndicate/sim/CardsTest.cpp
   - tests/syndicate/sim/parts/cards.cmake
 related_docs:
-  - syndicate-sim.md
-  - ../explanation/syndicate-design.md
+  - sim.md
+  - ../explanation/design.md
 keywords: [syndicate, cards, Deck, Hand, CardKind, describeEffect, CardEffect, CardTarget]
 last_reviewed: 2026-09-29
 ---

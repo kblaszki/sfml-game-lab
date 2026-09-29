@@ -14,11 +14,11 @@ related_code:
 related_docs:
   - build-and-test.md
   - ../reference/source-layout.md
-  - ../reference/tetris-sim.md
-  - ../reference/tetris-app.md
+  - ../../games/tetris/docs/reference/sim.md
+  - ../../games/tetris/docs/reference/app.md
   - ../explanation/architecture.md
 keywords: [game, tetris, arkanoid, cmake, check_boundaries, SceneI, sim, app]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Add a game

@@ -4,7 +4,7 @@ diataxis: reference
 audience: [ai, human]
 related_code:
   - CMakeLists.txt
-  - games/arkanoid/main.cpp
+  - games/CMakeLists.txt
 related_docs:
   - tutorials/getting-started.md
   - how-to/build-and-test.md
@@ -23,42 +23,39 @@ related_docs:
   - reference/engine-resources.md
   - reference/engine-save.md
   - reference/engine-sfml.md
-  - reference/arkanoid-sim.md
-  - reference/tetris-sim.md
-  - reference/syndicate-sim.md
-  - reference/syndicate-economy.md
-  - reference/syndicate-cards.md
-  - reference/syndicate-auction.md
-  - reference/syndicate-app.md
-  - reference/syndicate-assets.md
-  - reference/arkanoid-app.md
-  - reference/tetris-app.md
   - reference/input-and-events.md
   - reference/pause-overlay.md
   - explanation/roadmap.md
   - explanation/architecture.md
-  - explanation/syndicate-design.md
-  - explanation/syndicate-ui.md
+  - ../games/arkanoid/docs/index.md
+  - ../games/tetris/docs/index.md
+  - ../games/syndicate/docs/index.md
   - ../mvp/README.md
   - ../mvp/10-engine-progress.md
-keywords: [documentation, diataxis, index, map, navigation, docs]
+keywords: [documentation, diataxis, index, map, navigation, docs, games]
 last_reviewed: 2026-09-29
 ---
 
 # Documentation map
 
-This directory documents **sfml-game-lab** following the [Diataxis](https://diataxis.fr/) framework. Every document starts with a YAML front-matter block; agents should search by the `related_code` and `keywords` fields to find the right page.
+Documentation for **sfml-game-lab** follows the [Diataxis](https://diataxis.fr/) framework and lives in two kinds of tree:
+
+- `docs/` (this tree) covers the `sgl` engine and anything shared across games.
+- `games/<game>/docs/` covers one game. Each has its own `index.md` with the same four quadrants.
+
+Every document starts with a YAML front-matter block. To find the page for a source file, search both `docs/` and `games/*/docs/` for that path in `related_code`.
 
 ## How the docs are organized
 
 ```mermaid
 flowchart TD
-  Index[index.md] --> Tut[tutorials/ learning]
+  Index[docs/index.md] --> Tut[tutorials/ learning]
   Index --> How[how-to/ tasks]
   Index --> Ref[reference/ facts]
   Index --> Exp[explanation/ rationale]
-  Ref -->|related_code| Code[engine/ and games/]
-  How -->|related_code| Code
+  Index --> Games[games/game/docs/index.md]
+  Ref -->|related_code| Engine[engine/]
+  Games -->|related_code| GameCode[games/game/]
 ```
 
 | Quadrant | When to read | Purpose |
@@ -68,14 +65,22 @@ flowchart TD
 | Reference | You need a precise fact | Describe what exists, mirrors code |
 | Explanation | You want the "why" | Design rationale and direction |
 
-## All documents
+## Where to start
+
+| You are working on | Read first |
+|--------------------|------------|
+| The engine (`engine/`) | [explanation/architecture.md](explanation/architecture.md), then the matching `reference/engine-*.md` |
+| An existing game | That game's `games/<game>/docs/index.md` |
+| A new game | [how-to/add-a-game.md](how-to/add-a-game.md) and a sibling game's docs as a model |
+
+## Engine and cross-game documents
 
 | Document | Type | Keywords |
 |----------|------|----------|
 | [tutorials/getting-started.md](tutorials/getting-started.md) | tutorial | setup, toolchain, build, run, msys2 |
 | [how-to/build-and-test.md](how-to/build-and-test.md) | how-to | build, test, ctest, format, presets |
-| [how-to/add-a-game.md](how-to/add-a-game.md) | how-to | game, tetris, cmake, check_boundaries, sim, app |
-| [reference/source-layout.md](reference/source-layout.md) | reference | layout, directories, sgl, arkanoid, tetris, targets |
+| [how-to/add-a-game.md](how-to/add-a-game.md) | how-to | game, cmake, check_boundaries, sim, app |
+| [reference/source-layout.md](reference/source-layout.md) | reference | layout, directories, sgl, targets, suites |
 | [reference/engine-core.md](reference/engine-core.md) | reference | sgl, Vec2, Rect, Handle, Image, Overloaded |
 | [reference/engine-audio.md](reference/engine-audio.md) | reference | sgl, AudioI, tone, Pcm, SfmlAudio |
 | [reference/engine-ui.md](reference/engine-ui.md) | reference | sgl, MenuModel, renderMenu, PauseOverlay |
@@ -89,27 +94,28 @@ flowchart TD
 | [reference/engine-resources.md](reference/engine-resources.md) | reference | ResourceCache, ResourceError |
 | [reference/engine-save.md](reference/engine-save.md) | reference | sgl, HighScoreTable, SaveError, userDataDir |
 | [reference/engine-sfml.md](reference/engine-sfml.md) | reference | SfmlPlatform, EventTranslate, letterbox |
-| [reference/arkanoid-sim.md](reference/arkanoid-sim.md) | reference | arkanoid sim, StageId, power-ups |
-| [reference/tetris-sim.md](reference/tetris-sim.md) | reference | tetris sim, Grid, SRS, kicks |
-| [reference/syndicate-sim.md](reference/syndicate-sim.md) | reference | syndicate sim, Money, BoardGraph, pathing |
-| [reference/syndicate-economy.md](reference/syndicate-economy.md) | reference | syndicate, Market, landing fee, dividends |
-| [reference/syndicate-cards.md](reference/syndicate-cards.md) | reference | syndicate, Deck, CardKind, CardEffect |
-| [reference/syndicate-auction.md](reference/syndicate-auction.md) | reference | syndicate, Auction, TradeOffer |
-| [reference/syndicate-app.md](reference/syndicate-app.md) | reference | syndicate app, scenes, Feedback, executable syndicate |
-| [reference/syndicate-assets.md](reference/syndicate-assets.md) | reference | syndicate atlas, SpriteBank, PNG, theme, procedural fallback |
-| [reference/arkanoid-app.md](reference/arkanoid-app.md) | reference | Theme, Assets, HudModel, Sounds, Feedback, ResultScene, high score |
-| [reference/tetris-app.md](reference/tetris-app.md) | reference | Theme, Bindings, BoardRender, Sounds, Feedback, high score |
 | [reference/input-and-events.md](reference/input-and-events.md) | reference | InputEvent, ActionMap, defaultBindings |
 | [reference/pause-overlay.md](reference/pause-overlay.md) | reference | PauseScene, RequestPause, FocusLost, pausable |
 | [explanation/roadmap.md](explanation/roadmap.md) | explanation | roadmap, stages, power-ups, engine split |
-| [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, arkanoid, tetris, boundaries, ECS |
-| [explanation/syndicate-design.md](explanation/syndicate-design.md) | explanation | syndicate rules, rings, economy, cards, phases |
-| [explanation/syndicate-ui.md](explanation/syndicate-ui.md) | explanation | syndicate UI, procedural chrome, hybrid atlas |
-| [../mvp/README.md](../mvp/README.md) | design notes (not Diátaxis) | prospective engine plan |
-| [../mvp/10-engine-progress.md](../mvp/10-engine-progress.md) | living tracker (not Diátaxis) | slices, sgl modules, arkanoid, tetris |
+| [explanation/architecture.md](explanation/architecture.md) | explanation | ADR, sgl, boundaries, ECS |
 
-`mvp/01`–`09` are prospective. Living engine progress is [`mvp/10-engine-progress.md`](../mvp/10-engine-progress.md). Current facts live in the Diátaxis pages above; prefer `engine/` and `games/` over chapter prose if they disagree.
+## Game documentation
+
+| Game | Index | Covers |
+|------|-------|--------|
+| Arkanoid | [games/arkanoid/docs/index.md](../games/arkanoid/docs/index.md) | sim, app |
+| Tetris | [games/tetris/docs/index.md](../games/tetris/docs/index.md) | sim, app |
+| Syndicate | [games/syndicate/docs/index.md](../games/syndicate/docs/index.md) | design, UI, sim, economy, cards, auction, app, assets |
+
+## Design notes (not Diátaxis)
+
+| Document | Purpose |
+|----------|---------|
+| [../mvp/README.md](../mvp/README.md) | prospective engine plan |
+| [../mvp/10-engine-progress.md](../mvp/10-engine-progress.md) | living tracker: slices, sgl modules, games |
+
+`mvp/01`–`09` are prospective. Current facts live in the Diátaxis pages; prefer `engine/` and `games/` over chapter prose if they disagree.
 
 ## Maintenance
 
-Documentation currency is enforced by the always-on rule `.cursor/rules/documentation.mdc` and the `update-docs` skill. When code changes, update the docs whose `related_code` lists the touched files, refresh their `last_reviewed`, and keep this table in sync.
+Documentation currency is enforced by the always-on rule `.cursor/rules/documentation.mdc` and the `update-docs` skill. When code changes, update the docs whose `related_code` lists the touched files (in either tree), refresh their `last_reviewed`, and keep this map and the per-game indexes in sync.

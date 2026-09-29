@@ -35,16 +35,16 @@ related_code:
   - tests/arkanoid/app/SoundsTest.cpp
   - tests/arkanoid/app/FeedbackTest.cpp
 related_docs:
-  - arkanoid-sim.md
-  - engine-core.md
-  - engine-input.md
-  - engine-resources.md
-  - engine-save.md
-  - engine-scene.md
-  - engine-ui.md
-  - pause-overlay.md
-  - source-layout.md
-  - ../explanation/architecture.md
+  - sim.md
+  - ../../../../docs/reference/engine-core.md
+  - ../../../../docs/reference/engine-input.md
+  - ../../../../docs/reference/engine-resources.md
+  - ../../../../docs/reference/engine-save.md
+  - ../../../../docs/reference/engine-scene.md
+  - ../../../../docs/reference/engine-ui.md
+  - ../../../../docs/reference/pause-overlay.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [arkanoid, app, Theme, Assets, Bindings, HudModel, textureSpecs, makeHud, Sounds, Feedback, Scenes, MainMenuScene, GameplayScene, PauseScene, ResultScene, HighScoreTable, MenuModel, ScoreStore, blip]
 last_reviewed: 2026-09-29
 ---

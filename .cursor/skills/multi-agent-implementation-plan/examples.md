@@ -7,7 +7,7 @@ This tree is `engine/` (`eng`) + `games/arkanoid/` (`arkanoid`, executable `arka
 | Wave | Package | Owned writes (typical) |
 |------|---------|------------------------|
 | 1 | Engine module type | `engine/<module>/…`, `tests/engine/<module>/…`, matching `docs/reference/engine-*.md` + `source-layout.md` |
-| 2 | Game sim or app | `games/arkanoid/<sim|app>/…`, `tests/arkanoid/…`, matching `docs/reference/arkanoid-*.md` |
+| 2 | Game sim or app | `games/arkanoid/<sim|app>/…`, `tests/arkanoid/…`, matching `games/arkanoid/docs/**/*.md` |
 | 3 | Docs leftover sweep | leftover `docs/**` only (`related_code`, `docs/index.md`) |
 
 Within a wave, split only if paths stay disjoint and each agent owns its module `CMakeLists.txt`.

@@ -12,11 +12,11 @@ related_code:
   - games/syndicate/main.cpp
   - assets/fonts/
 related_docs:
-  - syndicate-app.md
-  - engine-resources.md
-  - engine-sfml.md
-  - source-layout.md
-  - ../explanation/syndicate-ui.md
+  - app.md
+  - ../../../../docs/reference/engine-resources.md
+  - ../../../../docs/reference/engine-sfml.md
+  - ../../../../docs/reference/source-layout.md
+  - ../explanation/ui.md
 keywords: [syndicate, atlas, SpriteBank, PNG, assets, theme, procedural fallback]
 last_reviewed: 2026-09-29
 ---

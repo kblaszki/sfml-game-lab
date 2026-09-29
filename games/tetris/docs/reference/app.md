@@ -35,17 +35,17 @@ related_code:
   - tests/tetris/app/SoundsTest.cpp
   - tests/tetris/app/FeedbackTest.cpp
 related_docs:
-  - tetris-sim.md
-  - engine-core.md
-  - engine-input.md
-  - engine-resources.md
-  - engine-scene.md
-  - engine-audio.md
-  - engine-fx.md
-  - engine-save.md
-  - engine-ui.md
-  - source-layout.md
-  - ../explanation/architecture.md
+  - sim.md
+  - ../../../../docs/reference/engine-core.md
+  - ../../../../docs/reference/engine-input.md
+  - ../../../../docs/reference/engine-resources.md
+  - ../../../../docs/reference/engine-scene.md
+  - ../../../../docs/reference/engine-audio.md
+  - ../../../../docs/reference/engine-fx.md
+  - ../../../../docs/reference/engine-save.md
+  - ../../../../docs/reference/engine-ui.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [tetris, app, Theme, Bindings, InputMapping, BoardRender, HudModel, Sounds, Feedback, Scenes, PlayScene, GameOverScene, MenuModel]
 last_reviewed: 2026-09-29
 ---

@@ -39,7 +39,8 @@ cd sfml-game-lab
 | `games/syndicate/` | Headless sim, scenes, and the `syndicate` executable |
 | `assets/fonts/` | UI TTF (`ASSET_DIR`) |
 | `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/` | Debug GoogleTest (no window, except event translation) |
-| `docs/` | Diátaxis documentation |
+| `docs/` | Diátaxis documentation for the engine (map: `docs/index.md`) |
+| `games/<game>/docs/` | Diátaxis documentation for each game |
 | `mvp/` | Prospective design (`01`–`09`) and living progress (`10`) |
 
 Executable targets: `arkanoid`, `tetris`, and `syndicate`. Only `engine/sfml` and `games/<game>/main.cpp` include SFML.

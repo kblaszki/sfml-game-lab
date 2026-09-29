@@ -95,8 +95,8 @@ flowchart LR
 |------|------|
 | [`docs/explanation/architecture.md`](../docs/explanation/architecture.md) | Contract |
 | [`docs/reference/source-layout.md`](../docs/reference/source-layout.md) | Targets and suites |
-| [`docs/reference/arkanoid-sim.md`](../docs/reference/arkanoid-sim.md) | Sim rules |
-| [`docs/reference/arkanoid-app.md`](../docs/reference/arkanoid-app.md) | Scenes and HUD |
+| [`games/arkanoid/docs/reference/sim.md`](../games/arkanoid/docs/reference/sim.md) | Sim rules |
+| [`games/arkanoid/docs/reference/app.md`](../games/arkanoid/docs/reference/app.md) | Scenes and HUD |
 
 ### Slice 12 — Phase II (landed)
 

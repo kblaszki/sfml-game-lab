@@ -32,19 +32,19 @@ related_code:
   - tests/syndicate/sim/parts/bot.cmake
   - tests/syndicate/sim/CMakeLists.txt
 related_docs:
-  - ../explanation/syndicate-design.md
-  - syndicate-economy.md
-  - syndicate-cards.md
-  - syndicate-auction.md
-  - source-layout.md
-  - ../explanation/architecture.md
+  - ../explanation/design.md
+  - economy.md
+  - cards.md
+  - auction.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [syndicate, sim, Money, BoardGraph, standardBoard, moveOptions, Match, turn machine, Payday, CSR, NodeId, Bot, BotPersona]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate sim
 
-Headless board/pathing foundation in `namespace sgl::syndicate`. Static library `syndicate_sim` links `PUBLIC` `sgl_core` only. No SFML. Include as `<syndicate/sim/X.hpp>`. Rules overview: [syndicate-design.md](../explanation/syndicate-design.md).
+Headless board/pathing foundation in `namespace sgl::syndicate`. Static library `syndicate_sim` links `PUBLIC` `sgl_core` only. No SFML. Include as `<syndicate/sim/X.hpp>`. Rules overview: [games/syndicate/docs/explanation/design.md](../explanation/design.md).
 
 Optional CMake part hooks (`parts/{economy,cards,auction,match,bot}.cmake`) are included after the library definition for later parallel tasks; this slice lists its own sources directly.
 

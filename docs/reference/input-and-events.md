@@ -18,7 +18,7 @@ related_docs:
   - engine-loop.md
   - engine-sfml.md
   - pause-overlay.md
-  - arkanoid-app.md
+  - ../../games/arkanoid/docs/reference/app.md
   - source-layout.md
   - ../tutorials/getting-started.md
   - ../../mvp/03-events-and-input.md
@@ -53,4 +53,4 @@ Scenes read `SceneContext::input()`; they never poll the window and never call `
 | Left / Right | `paddle` axis (−1 / +1) |
 | A / D | `paddle` axis (−1 / +1) |
 
-Menu: confirm starts Stage1; cancel quits the app (`QuitApp`). Gameplay: confirm launches; paddle axis moves the paddle; pause requests the overlay. Overlay: pause/cancel resume; confirm quits to menu. See [arkanoid-app.md](arkanoid-app.md).
+Menu: confirm starts Stage1; cancel quits the app (`QuitApp`). Gameplay: confirm launches; paddle axis moves the paddle; pause requests the overlay. Overlay: pause/cancel resume; confirm quits to menu. See [games/arkanoid/docs/reference/app.md](../../games/arkanoid/docs/reference/app.md).

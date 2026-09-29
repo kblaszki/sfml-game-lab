@@ -12,15 +12,15 @@ related_code:
   - tests/syndicate/sim/TradeTest.cpp
   - tests/syndicate/sim/parts/auction.cmake
 related_docs:
-  - syndicate-sim.md
-  - ../explanation/syndicate-design.md
+  - sim.md
+  - ../explanation/design.md
 keywords: [syndicate, auction, trade, bid, passBid, TradeOffer, validateTrade, Sold, Unsold]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate auction and trade
 
-Headless ascending auction and hot-seat trade validation in `namespace sgl::syndicate`. Depends only on `Money.hpp` and `Ids.hpp`. Wired via optional CMake parts `parts/auction.cmake` (sim sources and unit tests). Design context: [syndicate-design.md](../explanation/syndicate-design.md).
+Headless ascending auction and hot-seat trade validation in `namespace sgl::syndicate`. Depends only on `Money.hpp` and `Ids.hpp`. Wired via optional CMake parts `parts/auction.cmake` (sim sources and unit tests). Design context: [games/syndicate/docs/explanation/design.md](../explanation/design.md).
 
 ## Auction (`Auction.hpp`)
 

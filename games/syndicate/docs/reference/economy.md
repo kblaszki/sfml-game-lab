@@ -14,16 +14,16 @@ related_code:
   - tests/syndicate/sim/EconomyTest.cpp
   - tests/syndicate/sim/parts/economy.cmake
 related_docs:
-  - syndicate-sim.md
-  - ../explanation/syndicate-design.md
-  - source-layout.md
+  - sim.md
+  - ../explanation/design.md
+  - ../../../../docs/reference/source-layout.md
 keywords: [syndicate, economy, Market, Ownership, landingFee, sharePrice, dividends, netWorth, liquidation]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate economy
 
-Integer-only market, share ownership, and fee math in `namespace sgl::syndicate`. Headers: `<syndicate/sim/Market.hpp>`, `<syndicate/sim/Ownership.hpp>`, `<syndicate/sim/Economy.hpp>`. Wired into `syndicate_sim` via optional `parts/economy.cmake`. Rules overview: [syndicate-design.md](../explanation/syndicate-design.md).
+Integer-only market, share ownership, and fee math in `namespace sgl::syndicate`. Headers: `<syndicate/sim/Market.hpp>`, `<syndicate/sim/Ownership.hpp>`, `<syndicate/sim/Economy.hpp>`. Wired into `syndicate_sim` via optional `parts/economy.cmake`. Rules overview: [games/syndicate/docs/explanation/design.md](../explanation/design.md).
 
 ## Ownership
 

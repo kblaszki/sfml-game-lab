@@ -8,7 +8,7 @@ description: >-
 
 # Add a scene
 
-Source of truth: [docs/reference/engine-scene.md](../../../docs/reference/engine-scene.md), [docs/reference/arkanoid-app.md](../../../docs/reference/arkanoid-app.md), [docs/reference/tetris-app.md](../../../docs/reference/tetris-app.md), [docs/how-to/add-a-game.md](../../../docs/how-to/add-a-game.md), [docs/explanation/architecture.md](../../../docs/explanation/architecture.md).
+Source of truth: [docs/reference/engine-scene.md](../../../docs/reference/engine-scene.md), [games/arkanoid/docs/reference/app.md](../../../games/arkanoid/docs/reference/app.md), [games/tetris/docs/reference/app.md](../../../games/tetris/docs/reference/app.md), [docs/how-to/add-a-game.md](../../../docs/how-to/add-a-game.md), [docs/explanation/architecture.md](../../../docs/explanation/architecture.md).
 
 Concrete game scenes live in `games/<name>/app/` (`namespace sgl::arkanoid` or `sgl::tetris`), not in `engine/scene/`. A brand-new title follows [add-a-game](../../../docs/how-to/add-a-game.md). Engine provides `SceneI`, `SceneStack`, `SceneRequest`, `SceneTraits`.
 

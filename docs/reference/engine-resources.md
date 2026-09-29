@@ -14,7 +14,7 @@ related_code:
 related_docs:
   - source-layout.md
   - engine-render.md
-  - syndicate-assets.md
+  - ../../games/syndicate/docs/reference/assets.md
   - ../explanation/architecture.md
 keywords: [eng, ResourceCache, ResourceError, Atlas, AtlasManifest, parseAtlas, TextureId, FontId, load, get, find]
 last_reviewed: 2026-09-29

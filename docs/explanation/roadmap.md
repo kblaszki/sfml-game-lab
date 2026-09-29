@@ -10,12 +10,12 @@ related_code:
   - engine/loop/include/sgl/loop/App.hpp
 related_docs:
   - ../reference/source-layout.md
-  - ../reference/arkanoid-sim.md
+  - ../../games/arkanoid/docs/reference/sim.md
   - architecture.md
   - ../../mvp/README.md
   - ../../mvp/10-engine-progress.md
 keywords: [roadmap, direction, stages, power-ups, sgl, arkanoid, tetris, engine split]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Project direction and status
@@ -24,7 +24,7 @@ last_reviewed: 2026-09-25
 
 A C++23 SFML 3.1 breakout on the landed engine split (`engine/` / `games/arkanoid/`): Start/Quit menu, three stages (Stage1 → Stage2 → Stage3), four power-ups (Wide, MultiBall, Slow, ExtraLife), pause overlay via `SceneStack`, headless tests. Legacy `src/` is removed. The engine namespace is `sgl`.
 
-Facts: [source-layout.md](../reference/source-layout.md), [arkanoid-sim.md](../reference/arkanoid-sim.md). Contract: [architecture.md](architecture.md). Prospective notes: [`mvp/01`–`09`](../../mvp/README.md). Landed slices: [`mvp/10-engine-progress.md`](../../mvp/10-engine-progress.md).
+Facts: [source-layout.md](../reference/source-layout.md), [games/arkanoid/docs/reference/sim.md](../../games/arkanoid/docs/reference/sim.md). Contract: [architecture.md](architecture.md). Prospective notes: [`mvp/01`–`09`](../../mvp/README.md). Landed slices: [`mvp/10-engine-progress.md`](../../mvp/10-engine-progress.md).
 
 ## Where it is going
 

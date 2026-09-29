@@ -89,20 +89,20 @@ related_docs:
   - engine-anim.md
   - engine-save.md
   - engine-sfml.md
-  - arkanoid-sim.md
-  - arkanoid-app.md
-  - tetris-sim.md
-  - tetris-app.md
-  - syndicate-sim.md
-  - syndicate-app.md
-  - syndicate-assets.md
+  - ../../games/arkanoid/docs/reference/sim.md
+  - ../../games/arkanoid/docs/reference/app.md
+  - ../../games/tetris/docs/reference/sim.md
+  - ../../games/tetris/docs/reference/app.md
+  - ../../games/syndicate/docs/reference/sim.md
+  - ../../games/syndicate/docs/reference/app.md
+  - ../../games/syndicate/docs/reference/assets.md
   - input-and-events.md
   - pause-overlay.md
   - ../how-to/build-and-test.md
   - ../how-to/add-a-game.md
   - ../explanation/architecture.md
-  - ../explanation/syndicate-design.md
-  - ../explanation/syndicate-ui.md
+  - ../../games/syndicate/docs/explanation/design.md
+  - ../../games/syndicate/docs/explanation/ui.md
   - ../../mvp/10-engine-progress.md
 keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, targets, cmake, SceneStack, App, SfmlPlatform]
 last_reviewed: 2026-09-29
@@ -110,7 +110,7 @@ last_reviewed: 2026-09-29
 
 # Source layout reference
 
-Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`namespace sgl::arkanoid`, executable `arkanoid`). Contract: [architecture.md](../explanation/architecture.md).
+Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, and `syndicate` (`namespace sgl::<game>`, executable `<game>`). Contract: [architecture.md](../explanation/architecture.md).
 
 ## Directories
 
@@ -137,6 +137,8 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `games/syndicate/sim/` | Headless Syndicate (`BoardGraph`, `Market`/`Economy`, `Cards`, `Auction`/`Trade`, `Match` turn machine); `syndicate_sim` links `sgl_core` only |
 | `games/syndicate/app/` | Scenes (incl. `PauseMenuScene`, `HelpScene`, `ControlMap`), board UI, Describe/ActivityLog/ActionBar/HandView, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
 | `games/syndicate/main.cpp` | Wires `SfmlPlatform`, settings/`ScaledAudio`/`setDisplay`, font/sounds/optional atlas, `SceneStack`, `sgl::App`; executable `syndicate` |
+| `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
+| `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
 | `tests/engine/` | Per-module engine suites (Debug only) |
 | `tests/arkanoid/` | Sim and app suites (Debug only) |

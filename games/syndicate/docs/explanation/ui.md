@@ -12,10 +12,10 @@ related_code:
   - engine/render/include/sgl/render/DrawCommand.hpp
   - engine/sfml/include/sgl/sfml/SfmlPlatform.hpp
 related_docs:
-  - ../reference/syndicate-assets.md
-  - ../reference/syndicate-app.md
-  - syndicate-design.md
-  - architecture.md
+  - ../reference/assets.md
+  - ../reference/app.md
+  - design.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [syndicate, UI, procedural, MeshCmd, atlas, hybrid, presentation, animators, ActivityLog, layout]
 last_reviewed: 2026-09-29
 ---

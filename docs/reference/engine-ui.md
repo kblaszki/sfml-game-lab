@@ -92,7 +92,7 @@ Per-button hover scale. `update(hovered, count, dt)` resizes to `count`. Unhover
 
 ## PauseOverlay
 
-`PauseOverlay : SceneI` builds a two-row menu (Resume, Quit) from `MenuActions` and `FontId`. Arkanoid and Tetris keep using this overlay (or their own pause scenes); Syndicate pause is `PauseMenuScene` instead — see [syndicate-app.md](syndicate-app.md) and [pause-overlay.md](pause-overlay.md).
+`PauseOverlay : SceneI` builds a two-row menu (Resume, Quit) from `MenuActions` and `FontId`. Arkanoid and Tetris keep using this overlay (or their own pause scenes); Syndicate pause is `PauseMenuScene` instead — see [games/syndicate/docs/reference/app.md](../../games/syndicate/docs/reference/app.md) and [pause-overlay.md](pause-overlay.md).
 
 | Activation | Request |
 |------------|---------|

@@ -27,9 +27,9 @@ related_code:
   - tests/tetris/sim/TetrisPropertyTest.cpp
   - tests/tetris/sim/CMakeLists.txt
 related_docs:
-  - engine-core.md
-  - source-layout.md
-  - ../explanation/architecture.md
+  - ../../../../docs/reference/engine-core.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [tetris, sim, Grid, Piece, SRS, Bag, Scoring, TetrisGame, DAS, ARR, lock delay, hold, 7-bag]
 last_reviewed: 2026-09-29
 ---

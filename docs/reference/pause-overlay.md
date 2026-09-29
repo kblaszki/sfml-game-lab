@@ -21,7 +21,7 @@ related_docs:
   - engine-scene.md
   - engine-input.md
   - input-and-events.md
-  - arkanoid-app.md
+  - ../../games/arkanoid/docs/reference/app.md
   - source-layout.md
   - ../../mvp/05-pause.md
 keywords: [pause, overlay, PauseScene, PauseMenuScene, PauseOverlay, ResultScene, RequestPause, SceneTraits, pausable, FocusLost, SceneStack]
@@ -44,7 +44,7 @@ Arkanoid uses `PauseScene` / shared `sgl::PauseOverlay` patterns; Tetris uses it
 | `blocksUpdate` | `true` | Stack stops the update walk; gameplay `update` (and sim step) do not run |
 | `pausable` | `false` | A second pause does not stack |
 
-`ResultScene` uses the same overlay traits (`opaque` false, `blocksUpdate` true, not pausable) for win/lose; see [arkanoid-app.md](arkanoid-app.md).
+`ResultScene` uses the same overlay traits (`opaque` false, `blocksUpdate` true, not pausable) for win/lose; see [games/arkanoid/docs/reference/app.md](../../games/arkanoid/docs/reference/app.md).
 
 ## How it is requested
 

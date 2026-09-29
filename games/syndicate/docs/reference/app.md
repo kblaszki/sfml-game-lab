@@ -79,16 +79,16 @@ related_code:
   - tests/syndicate/app/FeedbackTest.cpp
   - tests/syndicate/app/SpriteBankTest.cpp
 related_docs:
-  - syndicate-sim.md
-  - syndicate-assets.md
-  - ../explanation/syndicate-design.md
-  - ../explanation/syndicate-ui.md
-  - engine-render.md
-  - engine-ui.md
-  - engine-save.md
-  - pause-overlay.md
-  - source-layout.md
-  - ../explanation/architecture.md
+  - sim.md
+  - assets.md
+  - ../explanation/design.md
+  - ../explanation/ui.md
+  - ../../../../docs/reference/engine-render.md
+  - ../../../../docs/reference/engine-ui.md
+  - ../../../../docs/reference/engine-save.md
+  - ../../../../docs/reference/pause-overlay.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, MarketHistory, TrendChart, PathHighlighter, PawnAnimator, DiceAnimator, Presentation, Bindings, ControlMap, HelpScene, PauseMenuScene, Settings, Describe, ActivityLog, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---

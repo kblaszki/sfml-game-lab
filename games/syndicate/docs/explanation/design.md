@@ -9,16 +9,16 @@ related_code:
   - games/syndicate/sim/include/syndicate/sim/BoardLayouts.hpp
   - games/syndicate/sim/include/syndicate/sim/Pathing.hpp
 related_docs:
-  - ../reference/syndicate-sim.md
-  - ../reference/source-layout.md
-  - architecture.md
+  - ../reference/sim.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [syndicate, design, board, rings, bridges, economy, shares, auction, cards, phases, debt]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate: Dynamic Grid — design contract
 
-Hot-seat board game for 2–4 players (any seat may be a deterministic bot). Simulation is integer-only and headless in `sgl::syndicate`. This page is the rules contract; implemented types live in [syndicate-sim.md](../reference/syndicate-sim.md).
+Hot-seat board game for 2–4 players (any seat may be a deterministic bot). Simulation is integer-only and headless in `sgl::syndicate`. This page is the rules contract; implemented types live in [games/syndicate/docs/reference/sim.md](../reference/sim.md).
 
 ## Board: concentric directed rings
 

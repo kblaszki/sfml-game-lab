@@ -19,13 +19,13 @@ related_code:
   - tests/arkanoid/sim/PowerUpTest.cpp
   - tests/arkanoid/sim/CMakeLists.txt
 related_docs:
-  - engine-collision.md
-  - engine-core.md
-  - arkanoid-app.md
-  - source-layout.md
-  - ../explanation/architecture.md
+  - ../../../../docs/reference/engine-collision.md
+  - ../../../../docs/reference/engine-core.md
+  - app.md
+  - ../../../../docs/reference/source-layout.md
+  - ../../../../docs/explanation/architecture.md
 keywords: [arkanoid, sim, State, Effects, step, SimInput, SimEvent, makeState, PowerUpKind, StageId, sweep, TOI, Wide, MultiBall, Slow, ExtraLife, PaddleHit, WallHit, BallLaunched, BallLost]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Arkanoid sim
