@@ -73,6 +73,13 @@ sgl::InputState pointerAt(sgl::Vec2f pos, const sgl::ActionMap& map, bool presse
     return input;
 }
 
+sgl::InputState pointerUpAt(sgl::Vec2f pos, const sgl::ActionMap& map)
+{
+    sgl::InputState input;
+    input.apply(sgl::MouseUp{.button = sgl::MouseButton::Left, .pos = pos}, map);
+    return input;
+}
+
 constexpr sgl::Vec2f kStartButtonCenter{640.f, 356.f};
 
 void clearAllBricks(sgl::arkanoid::State& state)
@@ -248,7 +255,9 @@ TEST(ScenesTest, clickStarts)
     Fixture f;
     f.stack.push(sgl::arkanoid::mainMenu(f.services)());
 
+    // MenuModel activates on press+release inside the same button.
     f.stack.update(pointerAt(kStartButtonCenter, f.map, true), sgl::kTick);
+    f.stack.update(pointerUpAt(kStartButtonCenter, f.map), sgl::kTick);
 
     auto* play = dynamic_cast<sgl::arkanoid::GameplayScene*>(f.stack.top());
     ASSERT_NE(play, nullptr);

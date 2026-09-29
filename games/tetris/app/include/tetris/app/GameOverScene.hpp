@@ -3,9 +3,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <sgl/core/Rect.hpp>
-#include <sgl/core/Vec2.hpp>
 #include <sgl/scene/SceneI.hpp>
+#include <sgl/ui/MenuModel.hpp>
+#include <sgl/ui/MenuStyle.hpp>
 #include <string>
 #include <tetris/app/Scenes.hpp>
 
@@ -26,17 +26,12 @@ public:
     [[nodiscard]] bool saveFailed() const noexcept;
 
 private:
-    [[nodiscard]] bool hitRetry(sgl::Vec2f point) const;
-    [[nodiscard]] bool hitMenu(sgl::Vec2f point) const;
-
     AppServices services_;
     std::uint32_t score_{};
     std::optional<std::size_t> rank_{};
     std::string saveError_{};
-    sgl::Rect<float> retryButton_{};
-    sgl::Rect<float> menuButton_{};
-    bool retryHover_{false};
-    bool menuHover_{false};
+    sgl::MenuModel model_;
+    sgl::MenuStyle style_{};
 };
 
 } // namespace sgl::tetris

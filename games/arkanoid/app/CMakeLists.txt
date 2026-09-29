@@ -23,4 +23,5 @@ target_link_libraries(arkanoid_app PUBLIC
     sgl_audio
     sgl_fx
     sgl_save
+    sgl_ui
 )

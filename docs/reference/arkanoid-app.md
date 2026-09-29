@@ -41,16 +41,17 @@ related_docs:
   - engine-resources.md
   - engine-save.md
   - engine-scene.md
+  - engine-ui.md
   - pause-overlay.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [arkanoid, app, Theme, Assets, Bindings, HudModel, textureSpecs, makeHud, Sounds, Feedback, Scenes, MainMenuScene, GameplayScene, PauseScene, ResultScene, HighScoreTable]
-last_reviewed: 2026-09-25
+keywords: [arkanoid, app, Theme, Assets, Bindings, HudModel, textureSpecs, makeHud, Sounds, Feedback, Scenes, MainMenuScene, GameplayScene, PauseScene, ResultScene, HighScoreTable, MenuModel, ScoreStore, blip]
+last_reviewed: 2026-09-29
 ---
 
 # Arkanoid app
 
-Presentation helpers in `namespace sgl::arkanoid` for the playable shell. Static library target `arkanoid_app` (links `arkanoid_sim`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_fx`, `sgl_save`). No SFML includes — pixel art is `sgl::Image`, input uses `sgl::ActionMap`. Include as `<arkanoid/app/X.hpp>`. Executable target `arkanoid` (`games/arkanoid/main.cpp`) links `arkanoid_app` and `sgl_sfml`, defines `ASSET_DIR` to the repo `assets/` root.
+Presentation helpers in `namespace sgl::arkanoid` for the playable shell. Static library target `arkanoid_app` (links `arkanoid_sim`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_fx`, `sgl_save`, `sgl_ui`). No SFML includes — pixel art is `sgl::Image`, input uses `sgl::ActionMap`. Include as `<arkanoid/app/X.hpp>`. Executable target `arkanoid` (`games/arkanoid/main.cpp`) links `arkanoid_app` and `sgl_sfml`, defines `ASSET_DIR` to the repo `assets/` root.
 
 ## Assets
 
@@ -69,7 +70,7 @@ Image sizes match the breakout art: background **1280×720** (dark blue with hor
 
 ## Bindings
 
-`makeActions()` builds `Actions` with explicit ids **1–4** (`confirm`, `cancel`, `pause`, `paddle`). `defaultBindings` maps Enter→confirm, Escape→pause, Backspace→cancel, and paddle axis Left/A (negative) with Right/D (positive).
+`makeActions()` builds `Actions` with explicit ids **1–6** (`confirm`, `cancel`, `pause`, `paddle` axis id **4**, `up` **5**, `down` **6`). `defaultBindings` maps Enter→confirm, Escape→pause, Backspace→cancel, Up/Down→menu focus, and paddle axis Left/A (negative) with Right/D (positive). `menuActions(actions)` returns `sgl::MenuActions` for the shared menu kit.
 
 ## HUD
 
@@ -86,7 +87,7 @@ Image sizes match the breakout art: background **1280×720** (dark blue with hor
 
 ## Sounds
 
-`soundSpecs()` returns a span of `{key, Pcm}` for **paddle**, **brick**, **wall**, **launch**, **powerUp**, **ballLost**, **lifeLost**, **stageClear**, and **gameOver**. Each buffer is built with `sgl::tone`. `SoundIds` holds the uploaded `SoundId` handles. `main.cpp` uploads every spec through `SfmlAudio::upload` (via `platform.audio()`) and stores the ids plus `AudioI&` in `AppServices`.
+`soundSpecs()` returns a span of `{key, Pcm}` for **paddle**, **brick**, **wall**, **launch**, **powerUp**, **ballLost**, **lifeLost**, **stageClear**, and **gameOver**. Each buffer is built with `sgl::blip` (gain `0.35`). `SoundIds` holds the uploaded `SoundId` handles. `main.cpp` uploads every spec through `SfmlAudio::upload` (`platform.audio()` is already `SfmlAudio&`) and stores the ids plus `AudioI&` in `AppServices`.
 
 ## Feedback
 
@@ -98,7 +99,7 @@ Image sizes match the breakout art: background **1280×720** (dark blue with hor
 
 ## Scenes
 
-`AppServices` bundles `{const Actions& actions; const TextureIds& textures; sgl::FontId font; sgl::AudioI& audio; SoundIds sounds; sgl::HighScoreTable& highScores; std::filesystem::path scoresPath}` for scene factories. High-score capacity is `kHighScoreCapacity` (**5**). Factories return `sgl::SceneFactory`:
+`AppServices` bundles `{const Actions& actions; const TextureIds& textures; sgl::FontId font; sgl::AudioI& audio; SoundIds sounds; sgl::HighScoreTable& highScores; std::filesystem::path scoresPath}` for scene factories. References are owned by `main()` for the whole `App::run()`; scenes must not outlive that. High-score capacity is `kHighScoreCapacity` (**5**). Factories return `sgl::SceneFactory`:
 
 | Factory | Scene | Traits |
 |---------|-------|--------|
@@ -107,15 +108,15 @@ Image sizes match the breakout art: background **1280×720** (dark blue with hor
 | `pause(services)` | `PauseScene` | not opaque, blocksUpdate, not pausable |
 | `result(services, Outcome, score, rank, saveFailed)` | `ResultScene` | not opaque, blocksUpdate, not pausable |
 
-`MainMenuScene` draws title `"Breakout"`, best score (`"Best N"` from `highScores.entries()` front, or `0`), and Start/Quit buttons. Confirm or `pointerPressed` inside Start → `ReplaceScene{gameplay(..., Stage1)}`; cancel or Quit click → `QuitApp`. Hover alone does nothing.
+`MainMenuScene` and `ResultScene` drive `sgl::MenuModel` + `sgl::renderMenu` for their buttons (Start/Quit and Retry/Menu). Titles and score copy stay custom draws. Confirm activates the focused row; cancel quits (menu) or returns to the main menu (result). Pointer activation requires press and release inside the same button.
 
-`GameplayScene` owns `sim::State` from `makeState` and `Feedback`. Each update builds `SimInput` from paddle axis + confirm, calls `step`, runs feedback, then handles stage/outcome. Stage1/2 `StageCleared` advances via `makeState(next, score, lives)`. On `GameOver` or Stage3 `StageCleared`: `highScores.insert(score)`, `writeTextFileAtomic(scoresPath, serialize(...))` (creates parent dirs first), then `PushScene{result(...)}`. Save failure sets `saveFailed` on the result overlay; play continues. While playing, pause → `RequestPause`. Exposes `state()` (const and mutable) and `hud()`.
+`GameplayScene` owns `sim::State` from `makeState` and `Feedback`. Each update builds `SimInput` from paddle axis + confirm, calls `step`, runs feedback, then handles stage/outcome. Stage1/2 `StageCleared` advances via `makeState(next, score, lives)`. On `GameOver` or Stage3 `StageCleared`: `highScores.insert(score)`, `ScoreStore::save(scoresPath, ...)`, then `PushScene{result(...)}`. Save failure sets `saveFailed` on the result overlay; play continues. While playing, pause → `RequestPause`. Exposes `state()` (const and mutable) and `hud()`.
 
-`ResultScene` is the win/lose overlay (`Outcome::Won` / `Lost`). Shows title, score, optional `"New record"` when `rank` has a value, and `"Could not save high score"` when `saveFailed`. Retry (confirm or Retry click) → `PopScene` then `ReplaceScene{gameplay(..., Stage1)}` with default score/lives. Menu (cancel or Menu click) → `PopScene` then `ReplaceScene{mainMenu}`.
+`ResultScene` is the win/lose overlay (`Outcome::Won` / `Lost`). Shows title, score, optional `"New record"` when `rank` has a value, and `"Could not save high score"` when `saveFailed`. Retry (confirm on focused Retry, or Retry click) → `PopScene` then `ReplaceScene{gameplay(..., Stage1)}` with default score/lives. Menu (cancel or Menu activate) → `PopScene` then `ReplaceScene{mainMenu}`.
 
-`PauseScene` dims the screen and shows a `"Paused"` panel. Pause/cancel → `PopScene`; confirm → `PopScene` then `ReplaceScene{mainMenu}` (uses `mainMenu()` from `Scenes.hpp`, not `MainMenuScene.hpp`).
+`PauseScene` keeps the `PauseScene` type and uses `MenuModel` + `renderMenu` (Resume / Menu). Pause or cancel → `PopScene`; confirm → `PopScene` then `ReplaceScene{mainMenu}` (menu-kit confirm is unbound so Enter keeps the prior quit-to-menu path; pointer still activates the focused row).
 
-`main.cpp` loads every `textureSpecs()` entry via a key→slot table and the UI font through `SfmlPlatform::assets()`, uploads `soundSpecs()`, resolves `userDataDir("sfml-game-lab") / "arkanoid.scores"`, loads the table with `parse` (`NotFound` or `Corrupt` → empty table; `Corrupt` also writes one line to stderr), builds `AppServices`, constructs `SceneStack` with the pause factory, pushes the main menu, and runs `sgl::App`.
+`main.cpp` loads every `textureSpecs()` entry via a key→slot table and the UI font through `SfmlPlatform::assets()`, uploads `soundSpecs()`, resolves `userDataDir("sfml-game-lab") / "arkanoid.scores"` (temp-directory fallback when `userDataDir` fails), loads the table with `ScoreStore::load`, builds `AppServices`, constructs `SceneStack` with the pause factory, pushes the main menu, and runs `sgl::App`.
 
 ## Tests
 

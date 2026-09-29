@@ -31,7 +31,7 @@ related_docs:
   - source-layout.md
   - ../explanation/architecture.md
 keywords: [tetris, sim, Grid, Piece, SRS, Bag, Scoring, TetrisGame, DAS, ARR, lock delay, hold, 7-bag]
-last_reviewed: 2026-09-25
+last_reviewed: 2026-09-29
 ---
 
 # Tetris sim
@@ -84,7 +84,9 @@ Coordinates: **+y up**, row 0 is the bottom of the 10×40 grid (`kVisibleHeight`
 
 ## Tuning and events
 
-`Tuning` defaults: DAS `0.167` s, ARR `0.033` s, lock delay `0.5` s, max lock resets `15`, soft-drop factor `20`. `TetrisEvent` is a `std::variant` of `PieceSpawned`, `PieceShifted`, `PieceRotated`, `PieceLocked`, `LinesCleared` (with `count`), `HardDropped`, `HoldUsed`, `LevelUp`, `GameOver`.
+`Tuning` defaults: DAS `0.167` s, ARR `0.033` s, lock delay `0.5` s, max lock resets `15`, soft-drop factor `20`. `TetrisEvent` is a `std::variant` of `PieceSpawned`, `PieceShifted`, `PieceRotated`, `PieceLocked`, `LinesCleared`, `HardDropped`, `HoldUsed`, `LevelUp`, `GameOver`.
+
+`LinesCleared` carries the real cleared row indices: `std::array<std::uint8_t, 4> rows` (original grid y values, bottom-up) plus `count` (1–4). Unused `rows` slots stay zero. `TetrisGame` copies them from `Grid::clearFullRows()` when emitting the event.
 
 ## TetrisGame (`TetrisGame.hpp`)
 
@@ -101,4 +103,4 @@ Accessors: `grid()`, `active()`, `ghost()`, `held()`, `nextQueue()`, `score()`, 
 
 ## Tests
 
-`GridTest` / `SrsTest` cover fit/occupy/lock/clear and kicks. `BagTest` covers 100 bags, seed stability, and preview. `ScoringTest` covers the line table, drop points, level-ups, and gravity at levels 1 and 15. `TetrisGameTest` covers DAS/ARR, hard drop, lock delay/resets, hold, block/lock out, and a level-1 tetris. `TetrisPropertyTest.invariantsOverRandomInput` runs 20 seeds × 20 000 ticks of random input.
+`GridTest` / `SrsTest` cover fit/occupy/lock/clear and kicks. `BagTest` covers 100 bags, seed stability, and preview. `ScoringTest` covers the line table, drop points, level-ups, and gravity at levels 1 and 15. `TetrisGameTest` covers DAS/ARR, hard drop, lock delay/resets, hold, block/lock out, and a level-1 tetris (including `LinesCleared` row indices 0–3). `TetrisPropertyTest.invariantsOverRandomInput` runs 20 seeds × 20 000 ticks of random input.

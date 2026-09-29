@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sgl/core/Rect.hpp>
-#include <sgl/core/Vec2.hpp>
 #include <sgl/scene/SceneI.hpp>
+#include <sgl/ui/MenuModel.hpp>
+#include <sgl/ui/MenuStyle.hpp>
 #include <tetris/app/Scenes.hpp>
 
 namespace sgl::tetris
@@ -18,14 +18,9 @@ public:
     sgl::SceneTraits traits() const override;
 
 private:
-    [[nodiscard]] bool hitStart(sgl::Vec2f point) const;
-    [[nodiscard]] bool hitQuit(sgl::Vec2f point) const;
-
     AppServices services_;
-    sgl::Rect<float> startButton_{};
-    sgl::Rect<float> quitButton_{};
-    bool startHover_{false};
-    bool quitHover_{false};
+    sgl::MenuModel model_;
+    sgl::MenuStyle style_{};
 };
 
 } // namespace sgl::tetris

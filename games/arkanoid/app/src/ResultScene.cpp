@@ -4,7 +4,9 @@
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/scene/SceneContext.hpp>
+#include <sgl/ui/RenderMenu.hpp>
 #include <string>
+#include <vector>
 
 namespace sgl::arkanoid
 {
@@ -23,6 +25,26 @@ constexpr float kMenuY{480.f};
     };
 }
 
+[[nodiscard]] std::vector<sgl::Button> makeButtons()
+{
+    return {
+        sgl::Button{.rect = centeredButton(kRetryY), .label = "Retry"},
+        sgl::Button{.rect = centeredButton(kMenuY), .label = "Menu"},
+    };
+}
+
+[[nodiscard]] sgl::MenuStyle makeStyle(sgl::FontId font)
+{
+    return sgl::MenuStyle{
+        .font = font,
+        .textSize = 26,
+        .idle = startButton,
+        .focused = startButtonHover,
+        .text = startLabel,
+        .panel = sgl::Color{24, 28, 48, 230},
+    };
+}
+
 } // namespace
 
 ResultScene::ResultScene(
@@ -32,8 +54,8 @@ ResultScene::ResultScene(
     , score_{score}
     , rank_{rank}
     , saveFailed_{saveFailed}
-    , retryButton_{centeredButton(kRetryY)}
-    , menuButton_{centeredButton(kMenuY)}
+    , model_{makeButtons()}
+    , style_{makeStyle(services.font)}
 {
 }
 
@@ -57,55 +79,25 @@ bool ResultScene::saveFailed() const noexcept
     return saveFailed_;
 }
 
-bool ResultScene::hitRetry(sgl::Vec2f point) const
-{
-    return retryButton_.contains(point);
-}
-
-bool ResultScene::hitMenu(sgl::Vec2f point) const
-{
-    return menuButton_.contains(point);
-}
-
 void ResultScene::update(sgl::SceneContext& ctx, sgl::Seconds)
 {
-    const sgl::InputState& input = ctx.input();
-
-    if(const auto pointer = input.pointer())
+    const sgl::MenuActions actions = menuActions(services_.actions);
+    if(const auto activated = model_.update(ctx.input(), actions))
     {
-        retryHover_ = hitRetry(*pointer);
-        menuHover_ = hitMenu(*pointer);
-
-        if(input.pointerPressed())
+        if(*activated == 0)
         {
-            if(retryHover_)
-            {
-                ctx.request(sgl::PopScene{});
-                ctx.request(sgl::ReplaceScene{gameplay(services_, StageId::Stage1)});
-                return;
-            }
-            if(menuHover_)
-            {
-                ctx.request(sgl::PopScene{});
-                ctx.request(sgl::ReplaceScene{mainMenu(services_)});
-                return;
-            }
+            ctx.request(sgl::PopScene{});
+            ctx.request(sgl::ReplaceScene{gameplay(services_, StageId::Stage1)});
         }
-    }
-    else
-    {
-        retryHover_ = false;
-        menuHover_ = false;
-    }
-
-    if(input.action(services_.actions.confirm).pressed)
-    {
-        ctx.request(sgl::PopScene{});
-        ctx.request(sgl::ReplaceScene{gameplay(services_, StageId::Stage1)});
+        else
+        {
+            ctx.request(sgl::PopScene{});
+            ctx.request(sgl::ReplaceScene{mainMenu(services_)});
+        }
         return;
     }
 
-    if(input.action(services_.actions.cancel).pressed)
+    if(model_.cancelled())
     {
         ctx.request(sgl::PopScene{});
         ctx.request(sgl::ReplaceScene{mainMenu(services_)});
@@ -120,16 +112,10 @@ void ResultScene::render(sgl::RenderQueue& queue) const
                    .rect = {.pos = {0.f, 0.f}, .size = {designWidth, designHeight}},
                    .fill = sgl::Color{0, 0, 0, 150},
                });
-    queue.push(sgl::Layer::Overlay,
-               1.f,
-               sgl::RectCmd{
-                   .rect = {.pos = {340.f, 140.f}, .size = {600.f, 440.f}},
-                   .fill = sgl::Color{24, 28, 48, 230},
-               });
 
     const char* title = outcome_ == Outcome::Won ? "You win" : "You lose";
     queue.push(sgl::Layer::Overlay,
-               2.f,
+               1.f,
                sgl::TextCmd{
                    .font = services_.font,
                    .text = title,
@@ -139,7 +125,7 @@ void ResultScene::render(sgl::RenderQueue& queue) const
                    .anchor = sgl::Anchor::Center,
                });
     queue.push(sgl::Layer::Overlay,
-               3.f,
+               2.f,
                sgl::TextCmd{
                    .font = services_.font,
                    .text = "Score " + std::to_string(score_),
@@ -153,7 +139,7 @@ void ResultScene::render(sgl::RenderQueue& queue) const
     if(rank_.has_value())
     {
         queue.push(sgl::Layer::Overlay,
-                   4.f,
+                   3.f,
                    sgl::TextCmd{
                        .font = services_.font,
                        .text = "New record",
@@ -167,7 +153,7 @@ void ResultScene::render(sgl::RenderQueue& queue) const
     if(saveFailed_)
     {
         queue.push(sgl::Layer::Overlay,
-                   5.f,
+                   4.f,
                    sgl::TextCmd{
                        .font = services_.font,
                        .text = "Could not save high score",
@@ -178,41 +164,7 @@ void ResultScene::render(sgl::RenderQueue& queue) const
                    });
     }
 
-    queue.push(sgl::Layer::Overlay,
-               6.f,
-               sgl::RectCmd{
-                   .rect = retryButton_,
-                   .fill = retryHover_ ? startButtonHover : startButton,
-               });
-    queue.push(sgl::Layer::Overlay,
-               7.f,
-               sgl::TextCmd{
-                   .font = services_.font,
-                   .text = "Retry",
-                   .size = 26,
-                   .position = {retryButton_.pos.x + retryButton_.size.x * 0.5f,
-                                retryButton_.pos.y + retryButton_.size.y * 0.5f},
-                   .color = startLabel,
-                   .anchor = sgl::Anchor::Center,
-               });
-
-    queue.push(sgl::Layer::Overlay,
-               8.f,
-               sgl::RectCmd{
-                   .rect = menuButton_,
-                   .fill = menuHover_ ? quitButtonHover : quitButton,
-               });
-    queue.push(
-        sgl::Layer::Overlay,
-        9.f,
-        sgl::TextCmd{
-            .font = services_.font,
-            .text = "Menu",
-            .size = 26,
-            .position = {menuButton_.pos.x + menuButton_.size.x * 0.5f, menuButton_.pos.y + menuButton_.size.y * 0.5f},
-            .color = quitLabel,
-            .anchor = sgl::Anchor::Center,
-        });
+    sgl::renderMenu(queue, model_, style_, sgl::Layer::Overlay);
 }
 
 sgl::SceneTraits ResultScene::traits() const

@@ -4,9 +4,8 @@
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/resources/ResourceError.hpp>
 #include <sgl/save/HighScoreTable.hpp>
-#include <sgl/save/SaveError.hpp>
 #include <sgl/save/SaveFile.hpp>
-#include <sgl/save/SaveFormat.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <sgl/scene/SceneStack.hpp>
 #include <sgl/sfml/SfmlAudio.hpp>
 #include <sgl/sfml/SfmlClock.hpp>
@@ -22,12 +21,6 @@ namespace
 constexpr std::uint64_t kDefaultSeed{42};
 
 [[nodiscard]] int fail(sgl::ResourceError err)
-{
-    std::cerr << sgl::describe(err) << '\n';
-    return 1;
-}
-
-[[nodiscard]] int fail(sgl::SaveError err)
 {
     std::cerr << sgl::describe(err) << '\n';
     return 1;
@@ -87,7 +80,7 @@ int main()
     }
     const sgl::FontId fontId = *fontLoaded;
 
-    auto& sfmlAudio = static_cast<sgl::sfml::SfmlAudio&>(platform.audio());
+    auto& sfmlAudio = platform.audio();
     sgl::tetris::SoundIds sounds{};
     for(const sgl::tetris::SoundSpec& spec: sgl::tetris::soundSpecs())
     {
@@ -99,29 +92,16 @@ int main()
         assignSound(sounds, spec.key, *uploaded);
     }
 
-    const auto scoresDir = sgl::userDataDir("sfml-game-lab");
-    if(!scoresDir)
+    std::filesystem::path scoresPath;
+    if(const auto dir = sgl::userDataDir("sfml-game-lab"))
     {
-        return fail(scoresDir.error());
+        scoresPath = *dir / "tetris.scores";
     }
-    const std::filesystem::path scoresPath = *scoresDir / "tetris.scores";
-
-    sgl::HighScoreTable highScores{sgl::tetris::kHighScoreCapacity};
-    if(const auto text = sgl::readTextFile(scoresPath))
+    else
     {
-        if(auto parsed = sgl::parse(*text, sgl::tetris::kHighScoreCapacity))
-        {
-            highScores = std::move(*parsed);
-        }
-        else
-        {
-            std::cerr << "tetris.scores corrupt (" << sgl::describe(parsed.error()) << "); starting empty\n";
-        }
+        scoresPath = std::filesystem::temp_directory_path() / "tetris.scores";
     }
-    else if(text.error() != sgl::SaveError::NotFound)
-    {
-        std::cerr << "tetris.scores read failed (" << sgl::describe(text.error()) << "); starting empty\n";
-    }
+    sgl::HighScoreTable highScores = sgl::ScoreStore::load(scoresPath, sgl::tetris::kHighScoreCapacity);
 
     const sgl::tetris::Actions actions = sgl::tetris::makeActions();
     sgl::ActionMap map = sgl::tetris::defaultBindings(actions);

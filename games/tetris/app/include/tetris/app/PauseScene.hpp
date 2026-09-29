@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sgl/scene/SceneI.hpp>
+#include <sgl/ui/MenuModel.hpp>
+#include <sgl/ui/MenuStyle.hpp>
 #include <tetris/app/Scenes.hpp>
 
 namespace sgl::tetris
@@ -17,6 +19,8 @@ public:
 
 private:
     AppServices services_;
+    sgl::MenuModel model_;
+    sgl::MenuStyle style_{};
 };
 
 } // namespace sgl::tetris

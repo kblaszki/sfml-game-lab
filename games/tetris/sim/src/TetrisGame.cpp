@@ -417,7 +417,12 @@ void TetrisGame::clearAndSpawn(std::vector<TetrisEvent>& events)
     {
         const std::uint32_t levelBefore = score_.level;
         applyLineClear(score_, cleared.count);
-        events.push_back(LinesCleared{.count = cleared.count});
+        LinesCleared clearedEvent{.count = cleared.count};
+        for(std::uint8_t i = 0; i < cleared.count; ++i)
+        {
+            clearedEvent.rows[i] = static_cast<std::uint8_t>(cleared.rows[i]);
+        }
+        events.push_back(clearedEvent);
         if(score_.level > levelBefore)
         {
             events.push_back(LevelUp{});

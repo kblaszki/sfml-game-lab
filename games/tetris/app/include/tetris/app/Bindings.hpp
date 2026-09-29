@@ -2,6 +2,7 @@
 
 #include <sgl/input/ActionId.hpp>
 #include <sgl/input/ActionMap.hpp>
+#include <sgl/ui/MenuActions.hpp>
 
 namespace sgl::tetris
 {
@@ -22,5 +23,6 @@ struct Actions
 
 [[nodiscard]] Actions makeActions();
 [[nodiscard]] sgl::ActionMap defaultBindings(const Actions& actions);
+[[nodiscard]] sgl::MenuActions menuActions(const Actions& actions);
 
 } // namespace sgl::tetris

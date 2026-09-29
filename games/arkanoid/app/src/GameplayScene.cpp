@@ -4,13 +4,10 @@
 #include <arkanoid/sim/Levels.hpp>
 #include <arkanoid/sim/Physics.hpp>
 #include <arkanoid/sim/Tuning.hpp>
-#include <filesystem>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
-#include <sgl/save/SaveFile.hpp>
-#include <sgl/save/SaveFormat.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <sgl/scene/SceneContext.hpp>
-#include <system_error>
 #include <variant>
 #include <vector>
 
@@ -47,15 +44,7 @@ void GameplayScene::advanceFrom(StageId cleared)
 void GameplayScene::finishRound(sgl::SceneContext& ctx, Outcome outcome)
 {
     const std::optional<std::size_t> rank = services_.highScores.insert(state_.score);
-
-    bool saveFailed = false;
-    {
-        std::error_code ec;
-        std::filesystem::create_directories(services_.scoresPath.parent_path(), ec);
-        const auto written = sgl::writeTextFileAtomic(services_.scoresPath, sgl::serialize(services_.highScores));
-        saveFailed = !written.has_value();
-    }
-
+    const bool saveFailed = !sgl::ScoreStore::save(services_.scoresPath, services_.highScores).has_value();
     ctx.request(sgl::PushScene{result(services_, outcome, state_.score, rank, saveFailed)});
 }
 

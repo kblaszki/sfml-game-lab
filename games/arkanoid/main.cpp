@@ -10,9 +10,8 @@
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/resources/ResourceError.hpp>
 #include <sgl/save/HighScoreTable.hpp>
-#include <sgl/save/SaveError.hpp>
 #include <sgl/save/SaveFile.hpp>
-#include <sgl/save/SaveFormat.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <sgl/scene/SceneStack.hpp>
 #include <sgl/sfml/SfmlAudio.hpp>
 #include <sgl/sfml/SfmlClock.hpp>
@@ -27,26 +26,6 @@ namespace
 {
     std::cerr << sgl::describe(err) << '\n';
     return 1;
-}
-
-[[nodiscard]] sgl::HighScoreTable loadHighScores(const std::filesystem::path& path)
-{
-    const auto text = sgl::readTextFile(path);
-    if(!text)
-    {
-        return sgl::HighScoreTable{sgl::arkanoid::kHighScoreCapacity};
-    }
-
-    const auto table = sgl::parse(*text, sgl::arkanoid::kHighScoreCapacity);
-    if(!table)
-    {
-        if(table.error() == sgl::SaveError::Corrupt)
-        {
-            std::cerr << "Corrupt high-score file; starting empty\n";
-        }
-        return sgl::HighScoreTable{sgl::arkanoid::kHighScoreCapacity};
-    }
-    return *table;
 }
 
 } // namespace
@@ -93,7 +72,7 @@ int main()
     }
     const sgl::FontId fontId = *fontLoaded;
 
-    auto& sfmlAudio = static_cast<sgl::sfml::SfmlAudio&>(platform.audio());
+    auto& sfmlAudio = platform.audio();
     sgl::arkanoid::SoundIds sounds{};
     const std::array<std::pair<std::string_view, sgl::SoundId*>, 9> soundSlots{{
         {"paddle", &sounds.paddle},
@@ -135,7 +114,7 @@ int main()
     {
         scoresPath = std::filesystem::temp_directory_path() / "arkanoid.scores";
     }
-    sgl::HighScoreTable highScores = loadHighScores(scoresPath);
+    sgl::HighScoreTable highScores = sgl::ScoreStore::load(scoresPath, sgl::arkanoid::kHighScoreCapacity);
 
     const sgl::arkanoid::AppServices services{
         actions, textures, fontId, platform.audio(), sounds, highScores, scoresPath};

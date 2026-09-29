@@ -2,6 +2,8 @@
 
 #include <arkanoid/app/Scenes.hpp>
 #include <sgl/scene/SceneI.hpp>
+#include <sgl/ui/MenuModel.hpp>
+#include <sgl/ui/MenuStyle.hpp>
 
 namespace sgl::arkanoid
 {
@@ -17,6 +19,8 @@ public:
 
 private:
     AppServices services_;
+    sgl::MenuModel model_;
+    sgl::MenuStyle style_{};
 };
 
 } // namespace sgl::arkanoid

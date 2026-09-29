@@ -15,6 +15,7 @@ namespace sgl::tetris
 
 inline constexpr std::size_t kHighScoreCapacity{5};
 
+// References are owned by main() for the whole App::run(); scenes must not outlive that.
 struct AppServices
 {
     const Actions& actions;

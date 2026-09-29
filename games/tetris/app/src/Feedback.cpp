@@ -3,6 +3,7 @@
 #include <sgl/render/DrawCommand.hpp>
 #include <tetris/app/BoardRender.hpp>
 #include <tetris/app/Feedback.hpp>
+#include <tetris/sim/Grid.hpp>
 #include <variant>
 
 namespace sgl::tetris
@@ -28,7 +29,7 @@ void Feedback::onEvents(std::span<const TetrisEvent> events)
                            playLineSound(cleared.count);
                            for(std::uint8_t i = 0; i < cleared.count; ++i)
                            {
-                               emitRowBurst(i);
+                               emitRowBurst(cleared.rows[i]);
                            }
                        },
                        [this](const LevelUp&) { audio_.play(sounds_.levelUp, 1.f); },
@@ -80,9 +81,11 @@ void Feedback::playLineSound(std::uint8_t count)
 void Feedback::emitRowBurst(std::uint8_t rowIndex)
 {
     const Layout layout = defaultLayout();
-    const float wellW = layout.cell * 10.f;
+    const float wellW = layout.cell * static_cast<float>(Grid::kWidth);
     const float originX = layout.wellOrigin.x + wellW * 0.5f;
-    const float originY = layout.wellOrigin.y + layout.cell * (10.f - static_cast<float>(rowIndex));
+    const float originY =
+        layout.wellOrigin.y
+        + layout.cell * (static_cast<float>(Grid::kVisibleHeight - 1 - static_cast<int>(rowIndex)) + 0.5f);
 
     particles_.emit(
         sgl::BurstParams{

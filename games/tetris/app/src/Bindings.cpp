@@ -39,4 +39,14 @@ sgl::ActionMap defaultBindings(const Actions& actions)
     return map;
 }
 
+sgl::MenuActions menuActions(const Actions& actions)
+{
+    return sgl::MenuActions{
+        .up = actions.rotateCw,
+        .down = actions.softDrop,
+        .confirm = actions.confirm,
+        .cancel = actions.cancel,
+    };
+}
+
 } // namespace sgl::tetris

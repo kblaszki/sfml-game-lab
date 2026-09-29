@@ -12,6 +12,7 @@
 #include <sgl/input/MouseButton.hpp>
 #include <sgl/save/SaveFile.hpp>
 #include <sgl/save/SaveFormat.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <sgl/scene/SceneStack.hpp>
 #include <system_error>
 #include <tetris/app/Bindings.hpp>
@@ -231,4 +232,8 @@ TEST(ScenesTest, gameOverRecordsHighScore)
     ASSERT_TRUE(parsed.has_value()) << sgl::describe(parsed.error());
     ASSERT_FALSE(parsed->entries().empty());
     EXPECT_EQ(parsed->entries().front(), score);
+
+    const sgl::HighScoreTable reloaded = sgl::ScoreStore::load(f.scoresPath, sgl::tetris::kHighScoreCapacity);
+    ASSERT_FALSE(reloaded.entries().empty());
+    EXPECT_EQ(reloaded.entries().front(), score);
 }

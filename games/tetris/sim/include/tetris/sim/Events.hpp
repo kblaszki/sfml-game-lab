@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <variant>
 
@@ -24,6 +25,7 @@ struct PieceLocked
 
 struct LinesCleared
 {
+    std::array<std::uint8_t, 4> rows{};
     std::uint8_t count{};
 };
 

@@ -1,12 +1,13 @@
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
-#include <sgl/save/SaveError.hpp>
-#include <sgl/save/SaveFile.hpp>
-#include <sgl/save/SaveFormat.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <sgl/scene/SceneContext.hpp>
+#include <sgl/ui/Button.hpp>
+#include <sgl/ui/RenderMenu.hpp>
 #include <string>
 #include <tetris/app/GameOverScene.hpp>
 #include <tetris/app/Theme.hpp>
+#include <vector>
 
 namespace sgl::tetris
 {
@@ -25,18 +26,38 @@ constexpr float kMenuY{480.f};
     };
 }
 
+[[nodiscard]] std::vector<sgl::Button> makeButtons()
+{
+    return {
+        sgl::Button{.rect = centeredButton(kRetryY), .label = "Retry"},
+        sgl::Button{.rect = centeredButton(kMenuY), .label = "Menu"},
+    };
+}
+
+[[nodiscard]] sgl::MenuStyle makeStyle(sgl::FontId font)
+{
+    return sgl::MenuStyle{
+        .font = font,
+        .textSize = 26,
+        .idle = startButton,
+        .focused = startButtonHover,
+        .text = startLabel,
+        .panel = panelBox,
+    };
+}
+
 } // namespace
 
 GameOverScene::GameOverScene(const AppServices& services, std::uint32_t score)
     : services_{services}
     , score_{score}
-    , retryButton_{centeredButton(kRetryY)}
-    , menuButton_{centeredButton(kMenuY)}
+    , model_{makeButtons()}
+    , style_{makeStyle(services.font)}
 {
     rank_ = services_.highScores.insert(score_);
     if(rank_.has_value())
     {
-        const auto written = sgl::writeTextFileAtomic(services_.scoresPath, sgl::serialize(services_.highScores));
+        const auto written = sgl::ScoreStore::save(services_.scoresPath, services_.highScores);
         if(!written)
         {
             saveError_ = sgl::describe(written.error());
@@ -59,55 +80,25 @@ bool GameOverScene::saveFailed() const noexcept
     return !saveError_.empty();
 }
 
-bool GameOverScene::hitRetry(sgl::Vec2f point) const
-{
-    return retryButton_.contains(point);
-}
-
-bool GameOverScene::hitMenu(sgl::Vec2f point) const
-{
-    return menuButton_.contains(point);
-}
-
 void GameOverScene::update(sgl::SceneContext& ctx, sgl::Seconds)
 {
-    const sgl::InputState& input = ctx.input();
-
-    if(const auto pointer = input.pointer())
+    const sgl::MenuActions actions = menuActions(services_.actions);
+    if(const auto activated = model_.update(ctx.input(), actions))
     {
-        retryHover_ = hitRetry(*pointer);
-        menuHover_ = hitMenu(*pointer);
-
-        if(input.pointerPressed())
+        if(*activated == 0)
         {
-            if(retryHover_)
-            {
-                ctx.request(sgl::PopScene{});
-                ctx.request(sgl::ReplaceScene{play(services_)});
-                return;
-            }
-            if(menuHover_)
-            {
-                ctx.request(sgl::PopScene{});
-                ctx.request(sgl::ReplaceScene{mainMenu(services_)});
-                return;
-            }
+            ctx.request(sgl::PopScene{});
+            ctx.request(sgl::ReplaceScene{play(services_)});
         }
-    }
-    else
-    {
-        retryHover_ = false;
-        menuHover_ = false;
-    }
-
-    if(input.action(services_.actions.confirm).pressed)
-    {
-        ctx.request(sgl::PopScene{});
-        ctx.request(sgl::ReplaceScene{play(services_)});
+        else
+        {
+            ctx.request(sgl::PopScene{});
+            ctx.request(sgl::ReplaceScene{mainMenu(services_)});
+        }
         return;
     }
 
-    if(input.action(services_.actions.cancel).pressed)
+    if(model_.cancelled())
     {
         ctx.request(sgl::PopScene{});
         ctx.request(sgl::ReplaceScene{mainMenu(services_)});
@@ -125,7 +116,7 @@ void GameOverScene::render(sgl::RenderQueue& queue) const
     queue.push(sgl::Layer::Overlay,
                1.f,
                sgl::RectCmd{
-                   .rect = {.pos = {340.f, 120.f}, .size = {600.f, 460.f}},
+                   .rect = {.pos = {340.f, 120.f}, .size = {600.f, 260.f}},
                    .fill = panelBox,
                });
     queue.push(sgl::Layer::Overlay,
@@ -191,46 +182,12 @@ void GameOverScene::render(sgl::RenderQueue& queue) const
                    });
     }
 
-    queue.push(sgl::Layer::Overlay,
-               depth++,
-               sgl::RectCmd{
-                   .rect = retryButton_,
-                   .fill = retryHover_ ? startButtonHover : startButton,
-               });
-    queue.push(sgl::Layer::Overlay,
-               depth++,
-               sgl::TextCmd{
-                   .font = services_.font,
-                   .text = "Retry",
-                   .size = 26,
-                   .position = {retryButton_.pos.x + retryButton_.size.x * 0.5f,
-                                retryButton_.pos.y + retryButton_.size.y * 0.5f},
-                   .color = startLabel,
-                   .anchor = sgl::Anchor::Center,
-               });
-
-    queue.push(sgl::Layer::Overlay,
-               depth++,
-               sgl::RectCmd{
-                   .rect = menuButton_,
-                   .fill = menuHover_ ? quitButtonHover : quitButton,
-               });
-    queue.push(
-        sgl::Layer::Overlay,
-        depth,
-        sgl::TextCmd{
-            .font = services_.font,
-            .text = "Menu",
-            .size = 26,
-            .position = {menuButton_.pos.x + menuButton_.size.x * 0.5f, menuButton_.pos.y + menuButton_.size.y * 0.5f},
-            .color = quitLabel,
-            .anchor = sgl::Anchor::Center,
-        });
+    sgl::renderMenu(queue, model_, style_, sgl::Layer::Overlay);
 }
 
 sgl::SceneTraits GameOverScene::traits() const
 {
-    return sgl::SceneTraits{.opaque = true, .blocksUpdate = true, .pausable = false};
+    return sgl::SceneTraits{.opaque = false, .blocksUpdate = true, .pausable = false};
 }
 
 } // namespace sgl::tetris

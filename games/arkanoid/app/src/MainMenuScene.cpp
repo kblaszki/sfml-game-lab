@@ -4,7 +4,9 @@
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/scene/SceneContext.hpp>
+#include <sgl/ui/RenderMenu.hpp>
 #include <string>
+#include <vector>
 
 namespace sgl::arkanoid
 {
@@ -25,61 +27,52 @@ constexpr float kBestY{260.f};
     };
 }
 
+[[nodiscard]] std::vector<sgl::Button> makeButtons()
+{
+    return {
+        sgl::Button{.rect = centeredButton(kStartY), .label = "Start"},
+        sgl::Button{.rect = centeredButton(kQuitY), .label = "Quit"},
+    };
+}
+
+[[nodiscard]] sgl::MenuStyle makeStyle(sgl::FontId font)
+{
+    return sgl::MenuStyle{
+        .font = font,
+        .textSize = 28,
+        .idle = startButton,
+        .focused = startButtonHover,
+        .text = startLabel,
+        .panel = sgl::Color{24, 28, 48, 230},
+    };
+}
+
 } // namespace
 
 MainMenuScene::MainMenuScene(const AppServices& services)
     : services_{services}
-    , startButton_{centeredButton(kStartY)}
-    , quitButton_{centeredButton(kQuitY)}
+    , model_{makeButtons()}
+    , style_{makeStyle(services.font)}
 {
-}
-
-bool MainMenuScene::hitStart(sgl::Vec2f point) const
-{
-    return startButton_.contains(point);
-}
-
-bool MainMenuScene::hitQuit(sgl::Vec2f point) const
-{
-    return quitButton_.contains(point);
 }
 
 void MainMenuScene::update(sgl::SceneContext& ctx, sgl::Seconds)
 {
-    const sgl::InputState& input = ctx.input();
-
-    if(const auto pointer = input.pointer())
+    const sgl::MenuActions actions = menuActions(services_.actions);
+    if(const auto activated = model_.update(ctx.input(), actions))
     {
-        startHover_ = hitStart(*pointer);
-        quitHover_ = hitQuit(*pointer);
-
-        if(input.pointerPressed())
+        if(*activated == 0)
         {
-            if(startHover_)
-            {
-                ctx.request(sgl::ReplaceScene{gameplay(services_, StageId::Stage1)});
-                return;
-            }
-            if(quitHover_)
-            {
-                ctx.request(sgl::QuitApp{});
-                return;
-            }
+            ctx.request(sgl::ReplaceScene{gameplay(services_, StageId::Stage1)});
         }
-    }
-    else
-    {
-        startHover_ = false;
-        quitHover_ = false;
-    }
-
-    if(input.action(services_.actions.confirm).pressed)
-    {
-        ctx.request(sgl::ReplaceScene{gameplay(services_, StageId::Stage1)});
+        else
+        {
+            ctx.request(sgl::QuitApp{});
+        }
         return;
     }
 
-    if(input.action(services_.actions.cancel).pressed)
+    if(model_.cancelled())
     {
         ctx.request(sgl::QuitApp{});
     }
@@ -111,41 +104,7 @@ void MainMenuScene::render(sgl::RenderQueue& queue) const
                    .anchor = sgl::Anchor::Center,
                });
 
-    queue.push(sgl::Layer::Hud,
-               2.f,
-               sgl::RectCmd{
-                   .rect = startButton_,
-                   .fill = startHover_ ? startButtonHover : startButton,
-               });
-    queue.push(sgl::Layer::Hud,
-               3.f,
-               sgl::TextCmd{
-                   .font = services_.font,
-                   .text = "Start",
-                   .size = 28,
-                   .position = {startButton_.pos.x + startButton_.size.x * 0.5f,
-                                startButton_.pos.y + startButton_.size.y * 0.5f},
-                   .color = startLabel,
-                   .anchor = sgl::Anchor::Center,
-               });
-
-    queue.push(sgl::Layer::Hud,
-               4.f,
-               sgl::RectCmd{
-                   .rect = quitButton_,
-                   .fill = quitHover_ ? quitButtonHover : quitButton,
-               });
-    queue.push(
-        sgl::Layer::Hud,
-        5.f,
-        sgl::TextCmd{
-            .font = services_.font,
-            .text = "Quit",
-            .size = 28,
-            .position = {quitButton_.pos.x + quitButton_.size.x * 0.5f, quitButton_.pos.y + quitButton_.size.y * 0.5f},
-            .color = quitLabel,
-            .anchor = sgl::Anchor::Center,
-        });
+    sgl::renderMenu(queue, model_, style_, sgl::Layer::Hud);
 }
 
 sgl::SceneTraits MainMenuScene::traits() const

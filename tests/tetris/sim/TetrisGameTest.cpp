@@ -455,7 +455,13 @@ TEST(TetrisGameTest, tetrisScores800AtLevel1)
     hard.hardDrop = true;
     const auto events = game.step(hard, Seconds{0.f});
     EXPECT_TRUE(hasEvent(events, [](const auto& e) {
-        return std::holds_alternative<LinesCleared>(e) && std::get<LinesCleared>(e).count == 4;
+        if(!std::holds_alternative<LinesCleared>(e))
+        {
+            return false;
+        }
+        const auto& cleared = std::get<LinesCleared>(e);
+        return cleared.count == 4 && cleared.rows[0] == 0 && cleared.rows[1] == 1 && cleared.rows[2] == 2
+               && cleared.rows[3] == 3;
     }));
     EXPECT_EQ(game.score().points, pointsBefore + static_cast<std::uint32_t>(rows) * 2u + 800u);
     EXPECT_EQ(game.score().level, 1u);

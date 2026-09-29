@@ -23,6 +23,7 @@ enum class Outcome
     Lost
 };
 
+// AppServices holds references owned by main() for the whole App::run(); scenes must not outlive that.
 struct AppServices
 {
     const Actions& actions;
