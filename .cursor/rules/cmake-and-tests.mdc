@@ -8,9 +8,9 @@ alwaysApply: false
 
 ## Module sources
 
-Every new implementation `.cpp` must be added to that module’s own `CMakeLists.txt` (`engine/<module>/CMakeLists.txt` or `games/arkanoid/<sim|app>/CMakeLists.txt`). Omitting it means the file never compiles.
+Every new implementation `.cpp` must be added to its own module's `CMakeLists.txt` (`engine/<module>/CMakeLists.txt` or `games/<game>/<sim|app>/CMakeLists.txt`). If it is omitted, the file never compiles.
 
-Executable is `arkanoid` (`games/arkanoid/main.cpp`); it links `arkanoid_app` and `sgl_sfml`. Only `sgl_sfml` (and the executable via that link) links SFML. `arkanoid_sim` and `arkanoid_app` stay SFML-free at the include level.
+Each game has an executable `<game>` (`games/<game>/main.cpp`) that links `<game>_app` and `sgl_sfml`. The current games are `arkanoid`, `tetris`, and `syndicate`. Only `sgl_sfml` links SFML, and the executables get it through that link. `<game>_sim` and `<game>_app` stay SFML-free at the include level, and `check_boundaries` enforces this.
 
 ## Tests (Debug only)
 
@@ -20,9 +20,9 @@ cmake --build --preset debug --target build_ut
 ctest --preset debug
 ```
 
-- Unit tests: `tests/engine/` and `tests/arkanoid/`; GoogleTest 1.18 via FetchContent
-- Register with `add_unit_test(...)` in the leaf `CMakeLists.txt`
-- Prefer tests that do not open a window; `event_translate_test` links `SFML::Window` but opens none
-- Fixture names like `*Should` when adding behavioral suites
+- Unit tests live in `tests/engine/<module>/` and `tests/<game>/<sim|app>/`. GoogleTest 1.18 comes via FetchContent.
+- Register each suite with `add_unit_test(...)` in the leaf `CMakeLists.txt`. A new leaf also needs an `add_subdirectory` in `tests/CMakeLists.txt`.
+- Tests open no window. `event_translate_test` links `SFML::Window` but opens none.
+- Name behavioral fixtures like `*Should`.
 
-When changing a module, update or add unit tests under the matching `tests/engine/<module>/` or `tests/arkanoid/<sim|app>/` leaf.
+When changing a module, update or add unit tests under the matching `tests/engine/<module>/` or `tests/<game>/<sim|app>/` leaf. Recipes are in `docs/how-to/write-headless-tests.md`.

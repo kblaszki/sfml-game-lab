@@ -1,0 +1,17 @@
+---
+description: Headless First - rules and mechanics live in SFML-free, tested code before any presentation
+alwaysApply: true
+---
+
+# Headless First
+
+Build and test the logic without a window, then present it.
+
+1. **Rules live in the sim.** Game mechanics (movement, collision, scoring, turns, economy, cards) go in `games/<game>/sim/` (`<game>_sim`, which links `sgl_core` and at most `sgl_collision`). Engine features go in an SFML-free engine module. Never put a rule in a scene, a renderer, or `main.cpp`.
+2. **Test before presenting.** A new mechanic lands with a GoogleTest suite under `tests/<game>/sim/` or `tests/engine/<module>/`, registered with `add_unit_test`. Include a same-seed determinism check when randomness is involved.
+3. **Presentation consumes sim output.** App code reads sim state and sim events (a `step` return value or `drainEvents()`) and turns them into `DrawCommand`s, sounds, and animations. It does not change rules to make visuals work.
+4. **No platform in the sim.** No SFML, no wall clock, no `std::*_distribution` / `std::shuffle` / `rand`, and no filesystem. Randomness is a seeded `sgl::Pcg32`, and time advances only by the fixed `kTick`.
+5. **Only two places touch SFML.** `engine/sfml/` and `games/<game>/main.cpp`. `check_boundaries` fails the build otherwise; keep it green.
+6. **Tests open no window.** Use `SceneStack` + `InputState` directly, or the mocks in `tests/mocks/`. Only `event_translate_test` links SFML (Window), and it opens no window.
+
+Details: `docs/explanation/architecture.md`, `docs/how-to/write-headless-tests.md`.

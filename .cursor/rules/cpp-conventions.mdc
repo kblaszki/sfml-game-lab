@@ -8,16 +8,17 @@ alwaysApply: false
 
 - Standard: **C++23**
 - Headers: `#pragma once` (not include guards)
-- Namespaces: `eng` (engine), `arkanoid` (game); engine internals may use `sgl::detail` / `sgl::sfml`
+- Namespaces: `sgl` (engine), `sgl::<game>` (`sgl::arkanoid`, `sgl::tetris`, `sgl::syndicate`); engine internals may use `sgl::detail` / `sgl::sfml`
 - Classes: `CamelCase`; methods/vars: `camelCase`
-- Interfaces: `FooI` suffix (`SceneI`, `RendererI`, `PlatformI`, `ClockI`)
+- Interfaces: `FooI` suffix (`SceneI`, `RendererI`, `PlatformI`, `ClockI`, `AudioI`)
 - One primary type per `.hpp` / `.cpp` pair under the owning module
+- Ownership: no raw `new`/`delete`; owners are values or `std::unique_ptr`; raw pointers are nullable, non-owning lookups only. Rationale: `docs/explanation/cpp23-and-ownership.md`
 
 ## Includes
 
-- Public headers: `#include <sgl/<module>/X.hpp>`, `#include <arkanoid/<sim|app>/X.hpp>`
+- Public headers: `#include <sgl/<module>/X.hpp>`, `#include <<game>/<sim|app>/X.hpp>`
 - Same directory: quotes — `#include "Local.hpp"`
-- Only `engine/sfml` and `games/arkanoid/main.cpp` may include `<SFML/...>`
+- Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`
 
 ## Style (match `.clang-format`)
 

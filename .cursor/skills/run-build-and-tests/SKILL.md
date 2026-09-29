@@ -33,13 +33,14 @@ Outputs go to `build/debug/`, `build/release/`, `build/asan/`, or `build/coverag
 ```sh
 cmake --build --preset debug --target arkanoid
 cmake --build --preset debug --target tetris
+cmake --build --preset debug --target syndicate
 # or the same targets with --preset release
 ```
 
 Run from the binary directory:
 
-- Windows: `build/debug/bin/arkanoid.exe`, `build/debug/bin/tetris.exe` (same names under `build/release/bin/`)
-- Linux/macOS: `build/debug/bin/arkanoid`, `build/debug/bin/tetris` (same names under `build/release/bin/`)
+- Windows: `build/debug/bin/arkanoid.exe`, `build/debug/bin/tetris.exe`, `build/debug/bin/syndicate.exe` (same names under `build/release/bin/`)
+- Linux/macOS: `build/debug/bin/arkanoid`, `build/debug/bin/tetris`, `build/debug/bin/syndicate` (same names under `build/release/bin/`)
 
 ## Tests (Debug-family only)
 
@@ -72,7 +73,7 @@ cmake --build --preset debug --target tidy
 ## Typical verify loop after code changes
 
 1. Configure debug (if needed)
-2. Build `arkanoid` and/or `build_ut`
+2. Build the touched game targets (`arkanoid`, `tetris`, `syndicate`) and/or `build_ut`
 3. Run `ctest --preset debug`
 4. Optionally run `format` before commit
 5. On Linux CI-like checks: `asan`, `tidy`, and `coverage` (see [build-and-test](../../../docs/how-to/build-and-test.md))

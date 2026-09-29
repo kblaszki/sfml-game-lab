@@ -39,6 +39,13 @@ C++23 SFML 3.1 game lab. The engine lives in `engine/` (`namespace sgl`). Games 
 - `assets/fonts/` — UI TTF (`ASSET_DIR`). Not `engine/resources/` (that module is the cache)
 - `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/` — GoogleTest suites (Debug only)
 - `tests/mocks/` — `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy`
+- `docs/` — engine Diátaxis docs (map `docs/index.md`); `games/<game>/docs/` — per-game Diátaxis docs (map `games/<game>/docs/index.md`)
+
+## Where to read first
+
+- Engine work: `docs/explanation/architecture.md`, `docs/reference/engine-api-map.md`, matching `docs/reference/engine-*.md`
+- Existing game: `games/<game>/docs/index.md`
+- New game: `docs/tutorials/create_new_game.md`, `docs/how-to/add-a-game.md`, and the `add-game` skill
 
 ## Build / test
 
@@ -63,4 +70,7 @@ Binaries: `build/<preset>/bin/arkanoid`, `build/<preset>/bin/tetris`, and `build
 - Pause is `RequestPause` when top is `pausable`; overlay is `PauseScene` (`opaque` false)
 - Menu cancel is `QuitApp`; overlay cancel is resume (`PopScene`)
 - `SceneStack` applies push/pop/replace after the update walk
+- Headless First: mechanics land in `<game>_sim` with tests before presentation (`headless-first.mdc`)
+- Every new engine feature or game mechanic gets a Diátaxis entry; architecture/state-flow changes add a Mermaid diagram (`documentation.mdc`)
+- Generic names (SceneManager, InputManager, ResourceManager, EventManager) do not exist; see `docs/reference/engine-api-map.md`
 - Design notes: `mvp/01`–`09` (prospect). Tree names and slices: `mvp/10-engine-progress.md`

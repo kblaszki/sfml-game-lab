@@ -120,7 +120,7 @@ Contributions are welcome. Please:
 3. Treat warnings as errors — keep the build clean under the project flags.
 4. Add or update unit tests under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, or `tests/syndicate/`.
 5. List every new `.cpp` in that module's `CMakeLists.txt`.
-6. Keep `docs/` current for files listed in a doc's `related_code` (see `docs/index.md`).
+6. Keep `docs/` and `games/<game>/docs/` current for files listed in a doc's `related_code` (see `docs/index.md` and [`AGENTS.md`](AGENTS.md)).
 7. Open a pull request with a short description of the change.
 
 ## License

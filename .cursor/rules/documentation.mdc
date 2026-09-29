@@ -1,31 +1,48 @@
 ---
-description: Where project docs live (Diataxis) and how to keep them current
+description: Where project docs live (Diataxis), which to read for which task, and how to keep them current
 alwaysApply: true
 ---
 
 # Documentation
 
-Project docs live in `docs/`, organized by [Diataxis](https://diataxis.fr/):
+Docs follow [Diataxis](https://diataxis.fr/) and live in two kinds of tree:
 
-- `docs/tutorials/` — learning, end to end
-- `docs/how-to/` — task recipes
-- `docs/reference/` — facts, mirror the code
-- `docs/explanation/` — rationale and direction
-- `docs/index.md` — the map of all docs (start here)
+- `docs/`: the `sgl` engine and cross-game topics. Map: `docs/index.md`.
+- `games/<game>/docs/`: one game each. Map: `games/<game>/docs/index.md`.
 
-Docs are the source of truth for architecture, workflows, and conventions; skills and rules point into them.
+Both use the same quadrants: `tutorials/` (learning, end to end), `how-to/` (task recipes), `reference/` (facts that mirror the code), and `explanation/` (rationale and direction).
+
+Docs are the source of truth for architecture, workflows, and conventions. Skills and rules point into them.
+
+## Context paths (read before you change code)
+
+| Task | Read first |
+|------|------------|
+| Engine work (`engine/**`) | `docs/index.md`, `docs/explanation/architecture.md`, `docs/reference/engine-api-map.md`, then the matching `docs/reference/engine-*.md` |
+| Work on an existing game (`games/<game>/**`) | `games/<game>/docs/index.md` and its reference/explanation pages, plus the engine pages they link |
+| A new game | `docs/tutorials/create_new_game.md`, `docs/how-to/add-a-game.md`, and a sibling `games/*/docs/` as the model |
+| Tests | `docs/how-to/write-headless-tests.md` |
+
+Use the real type names (`SceneStack`, `SceneI`, `InputState`, `ActionMap`, `ResourceCache`). Generic names like SceneManager or EventManager do not exist; see `docs/reference/engine-api-map.md`.
 
 ## Finding the right doc
 
-Each doc has YAML front-matter with `related_code`, `related_docs`, and `keywords`. To find docs about a file, search `docs/` for that path in `related_code`. Start from `docs/index.md`.
+Each doc has YAML front-matter with `related_code`, `related_docs`, `keywords`, and `last_reviewed`. To find the docs about a file, search **both** `docs/` and `games/*/docs/` for that path in `related_code`. `related_code` paths are repo-root relative; links and `related_docs` are relative to the doc.
+
+## Every feature or mechanic gets a Diátaxis entry (required)
+
+- Every new engine feature (type, module, port, loop or scene behavior) MUST get at least a reference entry in `docs/reference/`, and a how-to when it adds a workflow.
+- Every new game mechanic (rule, state, economy or physics change, scene, UI flow) MUST get at least a reference entry in `games/<game>/docs/reference/`, and an explanation when the "why" is not obvious.
+- Architecture or state-flow changes MUST include a Mermaid diagram in the matching explanation (or reference) page: `classDiagram` for ownership and interfaces, `sequenceDiagram` for call flows, `stateDiagram-v2` for game or scene states.
+- Mermaid style: camelCase node ids without spaces, quoted labels when they contain punctuation, no styling or colors, and no reserved ids such as `end`.
 
 ## Keeping docs current (required)
 
-When a change touches code, update docs in the same change:
+When a change touches code, update the docs in the same change:
 
-- Update every doc whose `related_code` lists a file you changed; set its `last_reviewed` to today.
-- New/removed source file, target, or directory → update `reference/source-layout.md`.
-- New behavior/workflow → update the matching how-to or reference; if a new doc is added, also add it to `docs/index.md`.
-- Keep facts (C++23, presets, targets, paths) consistent with `CMakeLists.txt`, module `CMakeLists.txt` files under `engine/` and `games/`, and `CMakePresets.json`.
+- Update every doc whose `related_code` lists a file you changed, and set its `last_reviewed` to today.
+- A new or removed source file, target, or directory means updating `docs/reference/source-layout.md`.
+- New behavior or workflow means updating the matching how-to or reference page. A new doc also goes into `docs/index.md`, or into `games/<game>/docs/index.md` for game docs.
+- Keep facts (C++23, presets, targets, paths) consistent with `CMakeLists.txt`, the module `CMakeLists.txt` files under `engine/` and `games/`, and `CMakePresets.json`.
 
 For a full sweep after larger changes, use the `update-docs` skill.

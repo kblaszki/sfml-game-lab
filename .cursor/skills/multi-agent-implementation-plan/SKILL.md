@@ -25,10 +25,10 @@ Package cards and prompt skeletons: [reference.md](reference.md). Examples: [exa
 - [ ] Wave 1: parallel Tasks only if write paths do not overlap
 - [ ] Later waves: dependent packages after the previous wave is verified **and committed**
 - [ ] Stitch API/name drift; list new .cpp in each module’s own CMakeLists
-- [ ] Same-change Diátaxis docs: every engine/ or games/arkanoid/ wave **must** change docs/ (hard gate)
-- [ ] New behavior → add or update a docs/reference/ (or how-to) page; inventory-only source-layout is not enough
-- [ ] If code landed: cmake --build --preset debug --target arkanoid build_ut && ctest --preset debug
-- [ ] If engine/ or games/ changed and docs/ did not, or verify fails: do not commit
+- [ ] Same-change Diátaxis docs: every engine/ or games/ wave **must** change docs/ or games/<game>/docs/ (hard gate)
+- [ ] New behavior → add or update a reference (or how-to) page in the owning tree; inventory-only source-layout is not enough
+- [ ] If code landed: cmake --build --preset debug --target <touched games> build_ut, then ctest --preset debug
+- [ ] If engine/ or games/ code changed and no doc did, or verify fails: do not commit
 - [ ] If verify passes: orchestrator commits that wave (owned paths + matching docs)
 ```
 
@@ -37,9 +37,9 @@ Package cards and prompt skeletons: [reference.md](reference.md). Examples: [exa
 Ask at most 1–2 questions that change execution:
 
 - Implement now vs plan-only (no code yet)
-- What verifies “done” (default: Debug `arkanoid` + `build_ut` + `ctest --preset debug`)
+- What verifies “done” (default: Debug build of every touched game (`arkanoid`, `tetris`, `syndicate`) + `build_ut` + `ctest --preset debug`)
 
-This tree is `engine/` (`eng`) and `games/arkanoid/` (`arkanoid`, executable `arkanoid`). Contract: [`docs/explanation/architecture.md`](../../../docs/explanation/architecture.md). Treat [`mvp/01`–`09`](../../../mvp/README.md) as prospective notes, not current source.
+This tree is `engine/` (`namespace sgl`) and `games/<game>/` (`sgl::arkanoid`, `sgl::tetris`, `sgl::syndicate`; executable `<game>`). Contract: [`docs/explanation/architecture.md`](../../../docs/explanation/architecture.md). Engine docs live in `docs/`, game docs in `games/<game>/docs/`; read [documentation.mdc](../../rules/documentation.mdc) for context paths. Treat [`mvp/01`–`09`](../../../mvp/README.md) as prospective notes, not current source.
 
 ## 2. Contract (orchestrator)
 
@@ -60,7 +60,7 @@ One `Task` per package (`generalPurpose`, `grok-4.7-high-fast`). Prompt from [re
 - **Parallel** in one turn only if owned paths are disjoint.
 - **Sequential waves** when package B imports types package A must land first (see [examples.md](examples.md)).
 
-Each agent: owned paths only; list new `.cpp` in that module’s own `CMakeLists.txt`; register new tests with `add_unit_test`. Package cards **always** include matching `docs/` owned writes. **Agents do not `git commit`** (they would race). The orchestrator commits after stitch.
+Each agent: owned paths only; list new `.cpp` in that module’s own `CMakeLists.txt`; register new tests with `add_unit_test`. Package cards **always** include matching doc owned writes (`docs/` for engine, `games/<game>/docs/` for games). **Agents do not `git commit`** (they would race). The orchestrator commits after stitch.
 
 ## 4. Stitch, docs, verify, commit
 
@@ -68,12 +68,12 @@ After each wave:
 
 1. Diff owned paths; fix overlapping edits and signature drift against the contract.
 2. Confirm every new `.cpp` is in its module `CMakeLists.txt` and every new test uses `add_unit_test`.
-3. **Same-change docs** (required when `engine/` or `games/arkanoid/` changed, not only at the end). Always invoke [update-docs](../update-docs/SKILL.md):
+3. **Same-change docs** (required when `engine/` or `games/` code changed, not only at the end). Always invoke [update-docs](../update-docs/SKILL.md):
    - Update every Diátaxis page whose `related_code` lists a file this wave touched; set `last_reviewed` to today.
    - New/removed source file or target → [`docs/reference/source-layout.md`](../../../docs/reference/source-layout.md).
-   - New type or new player-visible / loop behavior → update or **add** a `docs/reference/` (or how-to) page. Inventory-only `source-layout.md` is not enough ([documentation.mdc](../../rules/documentation.mdc)).
-   - New/removed/retitled doc → [`docs/index.md`](../../../docs/index.md).
-   - **Hard gate:** if `git diff --name-only` lists any `engine/` or `games/arkanoid/` path and no `docs/` path, the wave is incomplete. Fix docs. **Do not commit.**
+   - New type, engine feature or game mechanic → update or **add** a reference (or how-to) page in `docs/` or `games/<game>/docs/`; architecture or state-flow changes need a Mermaid diagram. Inventory-only `source-layout.md` is not enough ([documentation.mdc](../../rules/documentation.mdc)).
+   - New/removed/retitled doc → [`docs/index.md`](../../../docs/index.md) or `games/<game>/docs/index.md`.
+   - **Hard gate:** if `git diff --name-only` lists any `engine/` or `games/` code path and no `docs/` or `games/*/docs/` path, the wave is incomplete. Fix docs. **Do not commit.**
 4. If code changed: [run-build-and-tests](../run-build-and-tests/SKILL.md) — `build_ut` + `ctest --preset debug`.
 5. Append **Locked decisions** to the contract (or todos) so the next wave does not re-fork.
 6. **Commit** (orchestrator only):

@@ -25,8 +25,8 @@ Before implementing:
 Project-specific examples of assumptions to surface:
 - New `.cpp` must be listed in that module’s own `CMakeLists.txt`, or it never builds.
 - Tests exist only in Debug (`build_ut` + `ctest --preset debug`).
-- Code uses namespaces `sgl`, `sgl::arkanoid`, and `sgl::tetris`.
-- Only `engine/sfml` and `games/<game>/main.cpp` include SFML. `arkanoid/sim` and `tetris/sim` stay headless.
+- Code uses namespaces `sgl`, `sgl::arkanoid`, `sgl::tetris`, and `sgl::syndicate`.
+- Only `engine/sfml` and `games/<game>/main.cpp` include SFML. Every `games/<game>/sim` stays headless (see `headless-first.mdc`).
 - Tests are headless except `event_translate_test` (links `SFML::Window`, opens no window).
 
 ## 2. Simplicity First
@@ -49,7 +49,7 @@ Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, sim
 When editing existing code:
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor things that aren't broken.
-- Match existing style (`.clang-format`, `#pragma once`). Engine and game code uses `eng` / `arkanoid`.
+- Match existing style (`.clang-format`, `#pragma once`). Engine code uses `sgl`, game code uses `sgl::<game>`.
 - If you notice unrelated dead code, mention it — don't delete it unless asked.
 
 When your changes create orphans:
@@ -75,7 +75,7 @@ For multi-step tasks, state a brief plan:
 3. [Step] → verify: [check]
 ```
 
-Prefer concrete checks from this repo: `cmake --build --preset debug --target arkanoid`, `build_ut`, `ctest --preset debug`.
+Prefer concrete checks from this repo: `cmake --build --preset debug --target <game>` (`arkanoid`, `tetris`, `syndicate`), `build_ut`, `ctest --preset debug`.
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
