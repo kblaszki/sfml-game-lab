@@ -125,7 +125,7 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `engine/resources/` | `ResourceCache`, `ResourceError`, `Atlas` / `parseAtlas`; target `sgl_resources` |
 | `engine/sfml/` | SFML adapters (`SfmlPlatform`, `SfmlAudio`, `EventTranslate`, …); only engine target that links SFML |
 | `engine/audio/` | `AudioI`, `ScaledAudio`, PCM `tone` / `blip`, `NullAudio`; target `sgl_audio` |
-| `engine/ui/` | Menu kit (`MenuModel`, `renderMenu`, `PauseOverlay`), `TextLayout`, `TooltipSystem`, `HoverAnim`; target `sgl_ui` |
+| `engine/ui/` | Menu kit (`MenuModel`, `renderMenu`, `PauseOverlay`, `SettingsScene`), `TextLayout`, `TooltipSystem`, `HoverAnim`; target `sgl_ui` |
 | `engine/fx/` | Fixed-capacity particles; target `sgl_fx` |
 | `engine/anim/` | `Easing`, `Tween`, Catmull-Rom `Spline`, `ArcLengthTable`; target `sgl_anim` (links `sgl_core` only) |
 | `engine/save/` | High-score table, settings (`Settings` / `SettingsStore`), text format, atomic file write, `ScoreStore`; target `sgl_save` |
@@ -135,8 +135,8 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `games/tetris/sim/` | Headless Tetris rules (`Bag`, scoring, `TetrisGame`, grid, SRS); `tetris_sim` links `sgl_core` only |
 | `games/tetris/app/` | Scenes, HUD, board render, sounds, particles, high scores; `tetris_app` |
 | `games/syndicate/sim/` | Headless Syndicate (`BoardGraph`, `Market`/`Economy`, `Cards`, `Auction`/`Trade`, `Match` turn machine); `syndicate_sim` links `sgl_core` only |
-| `games/syndicate/app/` | Scenes, board UI, Describe/ActionBar/HandView, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
-| `games/syndicate/main.cpp` | Wires `SfmlPlatform`, font/sounds/optional atlas, `SceneStack`, `sgl::App`; executable `syndicate` |
+| `games/syndicate/app/` | Scenes (incl. `PauseMenuScene`, `HelpScene`, `ControlMap`), board UI, Describe/ActionBar/HandView, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
+| `games/syndicate/main.cpp` | Wires `SfmlPlatform`, settings/`ScaledAudio`/`setDisplay`, font/sounds/optional atlas, `SceneStack`, `sgl::App`; executable `syndicate` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
 | `tests/engine/` | Per-module engine suites (Debug only) |
 | `tests/arkanoid/` | Sim and app suites (Debug only) |
@@ -158,7 +158,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `sgl_collision` | STATIC | → `sgl_core` |
 | `sgl_resources` | STATIC | → `sgl_core`; `ResourceCache` headers + `Atlas` / `parseAtlas` |
 | `sgl_audio` | STATIC | → `sgl_core`; no SFML |
-| `sgl_ui` | STATIC | → `sgl_input`, `sgl_render`, `sgl_scene`, `sgl_anim`; no SFML |
+| `sgl_ui` | STATIC | → `sgl_input`, `sgl_render`, `sgl_scene`, `sgl_anim`, `sgl_save`; no SFML |
 | `sgl_fx` | STATIC | → `sgl_core`, `sgl_render` |
 | `sgl_anim` | STATIC | → `sgl_core`; easing, tween, spline; no SFML |
 | `sgl_save` | STATIC | → `sgl_core`; no SFML |
@@ -193,13 +193,13 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `particle_system_test` | `tests/engine/fx/` |
 | `anim_test` | `tests/engine/anim/` |
 | `tone_test`, `blip_test`, `scaled_audio_test` | `tests/engine/audio/` |
-| `menu_model_test`, `pause_overlay_test`, `text_layout_test`, `tooltip_test`, `hover_anim_test` | `tests/engine/ui/` |
+| `menu_model_test`, `pause_overlay_test`, `settings_scene_test`, `text_layout_test`, `tooltip_test`, `hover_anim_test` | `tests/engine/ui/` |
 | `high_score_table_test`, `save_format_test`, `save_file_test`, `score_store_test`, `settings_test` | `tests/engine/save/` |
 | `event_translate_test`, `sfml_draw_test` | `tests/engine/sfml/` (`event_translate_test` links `SFML::Window`; neither opens a window) |
 | `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test` | `tests/arkanoid/sim/` |
 | `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test` | `tests/tetris/sim/` |
 | `syndicate_money_test`, `syndicate_board_graph_test`, `syndicate_board_layouts_test`, `syndicate_pathing_test`, `syndicate_market_test`, `syndicate_economy_test`, `syndicate_cards_test`, `syndicate_auction_test`, `syndicate_trade_test`, `syndicate_match_test`, `syndicate_match_property_test` | `tests/syndicate/sim/` |
-| `syndicate_layout_view_test`, `syndicate_board_render_test`, `syndicate_hand_view_test`, `syndicate_pawn_animator_test`, `syndicate_dice_animator_test`, `syndicate_presentation_test`, `syndicate_market_history_test`, `syndicate_trend_chart_test`, `syndicate_path_highlighter_test`, `syndicate_hud_model_test`, `syndicate_describe_test`, `syndicate_action_bar_test`, `syndicate_play_scene_test`, `syndicate_scenes_test`, `syndicate_feedback_test`, `syndicate_sprite_bank_test` | `tests/syndicate/app/` |
+| `syndicate_layout_view_test`, `syndicate_board_render_test`, `syndicate_hand_view_test`, `syndicate_pawn_animator_test`, `syndicate_dice_animator_test`, `syndicate_presentation_test`, `syndicate_market_history_test`, `syndicate_trend_chart_test`, `syndicate_path_highlighter_test`, `syndicate_hud_model_test`, `syndicate_describe_test`, `syndicate_action_bar_test`, `syndicate_play_scene_test`, `syndicate_scenes_test`, `syndicate_control_map_test`, `syndicate_help_scene_test`, `syndicate_feedback_test`, `syndicate_sprite_bank_test` | `tests/syndicate/app/` |
 | `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test` | `tests/arkanoid/app/` |
 | `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test` | `tests/tetris/app/` |
 

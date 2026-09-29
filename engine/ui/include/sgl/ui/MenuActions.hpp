@@ -11,6 +11,8 @@ struct MenuActions
     ActionId down;
     ActionId confirm;
     ActionId cancel;
+    ActionId left{};
+    ActionId right{};
 };
 
 } // namespace sgl

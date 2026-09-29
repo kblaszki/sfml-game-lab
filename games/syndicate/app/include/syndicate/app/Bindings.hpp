@@ -9,7 +9,8 @@ namespace sgl::syndicate
 {
 
 /// Syndicate play / menu actions.
-/// Keys: Space roll, Enter end turn, C bid, P pass, Escape pause, Num1–Num9 action-bar slots.
+/// Keys: Space roll, Enter end turn, C bid, P pass, Escape pause, H help, Left/Right settings,
+/// Num1–Num9 action-bar slots.
 /// Note: `sgl::Key` has no `B`, so bid is bound to `Key::C` until `Key::B` exists.
 struct SyndicateActions
 {
@@ -18,6 +19,7 @@ struct SyndicateActions
     sgl::ActionId bid;
     sgl::ActionId passBid;
     sgl::ActionId pause;
+    sgl::ActionId help;
     sgl::MenuActions menu;
     std::array<sgl::ActionId, 9> slot{};
 };

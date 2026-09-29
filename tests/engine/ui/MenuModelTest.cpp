@@ -17,7 +17,7 @@ constexpr sgl::ActionId kDown{.id = 2};
 constexpr sgl::ActionId kConfirm{.id = 3};
 constexpr sgl::ActionId kCancel{.id = 4};
 
-constexpr sgl::MenuActions kActions{.up = kUp, .down = kDown, .confirm = kConfirm, .cancel = kCancel};
+constexpr sgl::MenuActions kActions{.up = kUp, .down = kDown, .confirm = kConfirm, .cancel = kCancel, .left = {}, .right = {}};
 
 [[nodiscard]] sgl::ActionMap makeMap()
 {

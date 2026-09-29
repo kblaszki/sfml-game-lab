@@ -6,6 +6,7 @@ add_library(syndicate_app STATIC
     src/DiceAnimator.cpp
     src/Presentation.cpp
     src/Bindings.cpp
+    src/ControlMap.cpp
     src/Describe.cpp
     src/ActionBar.cpp
     src/HandView.cpp
@@ -20,6 +21,8 @@ add_library(syndicate_app STATIC
     src/MainMenuScene.cpp
     src/SetupScene.cpp
     src/GameOverScene.cpp
+    src/HelpScene.cpp
+    src/PauseMenuScene.cpp
     src/SpriteBank.cpp
 )
 target_include_directories(syndicate_app PUBLIC

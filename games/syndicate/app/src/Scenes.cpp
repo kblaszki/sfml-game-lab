@@ -1,7 +1,7 @@
 #include <memory>
-#include <sgl/ui/PauseOverlay.hpp>
 #include <syndicate/app/GameOverScene.hpp>
 #include <syndicate/app/MainMenuScene.hpp>
+#include <syndicate/app/PauseMenuScene.hpp>
 #include <syndicate/app/PlayScene.hpp>
 #include <syndicate/app/Scenes.hpp>
 #include <syndicate/app/SetupScene.hpp>
@@ -29,9 +29,7 @@ sgl::SceneFactory play(const SyndicateServices& services, MatchConfig config, st
 
 sgl::SceneFactory pause(const SyndicateServices& services)
 {
-    return [services]() {
-        return std::make_unique<sgl::PauseOverlay>(services.actions.menu, services.font);
-    };
+    return [services]() { return std::make_unique<PauseMenuScene>(services); };
 }
 
 sgl::SceneFactory makeGameOver(const SyndicateServices& services, GameOver over)

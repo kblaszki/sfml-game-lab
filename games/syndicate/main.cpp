@@ -1,6 +1,7 @@
 #include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <sgl/audio/ScaledAudio.hpp>
 #include <sgl/loop/App.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/resources/Atlas.hpp>
@@ -8,6 +9,7 @@
 #include <sgl/save/HighScoreTable.hpp>
 #include <sgl/save/SaveFile.hpp>
 #include <sgl/save/ScoreStore.hpp>
+#include <sgl/save/Settings.hpp>
 #include <sgl/scene/SceneStack.hpp>
 #include <sgl/sfml/SfmlAudio.hpp>
 #include <sgl/sfml/SfmlClock.hpp>
@@ -57,6 +59,18 @@ int main()
 {
     sgl::sfml::SfmlPlatform platform{{1280u, 720u}, "Syndicate"};
 
+    std::filesystem::path settingsPath;
+    bool canSaveSettings = false;
+    sgl::Settings settings{};
+    if(const auto dir = sgl::userDataDir("syndicate"))
+    {
+        settingsPath = *dir / "settings.txt";
+        settings = sgl::SettingsStore::load(settingsPath);
+        canSaveSettings = true;
+    }
+
+    platform.setDisplay(settings.mode, settings.resolution);
+
     const auto fontLoaded =
         platform.assets().font("ui", std::filesystem::path{ASSET_DIR} / sgl::syndicate::uiFontRelativePath);
     if(!fontLoaded)
@@ -91,6 +105,9 @@ int main()
     }
 
     auto& sfmlAudio = platform.audio();
+    sgl::ScaledAudio scaledAudio{sfmlAudio};
+    scaledAudio.setMaster(static_cast<float>(settings.masterVolume) / 100.f);
+
     sgl::syndicate::SoundIds sounds{};
     for(const sgl::syndicate::SoundSpec& spec: sgl::syndicate::soundSpecs())
     {
@@ -117,8 +134,22 @@ int main()
     const sgl::syndicate::SyndicateActions actions = sgl::syndicate::bindSyndicate(map);
     const auto seed = static_cast<std::uint64_t>(
         std::chrono::steady_clock::now().time_since_epoch().count());
-    const sgl::syndicate::SyndicateServices services{
-        actions, fontId, seed, platform.audio(), sounds, scoresPath, highScores, sprites, bodyFontId};
+
+    sgl::syndicate::SyndicateServices services{
+        actions, fontId, seed, scaledAudio, sounds, scoresPath, highScores, sprites, bodyFontId, settings, {}};
+    services.onSettingsChanged = [&platform, &scaledAudio, &services, settingsPath, canSaveSettings](
+                                     const sgl::Settings& next) {
+        services.settings = next;
+        scaledAudio.setMaster(static_cast<float>(next.masterVolume) / 100.f);
+        platform.setDisplay(next.mode, next.resolution);
+        if(canSaveSettings)
+        {
+            if(const auto saved = sgl::SettingsStore::save(settingsPath, next); !saved)
+            {
+                std::cerr << sgl::describe(saved.error()) << '\n';
+            }
+        }
+    };
 
     sgl::SceneStack stack{sgl::syndicate::pause(services)};
     stack.push(sgl::syndicate::mainMenu(services)());

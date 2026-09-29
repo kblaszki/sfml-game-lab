@@ -46,6 +46,8 @@ sgl::MenuActions menuActions(const Actions& actions)
         .down = actions.softDrop,
         .confirm = actions.confirm,
         .cancel = actions.cancel,
+        .left = sgl::ActionId{.id = 11},
+        .right = sgl::ActionId{.id = 12},
     };
 }
 

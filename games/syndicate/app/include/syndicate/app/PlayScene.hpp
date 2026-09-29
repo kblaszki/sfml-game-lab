@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <sgl/audio/AudioI.hpp>
 #include <sgl/core/Time.hpp>
@@ -10,6 +11,7 @@
 #include <sgl/render/AssetIds.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/save/HighScoreTable.hpp>
+#include <sgl/save/Settings.hpp>
 #include <sgl/scene/SceneI.hpp>
 #include <sgl/ui/HoverAnim.hpp>
 #include <sgl/ui/TooltipSystem.hpp>
@@ -52,6 +54,8 @@ struct SyndicateServices
     sgl::HighScoreTable& highScores;
     SpriteBank sprites{};
     sgl::FontId bodyFont{};
+    sgl::Settings settings{};
+    std::function<void(const sgl::Settings&)> onSettingsChanged{};
 };
 
 [[nodiscard]] std::optional<Command> commandFromInput(const Match& match,

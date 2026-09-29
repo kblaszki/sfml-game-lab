@@ -11,8 +11,10 @@
 #include <sgl/ui/MenuStyle.hpp>
 #include <string>
 #include <syndicate/app/BoardRender.hpp>
+#include <syndicate/app/ControlMap.hpp>
 #include <syndicate/app/Describe.hpp>
 #include <syndicate/app/GameOverScene.hpp>
+#include <syndicate/app/HelpScene.hpp>
 #include <syndicate/app/Scenes.hpp>
 #include <utility>
 #include <variant>
@@ -119,6 +121,35 @@ namespace
         .cornerRadius = 6.f,
         .bodyFont = {},
     };
+}
+
+[[nodiscard]] std::size_t helpTabIndex(const Phase& phase) noexcept
+{
+    if(std::holds_alternative<AwaitRoll>(phase))
+    {
+        return 0;
+    }
+    if(std::holds_alternative<AwaitPath>(phase))
+    {
+        return 1;
+    }
+    if(std::holds_alternative<AwaitPurchase>(phase))
+    {
+        return 2;
+    }
+    if(std::holds_alternative<InAuction>(phase))
+    {
+        return 3;
+    }
+    if(std::holds_alternative<AwaitTradeResponse>(phase))
+    {
+        return 4;
+    }
+    if(std::holds_alternative<Manage>(phase))
+    {
+        return 5;
+    }
+    return 6; // GameOver / Global
 }
 
 } // namespace
@@ -515,30 +546,40 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
         }
         else
         {
-            const PlayerId actor = match_->actingPlayer();
-            const std::size_t idx = seatIndex(actor);
-            if(idx < seats_.size())
+            if(input.action(actions_.help).pressed)
             {
-                if(seats_[idx].bot)
+                const std::size_t tab = helpTabIndex(match_->state().phase);
+                ctx.request(sgl::PushScene{[tab, actions = actions_.menu, font = font_]() {
+                    return std::make_unique<HelpScene>(tab, actions, font);
+                }});
+            }
+            else
+            {
+                const PlayerId actor = match_->actingPlayer();
+                const std::size_t idx = seatIndex(actor);
+                if(idx < seats_.size())
                 {
-                    botThink_ += dt.count();
-                    if(botThink_ >= 0.4f)
+                    if(seats_[idx].bot)
                     {
-                        const Command cmd = chooseCommand(*match_, actor, seats_[idx].persona);
-                        applyCommand(actor, cmd);
+                        botThink_ += dt.count();
+                        if(botThink_ >= 0.4f)
+                        {
+                            const Command cmd = chooseCommand(*match_, actor, seats_[idx].persona);
+                            applyCommand(actor, cmd);
+                        }
                     }
-                }
-                else
-                {
-                    actionBar_.rebuild(*match_, actor, selectedTile_);
-                    trySelectTile(input);
-                    if(const auto barCmd = actionBar_.update(input, actions_))
+                    else
                     {
-                        applyCommand(actor, *barCmd);
-                    }
-                    else if(const auto cmd = commandFromInput(*match_, input, actions_, layout_))
-                    {
-                        applyCommand(actor, *cmd);
+                        actionBar_.rebuild(*match_, actor, selectedTile_);
+                        trySelectTile(input);
+                        if(const auto barCmd = actionBar_.update(input, actions_))
+                        {
+                            applyCommand(actor, *barCmd);
+                        }
+                        else if(const auto cmd = commandFromInput(*match_, input, actions_, layout_))
+                        {
+                            applyCommand(actor, *cmd);
+                        }
                     }
                 }
             }
@@ -615,6 +656,15 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     }
 
     hud_.render(queue, *match_, font_, theme_);
+    queue.push(sgl::Layer::Hud,
+               50.f,
+               sgl::TextCmd{
+                   .font = font_,
+                   .text = hintLine(match_->state().phase),
+                   .size = 16,
+                   .position = sgl::Vec2f{24.f, 40.f},
+                   .color = sgl::Color{200, 210, 225},
+               });
     presentation_.render(queue, layout_.origin(), theme_);
     handView_.render(queue, font_, theme_);
     actionBar_.render(queue, makeActionBarStyle(font_), hover_);

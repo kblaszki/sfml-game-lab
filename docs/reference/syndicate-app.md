@@ -13,6 +13,7 @@ related_code:
   - games/syndicate/app/include/syndicate/app/DiceAnimator.hpp
   - games/syndicate/app/include/syndicate/app/Presentation.hpp
   - games/syndicate/app/include/syndicate/app/Bindings.hpp
+  - games/syndicate/app/include/syndicate/app/ControlMap.hpp
   - games/syndicate/app/include/syndicate/app/Describe.hpp
   - games/syndicate/app/include/syndicate/app/ActionBar.hpp
   - games/syndicate/app/include/syndicate/app/HandView.hpp
@@ -28,6 +29,8 @@ related_code:
   - games/syndicate/app/include/syndicate/app/MainMenuScene.hpp
   - games/syndicate/app/include/syndicate/app/SetupScene.hpp
   - games/syndicate/app/include/syndicate/app/GameOverScene.hpp
+  - games/syndicate/app/include/syndicate/app/HelpScene.hpp
+  - games/syndicate/app/include/syndicate/app/PauseMenuScene.hpp
   - games/syndicate/app/src/Theme.cpp
   - games/syndicate/app/src/LayoutView.cpp
   - games/syndicate/app/src/BoardRender.cpp
@@ -35,6 +38,7 @@ related_code:
   - games/syndicate/app/src/DiceAnimator.cpp
   - games/syndicate/app/src/Presentation.cpp
   - games/syndicate/app/src/Bindings.cpp
+  - games/syndicate/app/src/ControlMap.cpp
   - games/syndicate/app/src/Describe.cpp
   - games/syndicate/app/src/ActionBar.cpp
   - games/syndicate/app/src/HandView.cpp
@@ -50,6 +54,8 @@ related_code:
   - games/syndicate/app/src/MainMenuScene.cpp
   - games/syndicate/app/src/SetupScene.cpp
   - games/syndicate/app/src/GameOverScene.cpp
+  - games/syndicate/app/src/HelpScene.cpp
+  - games/syndicate/app/src/PauseMenuScene.cpp
   - tests/syndicate/app/CMakeLists.txt
   - tests/syndicate/app/LayoutViewTest.cpp
   - tests/syndicate/app/BoardRenderTest.cpp
@@ -65,6 +71,8 @@ related_code:
   - tests/syndicate/app/ActionBarTest.cpp
   - tests/syndicate/app/PlaySceneTest.cpp
   - tests/syndicate/app/ScenesTest.cpp
+  - tests/syndicate/app/ControlMapTest.cpp
+  - tests/syndicate/app/HelpSceneTest.cpp
   - tests/syndicate/app/FeedbackTest.cpp
   - tests/syndicate/app/SpriteBankTest.cpp
 related_docs:
@@ -75,9 +83,10 @@ related_docs:
   - engine-render.md
   - engine-ui.md
   - engine-save.md
+  - pause-overlay.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, MarketHistory, TrendChart, PathHighlighter, PawnAnimator, DiceAnimator, Presentation, Bindings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, MarketHistory, TrendChart, PathHighlighter, PawnAnimator, DiceAnimator, Presentation, Bindings, ControlMap, HelpScene, PauseMenuScene, Settings, Describe, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
@@ -87,15 +96,23 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## SyndicateServices
 
-`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`, `sprites` (`SpriteBank`, default empty), and `bodyFont` (body / tooltip TTF; id 0 means fall back to `font`). Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references). Font path constants: `uiFontRelativePath`, `bodyFontRelativePath`.
+`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`, `sprites` (`SpriteBank`, default empty), `bodyFont` (body / tooltip TTF; id 0 means fall back to `font`), `settings` (`sgl::Settings`), and `onSettingsChanged` (optional; empty is a no-op). Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references). Font path constants: `uiFontRelativePath`, `bodyFontRelativePath`.
 
 | Factory | Scene |
 |---------|--------|
-| `mainMenu` | `MainMenuScene` (Play / Quit) |
+| `mainMenu` | `MainMenuScene` (Play / Settings / Help / Quit) |
 | `setup` | `SetupScene` (2–4 seats, Human/Bot, Confirm) |
 | `play` | `PlayScene` with `MatchConfig` + seats |
-| `pause` | `sgl::PauseOverlay` |
+| `pause` | `PauseMenuScene` (Resume / Settings / Help / Quit; not `sgl::PauseOverlay`) |
 | `makeGameOver` | `GameOverScene` with ranking + high-score save |
+
+## ControlMap / Help / Pause
+
+`controlMap()` returns phase / input / effect rows (Roll, Path, Purchase, Auction, Trade, Manage, Global). `hintLine(phase)` returns a non-empty hint ≤ 90 characters for the current `Phase`.
+
+`HelpScene(phaseIndex, MenuActions, FontId)` shows tabs for unique phase names in control-map order; starts on `phaseIndex` clamped to the tab count; Left/Right or tab clicks change tabs; cancel/Back → `PopScene`.
+
+`PauseMenuScene`: Resume or cancel → `PopScene`; Settings → `PushScene` `sgl::SettingsScene` using `services.settings` / `onSettingsChanged`; Help → `HelpScene` at tab 0; Quit → `QuitApp`. Traits match pause overlay (`opaque` false, `blocksUpdate` true).
 
 ## SpriteBank
 
@@ -107,13 +124,13 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## Menu / setup / game over
 
-- **MainMenuScene:** `MenuModel` + `renderMenu`. Play → `PushScene{setup}`; Quit / cancel / Escape → `QuitApp`.
+- **MainMenuScene:** `MenuModel` + `renderMenu`. Play → `PushScene{setup}`; Settings → `SettingsScene`; Help → `HelpScene` (tab 0); Quit / cancel / Escape → `QuitApp`.
 - **SetupScene:** cycles seat count 2→3→4, toggles Human/Bot per seat, Confirm → `ReplaceScene{play}` with `MatchConfig{seed, seats, startCash 1500, maxRounds 15, targetNetWorth 6000}`.
 - **GameOverScene:** ranking lines (`P1`… by player id, net worth). Menu → pop + replace main menu; Quit → `QuitApp`. Inserts the winner's net worth into `HighScoreTable` and `ScoreStore::save`; save failure still shows the scene.
 
 ## Theme / layout / board / HUD
 
-`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `DiceAnimator`, `Presentation`, `HudModel`, `HandView`, `MarketHistory`, `TrendChart`, `PathHighlighter`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
+`Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `DiceAnimator`, `Presentation`, `HudModel`, `HandView`, `MarketHistory`, `TrendChart`, `PathHighlighter`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **H** help, **Left/Right** settings nudges, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
 
 `renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` + `HighlightModel*` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`); when `highlights` is non-null, destination nodes use a thicker outline.
 
@@ -145,11 +162,11 @@ Match rolls are **d4+d4** (faces 1..4, total 2..8). `DiceAnimator` shows two pro
 
 ## PlayScene
 
-Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, `TooltipSystem`, `Presentation` (seed from `MatchConfig::seed` or `services.seed`), and `PathHighlighter`. Records the market into `HudModel` at startup and after each successful `apply`. On a human turn while presentation is idle: rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. In `AwaitPath`, builds/updates the path highlighter and passes `&highlighter.model()` into `renderBoard`, then `highlighter.render` after the board. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, market chart rows, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/highlights/pawns, HUD, dice at layout origin, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled` and `Feedback` after each applied command.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, `TooltipSystem`, `Presentation` (seed from `MatchConfig::seed` or `services.seed`), and `PathHighlighter`. Records the market into `HudModel` at startup and after each successful `apply`. On a human turn while presentation is idle: **H** (help) pushes `HelpScene` on the tab matching the current phase when presentation is not busy; otherwise rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. In `AwaitPath`, builds/updates the path highlighter and passes `&highlighter.model()` into `renderBoard`, then `highlighter.render` after the board. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, market chart rows, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/highlights/pawns, HUD, `hintLine(phase)` at y=40 under the phase prompt, dice at layout origin, hand, action bar, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled` and `Feedback` after each applied command.
 
 ## main.cpp
 
-`SfmlPlatform` **1280×720** titled **"Syndicate"**, loads `uiFontRelativePath` then `bodyFontRelativePath` under `ASSET_DIR` (same `fail()` on either), optionally loads the syndicate atlas into `SpriteBank`, uploads sounds, resolves `userDataDir("syndicate") / "syndicate.scores"` (temp fallback), `bindSyndicate`, pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
+`SfmlPlatform` **1280×720** titled **"Syndicate"**. Loads settings from `userDataDir("syndicate") / "settings.txt"` (format header `sgl-settings 1`; defaults if the dir fails — save skipped). Applies `SfmlPlatform::setDisplay` and wraps `platform.audio()` in `ScaledAudio` (`setMaster(volume/100)`), passing the scaled audio into `SyndicateServices`. Loads `uiFontRelativePath` then `bodyFontRelativePath` under `ASSET_DIR` (same `fail()` on either), optionally loads the syndicate atlas into `SpriteBank`, uploads sounds to the raw SFML audio, resolves scores path, `bindSyndicate`, wires `onSettingsChanged` (setDisplay, setMaster, `SettingsStore::save` — save errors go to `std::cerr`, no quit), pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
 
 ## Tests
 
@@ -168,6 +185,8 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | `syndicate_describe_test` | `formatMoney` scales; Biotech `BuyShares{1}` label facts |
 | `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot |
 | `syndicate_play_scene_test` | 4-bot GameOver; human roll ignored on bot turn; human Num buy + Manage Upgrade/PlayCard; tile hover tooltip |
-| `syndicate_scenes_test` | Menu cancel quits; Play pushes setup; setup Confirm replaces with PlayScene |
+| `syndicate_scenes_test` | Menu cancel quits; Play/Settings/Help; setup Confirm → Play; pause Resume/Settings/Quit |
+| `syndicate_control_map_test` | Phase coverage, hint bounds, bound key names in map text |
+| `syndicate_help_scene_test` | Manage tab selected; Right moves to next tab |
 | `syndicate_feedback_test` | `Rolled` / `FeePaid` each play ≥1 sound via `AudioSpy` |
 | `syndicate_sprite_bank_test` | Empty bank nullopt; manifest entry → matching `SpriteCmd` source |

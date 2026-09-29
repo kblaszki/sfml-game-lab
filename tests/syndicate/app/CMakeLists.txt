@@ -96,6 +96,21 @@ add_unit_test(syndicate_scenes_test
         syndicate_app
 )
 
+add_unit_test(syndicate_control_map_test
+    SOURCES
+        ControlMapTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_help_scene_test
+    SOURCES
+        HelpSceneTest.cpp
+        ../../engine/scene/fakes/SceneSpy.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_feedback_test
     SOURCES
         FeedbackTest.cpp

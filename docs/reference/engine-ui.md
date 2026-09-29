@@ -9,18 +9,21 @@ related_code:
   - engine/ui/include/sgl/ui/MenuStyle.hpp
   - engine/ui/include/sgl/ui/RenderMenu.hpp
   - engine/ui/include/sgl/ui/PauseOverlay.hpp
+  - engine/ui/include/sgl/ui/SettingsScene.hpp
   - engine/ui/include/sgl/ui/TextLayout.hpp
   - engine/ui/include/sgl/ui/TooltipSystem.hpp
   - engine/ui/include/sgl/ui/HoverAnim.hpp
   - engine/ui/src/MenuModel.cpp
   - engine/ui/src/RenderMenu.cpp
   - engine/ui/src/PauseOverlay.cpp
+  - engine/ui/src/SettingsScene.cpp
   - engine/ui/src/TextLayout.cpp
   - engine/ui/src/TooltipSystem.cpp
   - engine/ui/src/HoverAnim.cpp
   - engine/ui/CMakeLists.txt
   - tests/engine/ui/MenuModelTest.cpp
   - tests/engine/ui/PauseOverlayTest.cpp
+  - tests/engine/ui/SettingsSceneTest.cpp
   - tests/engine/ui/TextLayoutTest.cpp
   - tests/engine/ui/TooltipTest.cpp
   - tests/engine/ui/HoverAnimTest.cpp
@@ -29,20 +32,21 @@ related_docs:
   - engine-input.md
   - engine-render.md
   - engine-scene.md
+  - engine-save.md
   - pause-overlay.md
   - ../explanation/architecture.md
   - ../how-to/build-and-test.md
-keywords: [sgl, ui, MenuModel, MenuActions, Button, renderMenu, PauseOverlay, MenuStyle, TextLayout, TooltipSystem, HoverAnim]
+keywords: [sgl, ui, MenuModel, MenuActions, Button, renderMenu, PauseOverlay, SettingsScene, MenuStyle, TextLayout, TooltipSystem, HoverAnim]
 last_reviewed: 2026-09-29
 ---
 
 # Engine UI
 
-Headless menu kit in `namespace sgl`, included as `<sgl/ui/X.hpp>`. Target `sgl_ui` is a STATIC library that PUBLIC-links `sgl_input`, `sgl_render`, `sgl_scene`, and `sgl_anim`. No SFML dependency.
+Headless menu kit in `namespace sgl`, included as `<sgl/ui/X.hpp>`. Target `sgl_ui` is a STATIC library that PUBLIC-links `sgl_input`, `sgl_render`, `sgl_scene`, `sgl_anim`, and `sgl_save`. No SFML dependency.
 
 ## MenuActions, Button, MenuStyle
 
-`MenuActions` holds `ActionId` slots for `up`, `down`, `confirm`, and `cancel`.
+`MenuActions` holds `ActionId` slots for `up`, `down`, `confirm`, `cancel`, `left`, and `right` (`left` / `right` default-construct).
 
 `Button` is a hit rectangle plus `label` string.
 
@@ -88,7 +92,7 @@ Per-button hover scale. `update(hovered, count, dt)` resizes to `count`. Unhover
 
 ## PauseOverlay
 
-`PauseOverlay : SceneI` builds a two-row menu (Resume, Quit) from `MenuActions` and `FontId`.
+`PauseOverlay : SceneI` builds a two-row menu (Resume, Quit) from `MenuActions` and `FontId`. Arkanoid and Tetris keep using this overlay (or their own pause scenes); Syndicate pause is `PauseMenuScene` instead — see [syndicate-app.md](syndicate-app.md) and [pause-overlay.md](pause-overlay.md).
 
 | Activation | Request |
 |------------|---------|
@@ -96,3 +100,9 @@ Per-button hover scale. `update(hovered, count, dt)` resizes to `count`. Unhover
 | Quit (index 1) | `QuitApp` |
 
 Traits match a non-opaque pause overlay: `opaque = false`, `blocksUpdate = true`, `pausable = false`. Render uses `Layer::Overlay` (dim full-screen rect, then `renderMenu`).
+
+## SettingsScene
+
+`SettingsScene : SceneI` edits a `Settings` snapshot (`masterVolume`, `WindowMode`, resolution from `kResolutions`). Constructor: `(Settings initial, MenuActions actions, FontId font, std::function<void(const Settings&)> onChange)`. An empty `onChange` is treated as a no-op.
+
+Rows: **Master volume: N%**, **Window: Windowed|Fullscreen**, **Resolution: WxH**, **Back**. `left` / `right` (and `<` / `>` chevron clicks) nudge the focused editable row: volume ±10 clamped 0..100, window toggles, resolution cycles `kResolutions`. Every change calls `onChange` once. Back or `cancel` → `PopScene`. Traits: `opaque = false`, `blocksUpdate = true`. Renders a dim full-screen rect, rounded panel, and rows on `Layer::Overlay` with `HoverAnim` on the pointer row.

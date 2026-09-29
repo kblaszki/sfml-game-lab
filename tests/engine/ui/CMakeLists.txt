@@ -13,6 +13,14 @@ add_unit_test(pause_overlay_test
         sgl_ui
 )
 
+add_unit_test(settings_scene_test
+    SOURCES
+        SettingsSceneTest.cpp
+        ../scene/fakes/SceneSpy.cpp
+    DEPENDENCIES
+        sgl_ui
+)
+
 add_unit_test(text_layout_test
     SOURCES
         TextLayoutTest.cpp

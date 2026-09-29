@@ -15,12 +15,15 @@ SyndicateActions bindSyndicate(sgl::ActionMap& map)
         .bid = sgl::ActionId{.id = 102},
         .passBid = sgl::ActionId{.id = 103},
         .pause = sgl::ActionId{.id = 104},
+        .help = sgl::ActionId{.id = 109},
         .menu =
             sgl::MenuActions{
                 .up = sgl::ActionId{.id = 105},
                 .down = sgl::ActionId{.id = 106},
                 .confirm = sgl::ActionId{.id = 107},
                 .cancel = sgl::ActionId{.id = 108},
+                .left = sgl::ActionId{.id = 120},
+                .right = sgl::ActionId{.id = 121},
             },
         .slot = {},
     };
@@ -35,10 +38,13 @@ SyndicateActions bindSyndicate(sgl::ActionMap& map)
     map.bind(sgl::Key::C, actions.bid); // Key::B unavailable
     map.bind(sgl::Key::P, actions.passBid);
     map.bind(sgl::Key::Escape, actions.pause);
+    map.bind(sgl::Key::H, actions.help);
     map.bind(sgl::Key::Up, actions.menu.up);
     map.bind(sgl::Key::Down, actions.menu.down);
     map.bind(sgl::Key::Enter, actions.menu.confirm);
     map.bind(sgl::Key::Backspace, actions.menu.cancel);
+    map.bind(sgl::Key::Left, actions.menu.left);
+    map.bind(sgl::Key::Right, actions.menu.right);
 
     constexpr sgl::Key kNums[9] = {sgl::Key::Num1,
                                    sgl::Key::Num2,

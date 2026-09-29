@@ -10,8 +10,11 @@
 #include <sgl/input/Key.hpp>
 #include <sgl/save/HighScoreTable.hpp>
 #include <sgl/scene/SceneStack.hpp>
+#include <sgl/ui/SettingsScene.hpp>
 #include <syndicate/app/Bindings.hpp>
+#include <syndicate/app/HelpScene.hpp>
 #include <syndicate/app/MainMenuScene.hpp>
+#include <syndicate/app/PauseMenuScene.hpp>
 #include <syndicate/app/PlayScene.hpp>
 #include <syndicate/app/Scenes.hpp>
 #include <syndicate/app/SetupScene.hpp>
@@ -89,6 +92,31 @@ TEST(ScenesTest, menuConfirmPushesSetup)
     EXPECT_EQ(f.stack.size(), 2u);
 }
 
+TEST(ScenesTest, menuSettingsPushesSettingsScene)
+{
+    Fixture f;
+    f.stack.push(sgl::syndicate::mainMenu(f.services)());
+
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Enter, f.map), sgl::kTick);
+
+    ASSERT_NE(dynamic_cast<sgl::SettingsScene*>(f.stack.top()), nullptr);
+    EXPECT_EQ(f.stack.size(), 2u);
+}
+
+TEST(ScenesTest, menuHelpPushesHelpScene)
+{
+    Fixture f;
+    f.stack.push(sgl::syndicate::mainMenu(f.services)());
+
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Enter, f.map), sgl::kTick);
+
+    ASSERT_NE(dynamic_cast<sgl::syndicate::HelpScene*>(f.stack.top()), nullptr);
+    EXPECT_EQ(f.stack.size(), 2u);
+}
+
 TEST(ScenesTest, setupConfirmPushesPlay)
 {
     Fixture f;
@@ -101,4 +129,45 @@ TEST(ScenesTest, setupConfirmPushesPlay)
     f.stack.update(inputWith(sgl::Key::Enter, f.map), sgl::kTick);
 
     ASSERT_NE(dynamic_cast<sgl::syndicate::PlayScene*>(f.stack.top()), nullptr);
+}
+
+TEST(ScenesTest, pauseResumePops)
+{
+    Fixture f;
+    f.stack.push(std::make_unique<sgl::syndicate::MainMenuScene>(f.services));
+    f.stack.push(sgl::syndicate::pause(f.services)());
+
+    ASSERT_NE(dynamic_cast<sgl::syndicate::PauseMenuScene*>(f.stack.top()), nullptr);
+    EXPECT_EQ(f.stack.size(), 2u);
+
+    f.stack.update(inputWith(sgl::Key::Enter, f.map), sgl::kTick);
+    EXPECT_EQ(f.stack.size(), 1u);
+    EXPECT_FALSE(f.stack.quitRequested());
+}
+
+TEST(ScenesTest, pauseSettingsPushes)
+{
+    Fixture f;
+    f.stack.push(std::make_unique<sgl::syndicate::MainMenuScene>(f.services));
+    f.stack.push(sgl::syndicate::pause(f.services)());
+
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Enter, f.map), sgl::kTick);
+
+    ASSERT_NE(dynamic_cast<sgl::SettingsScene*>(f.stack.top()), nullptr);
+    EXPECT_EQ(f.stack.size(), 3u);
+}
+
+TEST(ScenesTest, pauseQuitRequestsQuitApp)
+{
+    Fixture f;
+    f.stack.push(std::make_unique<sgl::syndicate::MainMenuScene>(f.services));
+    f.stack.push(sgl::syndicate::pause(f.services)());
+
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Down, f.map), sgl::kTick);
+    f.stack.update(inputWith(sgl::Key::Enter, f.map), sgl::kTick);
+
+    EXPECT_TRUE(f.stack.quitRequested());
 }

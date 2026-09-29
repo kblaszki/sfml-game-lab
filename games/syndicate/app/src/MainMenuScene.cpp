@@ -3,7 +3,10 @@
 #include <sgl/scene/SceneContext.hpp>
 #include <sgl/ui/Button.hpp>
 #include <sgl/ui/RenderMenu.hpp>
+#include <sgl/ui/SettingsScene.hpp>
+#include <memory>
 #include <string>
+#include <syndicate/app/HelpScene.hpp>
 #include <syndicate/app/MainMenuScene.hpp>
 #include <vector>
 
@@ -13,11 +16,13 @@ namespace
 {
 
 constexpr float kDesignWidth{1280.f};
-constexpr sgl::Vec2f kButtonSize{400.f, 72.f};
-constexpr float kPlayY{340.f};
-constexpr float kQuitY{440.f};
-constexpr float kTitleY{180.f};
-constexpr float kBestY{250.f};
+constexpr sgl::Vec2f kButtonSize{400.f, 64.f};
+constexpr float kPlayY{300.f};
+constexpr float kSettingsY{380.f};
+constexpr float kHelpY{460.f};
+constexpr float kQuitY{540.f};
+constexpr float kTitleY{160.f};
+constexpr float kBestY{230.f};
 
 [[nodiscard]] sgl::Rect<float> centeredButton(float y)
 {
@@ -31,6 +36,8 @@ constexpr float kBestY{250.f};
 {
     return {
         sgl::Button{.rect = centeredButton(kPlayY), .label = "Play"},
+        sgl::Button{.rect = centeredButton(kSettingsY), .label = "Settings"},
+        sgl::Button{.rect = centeredButton(kHelpY), .label = "Help"},
         sgl::Button{.rect = centeredButton(kQuitY), .label = "Quit"},
     };
 }
@@ -62,13 +69,36 @@ void MainMenuScene::update(sgl::SceneContext& ctx, sgl::Seconds)
 {
     if(const auto activated = model_.update(ctx.input(), services_.actions.menu))
     {
-        if(*activated == 0)
+        switch(*activated)
         {
+        case 0:
             ctx.request(sgl::PushScene{setup(services_)});
-        }
-        else
-        {
+            break;
+        case 1:
+            ctx.request(sgl::PushScene{[this]() {
+                return std::make_unique<sgl::SettingsScene>(
+                    services_.settings,
+                    services_.actions.menu,
+                    services_.font,
+                    [this](const sgl::Settings& settings) {
+                        services_.settings = settings;
+                        if(services_.onSettingsChanged)
+                        {
+                            services_.onSettingsChanged(settings);
+                        }
+                    });
+            }});
+            break;
+        case 2:
+            ctx.request(sgl::PushScene{[actions = services_.actions.menu, font = services_.font]() {
+                return std::make_unique<HelpScene>(0, actions, font);
+            }});
+            break;
+        case 3:
             ctx.request(sgl::QuitApp{});
+            break;
+        default:
+            break;
         }
         return;
     }
