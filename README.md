@@ -1,6 +1,6 @@
 # sfml-game-lab
 
-A lab of small C++23 games on a shared [SFML](https://www.sfml-dev.org/) 3.1 engine (2D now, 2.5D-ready). Two titles ship today: a three-stage breakout in `games/arkanoid/` (four power-ups, pause, high scores) and Tetris in `games/tetris/`. Both use CMake presets and windowless unit tests.
+A lab of small C++23 games on a shared [SFML](https://www.sfml-dev.org/) 3.1 engine (2D now, 2.5D-ready). Three titles ship today: a three-stage breakout in `games/arkanoid/`, Tetris in `games/tetris/`, and Syndicate in `games/syndicate/`. All use CMake presets and windowless unit tests.
 
 The engine lives in `engine/` (`namespace sgl`). Prospective notes stay in [`mvp/`](mvp/README.md) (`01`–`09`); what landed is [`mvp/10`](mvp/10-engine-progress.md). The contract is [`docs/explanation/architecture.md`](docs/explanation/architecture.md).
 
@@ -36,12 +36,13 @@ cd sfml-game-lab
 | `engine/` | Engine modules (`sgl_core`, input, scene, loop, render, collision, resources, audio, fx, save, `sgl_sfml`) |
 | `games/arkanoid/` | Headless sim, scenes, and the `arkanoid` executable |
 | `games/tetris/` | Headless sim, scenes, and the `tetris` executable |
+| `games/syndicate/` | Headless sim, scenes, and the `syndicate` executable |
 | `assets/fonts/` | UI TTF (`ASSET_DIR`) |
-| `tests/engine/`, `tests/arkanoid/`, `tests/tetris/` | Debug GoogleTest (no window, except event translation) |
+| `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/` | Debug GoogleTest (no window, except event translation) |
 | `docs/` | Diátaxis documentation |
 | `mvp/` | Prospective design (`01`–`09`) and living progress (`10`) |
 
-Executable targets: `arkanoid` and `tetris`. Only `engine/sfml` and `games/<game>/main.cpp` include SFML.
+Executable targets: `arkanoid`, `tetris`, and `syndicate`. Only `engine/sfml` and `games/<game>/main.cpp` include SFML.
 
 ## Building the Project
 
@@ -97,6 +98,8 @@ A 1280×720 window titled "Arkanoid" opens on a Start / Quit menu. Enter starts 
 
 Build and run Tetris the same way with target `tetris` (`./build/debug/bin/tetris` or `tetris.exe` on Windows). A 1280×720 window titled "Tetris" opens on a Start / Quit menu; Enter starts a game (arrows move, Down soft-drops, Space hard-drops, Up/X and Z rotate, C/Shift hold). Escape or P pauses.
 
+Build and run Syndicate with target `syndicate` (`./build/debug/bin/syndicate` or `syndicate.exe` on Windows). A 1280×720 window titled "Syndicate" opens on a Play / Quit menu; Play opens seat setup (2–4 Human/Bot), Confirm starts the match (Space rolls, Escape pauses).
+
 ## Running the Tests
 
 Tests are available only for the **debug** preset. See [docs/how-to/build-and-test.md](docs/how-to/build-and-test.md).
@@ -114,7 +117,7 @@ Contributions are welcome. Please:
 1. Fork the repository and create a feature branch.
 2. Match existing C++ style (see `.clang-format`). With a debug configure: `cmake --build --preset debug --target format`.
 3. Treat warnings as errors — keep the build clean under the project flags.
-4. Add or update unit tests under `tests/engine/`, `tests/arkanoid/`, or `tests/tetris/`.
+4. Add or update unit tests under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, or `tests/syndicate/`.
 5. List every new `.cpp` in that module's `CMakeLists.txt`.
 6. Keep `docs/` current for files listed in a doc's `related_code` (see `docs/index.md`).
 7. Open a pull request with a short description of the change.

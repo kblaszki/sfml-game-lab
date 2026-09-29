@@ -42,7 +42,7 @@ namespace
             }
             else
             {
-                return theme.hub;
+                return theme.edge;
             }
         },
         kind);

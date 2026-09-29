@@ -64,10 +64,7 @@ std::vector<MoveOption> moveOptions(const BoardGraph& board, NodeId from, std::o
     {
         return {};
     }
-    if(steps > 12)
-    {
-        steps = 12;
-    }
+    steps = std::min(steps, 12);
 
     const auto paydayOpt = findPayday(board);
     if(!paydayOpt.has_value())

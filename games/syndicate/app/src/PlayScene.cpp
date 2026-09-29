@@ -9,6 +9,8 @@
 #include <sgl/scene/SceneRequest.hpp>
 #include <string>
 #include <syndicate/app/BoardRender.hpp>
+#include <syndicate/app/GameOverScene.hpp>
+#include <syndicate/app/Scenes.hpp>
 #include <utility>
 #include <variant>
 
@@ -88,61 +90,6 @@ namespace
     }
     return false;
 }
-
-class RankingScene final : public sgl::SceneI
-{
-public:
-    RankingScene(GameOver over, sgl::FontId font)
-        : over_{std::move(over)}
-        , font_{font}
-    {
-    }
-
-    void update(sgl::SceneContext&, sgl::Seconds) override {}
-
-    void render(sgl::RenderQueue& queue) const override
-    {
-        float depth = 0.f;
-        queue.push(sgl::Layer::Hud,
-                   depth++,
-                   sgl::TextCmd{
-                       .font = font_,
-                       .text = "Ranking",
-                       .size = 32,
-                       .position = sgl::Vec2f{640.f, 120.f},
-                       .color = sgl::Color{240, 240, 245},
-                       .anchor = sgl::Anchor::Center,
-                   });
-        float y = 200.f;
-        for(std::size_t i = 0; i < over_.ranking.size(); ++i)
-        {
-            const RankingEntry& e = over_.ranking[i];
-            const std::string line = "#" + std::to_string(i + 1) + " P" +
-                                     std::to_string(std::to_underlying(e.player)) + " net " +
-                                     std::to_string(e.net.v);
-            queue.push(sgl::Layer::Hud,
-                       depth++,
-                       sgl::TextCmd{
-                           .font = font_,
-                           .text = line,
-                           .size = 22,
-                           .position = sgl::Vec2f{640.f, y},
-                           .color = sgl::Color{220, 220, 230},
-                           .anchor = sgl::Anchor::Center,
-                       });
-            y += 36.f;
-        }
-    }
-
-    [[nodiscard]] sgl::SceneTraits traits() const override
-    {
-        return sgl::SceneTraits{.opaque = true, .blocksUpdate = true, .pausable = false};
-    }
-
-private:
-    GameOver over_;
-    sgl::FontId font_{};
-};
 
 } // namespace
 
@@ -232,7 +179,29 @@ PlayScene::PlayScene(MatchConfig config, std::vector<Seat> seats, sgl::FontId fo
     , font_{font}
     , actions_{actions}
 {
-    if(static_cast<int>(seats_.size()) != config.seats)
+    if(std::cmp_not_equal(seats_.size(), config.seats))
+    {
+        setupFailed_ = true;
+        return;
+    }
+    auto created = Match::create(config);
+    if(!created.has_value())
+    {
+        setupFailed_ = true;
+        return;
+    }
+    match_ = std::move(*created);
+    resetPawns();
+}
+
+PlayScene::PlayScene(const SyndicateServices& services, MatchConfig config, std::vector<Seat> seats)
+    : seats_{std::move(seats)}
+    , font_{services.font}
+    , actions_{services.actions}
+    , services_{services}
+    , feedback_{Feedback{services.audio, services.sounds}}
+{
+    if(std::cmp_not_equal(seats_.size(), config.seats))
     {
         setupFailed_ = true;
         return;
@@ -291,9 +260,20 @@ void PlayScene::tryStartPathAnimation(const ChooseDestination& dest)
     animator_.start(match_->actingPlayer(), points);
 }
 
+void PlayScene::drainFeedback()
+{
+    if(!match_.has_value() || !feedback_.has_value())
+    {
+        return;
+    }
+    const std::vector<GameEvent> events = match_->drainEvents();
+    feedback_->onEvents(events);
+}
+
 void PlayScene::applyCommand(PlayerId actor, const Command& cmd)
 {
-    if(!match_.has_value())
+    Match* match = match_ ? &*match_ : nullptr;
+    if(match == nullptr)
     {
         return;
     }
@@ -301,7 +281,11 @@ void PlayScene::applyCommand(PlayerId actor, const Command& cmd)
     {
         tryStartPathAnimation(*choose);
     }
-    (void)match_->apply(actor, cmd);
+    if(const auto applied = match->apply(actor, cmd); !applied)
+    {
+        return;
+    }
+    drainFeedback();
     botThink_ = 0.f;
 }
 
@@ -367,12 +351,29 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
 
     if(gameOver() && !endPushed_)
     {
+        const Match* match = match_ ? &*match_ : nullptr;
+        if(match == nullptr)
+        {
+            return;
+        }
+        const auto* overPtr = std::get_if<GameOver>(&match->state().phase);
+        if(overPtr == nullptr)
+        {
+            return;
+        }
         endPushed_ = true;
-        const GameOver over = std::get<GameOver>(match_->state().phase);
-        const sgl::FontId font = font_;
-        ctx.request(sgl::PushScene{[over, font]() {
-            return std::make_unique<RankingScene>(over, font);
-        }});
+        const GameOver& over = *overPtr;
+        if(services_.has_value())
+        {
+            ctx.request(sgl::PushScene{makeGameOver(*services_, over)});
+        }
+        else
+        {
+            const sgl::FontId font = font_;
+            ctx.request(sgl::PushScene{[over, font]() {
+                return std::make_unique<GameOverScene>(over, font);
+            }});
+        }
     }
 }
 

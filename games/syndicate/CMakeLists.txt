@@ -1,2 +1,10 @@
 add_subdirectory(sim)
 add_subdirectory(app)
+
+add_executable(syndicate main.cpp)
+target_compile_features(syndicate PRIVATE cxx_std_23)
+target_compile_options(syndicate PRIVATE ${BASE_COMPILE_FLAGS})
+target_link_libraries(syndicate PRIVATE syndicate_app sgl_sfml)
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/assets" ASSET_DIR_NORM)
+target_compile_definitions(syndicate PRIVATE ASSET_DIR="${ASSET_DIR_NORM}")
+add_dependencies(syndicate check_boundaries)

@@ -1,16 +1,22 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
+#include <filesystem>
 #include <optional>
+#include <sgl/audio/AudioI.hpp>
 #include <sgl/core/Time.hpp>
 #include <sgl/input/InputState.hpp>
 #include <sgl/render/AssetIds.hpp>
 #include <sgl/render/RenderQueue.hpp>
+#include <sgl/save/HighScoreTable.hpp>
 #include <sgl/scene/SceneI.hpp>
 #include <syndicate/app/Bindings.hpp>
+#include <syndicate/app/Feedback.hpp>
 #include <syndicate/app/HudModel.hpp>
 #include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
+#include <syndicate/app/Sounds.hpp>
 #include <syndicate/app/Theme.hpp>
 #include <syndicate/sim/Bot.hpp>
 #include <syndicate/sim/Commands.hpp>
@@ -27,6 +33,18 @@ struct Seat
     BotPersona persona{};
 };
 
+// References owned by main() for the whole App::run(); scenes must not outlive that.
+struct SyndicateServices
+{
+    const SyndicateActions& actions;
+    sgl::FontId font;
+    std::uint64_t seed{};
+    sgl::AudioI& audio;
+    SoundIds sounds{};
+    std::filesystem::path scoresPath{};
+    sgl::HighScoreTable& highScores;
+};
+
 [[nodiscard]] std::optional<Command> commandFromInput(const Match& match,
                                                       const sgl::InputState& input,
                                                       const SyndicateActions& actions,
@@ -36,6 +54,7 @@ class PlayScene final : public sgl::SceneI
 {
 public:
     PlayScene(MatchConfig config, std::vector<Seat> seats, sgl::FontId font, SyndicateActions actions);
+    PlayScene(const SyndicateServices& services, MatchConfig config, std::vector<Seat> seats);
 
     void update(sgl::SceneContext& ctx, sgl::Seconds dt) override;
     void render(sgl::RenderQueue& queue) const override;
@@ -48,10 +67,13 @@ private:
     void applyCommand(PlayerId actor, const Command& cmd);
     void tryStartPathAnimation(const ChooseDestination& dest);
     void resetPawns();
+    void drainFeedback();
 
     std::vector<Seat> seats_;
     sgl::FontId font_{};
     SyndicateActions actions_{};
+    std::optional<SyndicateServices> services_;
+    std::optional<Feedback> feedback_;
     Theme theme_{defaultTheme()};
     LayoutView layout_{sgl::Vec2f{640.f, 360.f}, 280.f};
     PawnAnimator animator_{layout_};

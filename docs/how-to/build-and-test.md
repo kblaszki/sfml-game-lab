@@ -18,7 +18,7 @@ related_docs:
   - ../tutorials/getting-started.md
   - ../reference/source-layout.md
   - ../reference/engine-audio.md
-keywords: [build, test, ctest, format, presets, build_ut, debug, release, asan, coverage, tidy, arkanoid, tetris, SFML, Audio]
+keywords: [build, test, ctest, format, presets, build_ut, debug, release, asan, coverage, tidy, arkanoid, tetris, syndicate, SFML, Audio]
 last_reviewed: 2026-09-29
 ---
 
@@ -46,9 +46,10 @@ Outputs go to `build/<preset>/`.
 ```sh
 cmake --build --preset debug --target arkanoid
 cmake --build --preset debug --target tetris
+cmake --build --preset debug --target syndicate
 ```
 
-Binaries: `build/<preset>/bin/arkanoid` and `build/<preset>/bin/tetris` (`.exe` on Windows).
+Binaries: `build/<preset>/bin/arkanoid`, `build/<preset>/bin/tetris`, and `build/<preset>/bin/syndicate` (`.exe` on Windows).
 
 ## Run tests (Debug-family only)
 
@@ -80,11 +81,12 @@ gcovr --root . --filter 'engine/.*' --exclude 'engine/sfml/.*' --filter 'games/.
 
 On Windows, install `gcovr` with the system Python (`py -m pip install gcovr`), not inside MSYS2. Run it as `py -m gcovr` with the same flags when the `gcovr` command is not on `PATH`. `gcov` on `PATH` must be the MinGW one that built the preset (`C:\msys64\mingw64\bin`). HTML lands in `build/coverage/html/index.html`.
 
-Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`):
+Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`):
 
 - Engine: `vec_test`, `rect_test`, `handle_test`, `image_test`, `random_test`, `input_state_test`, `scene_stack_test`, `fixed_step_loop_test`, `app_test`, `render_queue_test`, `projection_test`, `collision_test`, `resource_cache_test`, `tone_test`, `particle_system_test`, save suites, `event_translate_test`, …
 - Arkanoid: `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test`, `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test`
 - Tetris: `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test`, `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test`
+- Syndicate: `syndicate_money_test`, `syndicate_match_test`, `syndicate_layout_view_test`, `syndicate_play_scene_test`, `syndicate_scenes_test`, `syndicate_feedback_test`, …
 
 `build_ut` builds every suite registered with `add_unit_test(...)` (`cmake/AddUnitTest.cmake`). In Debug it also depends on `check_boundaries`, so building tests enforces the engine/games SFML and include-boundary rules.
 

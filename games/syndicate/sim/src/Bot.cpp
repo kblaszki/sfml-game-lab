@@ -138,7 +138,7 @@ namespace
             }
             else
             {
-                return 0;
+                return -1;
             }
         },
         cmd);

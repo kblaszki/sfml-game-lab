@@ -32,3 +32,17 @@ add_unit_test(syndicate_play_scene_test
     DEPENDENCIES
         syndicate_app
 )
+
+add_unit_test(syndicate_scenes_test
+    SOURCES
+        ScenesTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_feedback_test
+    SOURCES
+        FeedbackTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)

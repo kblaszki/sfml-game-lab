@@ -93,6 +93,9 @@ jobs:
       - name: Build tetris
         run: cmake --build --preset release --target tetris
 
+      - name: Build syndicate
+        run: cmake --build --preset release --target syndicate
+
   asan:
     name: asan
     runs-on: ubuntu-24.04

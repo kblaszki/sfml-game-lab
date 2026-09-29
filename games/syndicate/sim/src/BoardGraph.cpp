@@ -103,7 +103,7 @@ std::expected<BoardGraph, BoardError> BoardGraph::build(std::vector<TileNode> no
     std::vector<TileNode> ordered(n);
     for(auto& node: nodes)
     {
-        ordered[static_cast<std::size_t>(node.id)] = std::move(node);
+        ordered[static_cast<std::size_t>(node.id)] = node;
     }
 
     std::vector<std::vector<NodeId>> adj(n);

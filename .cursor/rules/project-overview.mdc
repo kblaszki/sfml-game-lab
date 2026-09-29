@@ -5,7 +5,7 @@ alwaysApply: true
 
 # sfml-game-lab
 
-C++23 SFML 3.1 game lab. The engine lives in `engine/` (`namespace sgl`). Games live under `games/`: `sgl::arkanoid` (executable `arkanoid`) and `sgl::tetris` (executable `tetris`). Contract: `docs/explanation/architecture.md`. Longer-term notes live in `mvp/` (`01`–`09` prospect, `10` living).
+C++23 SFML 3.1 game lab. The engine lives in `engine/` (`namespace sgl`). Games live under `games/`: `sgl::arkanoid` (executable `arkanoid`), `sgl::tetris` (executable `tetris`), and `sgl::syndicate` (executable `syndicate`). Contract: `docs/explanation/architecture.md`. Longer-term notes live in `mvp/` (`01`–`09` prospect, `10` living).
 
 ## Stack
 
@@ -32,8 +32,11 @@ C++23 SFML 3.1 game lab. The engine lives in `engine/` (`namespace sgl`). Games 
 - `games/tetris/sim/` — headless Tetris (`tetris_sim`, links `sgl_core` only)
 - `games/tetris/app/` — scenes, board, sounds, high scores (`tetris_app`)
 - `games/tetris/main.cpp` — executable `tetris`
+- `games/syndicate/sim/` — headless Syndicate (`syndicate_sim`, links `sgl_core` only)
+- `games/syndicate/app/` — scenes, board UI, sounds, feedback, high scores (`syndicate_app`)
+- `games/syndicate/main.cpp` — executable `syndicate`
 - `assets/fonts/` — UI TTF (`ASSET_DIR`). Not `engine/resources/` (that module is the cache)
-- `tests/engine/`, `tests/arkanoid/`, `tests/tetris/` — GoogleTest suites (Debug only)
+- `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/` — GoogleTest suites (Debug only)
 - `tests/mocks/` — `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy`
 
 ## Build / test
@@ -42,16 +45,17 @@ C++23 SFML 3.1 game lab. The engine lives in `engine/` (`namespace sgl`). Games 
 cmake --preset debug
 cmake --build --preset debug --target arkanoid
 cmake --build --preset debug --target tetris
+cmake --build --preset debug --target syndicate
 cmake --build --preset debug --target build_ut
 ctest --preset debug
 ```
 
-Binaries: `build/<preset>/bin/arkanoid` and `build/<preset>/bin/tetris` (`.exe` on Windows).
+Binaries: `build/<preset>/bin/arkanoid`, `build/<preset>/bin/tetris`, and `build/<preset>/bin/syndicate` (`.exe` on Windows).
 
 ## Agent pitfalls
 
 - New `.cpp` files belong in that module’s own `CMakeLists.txt` (`engine/<module>/` or `games/<game>/<sim|app>/`)
-- Only `engine/sfml` and `games/<game>/main.cpp` may include SFML; `arkanoid/sim` and `tetris/sim` stay headless
+- Only `engine/sfml` and `games/<game>/main.cpp` may include SFML; `arkanoid/sim`, `tetris/sim`, and `syndicate/sim` stay headless
 - Tests are headless except `event_translate_test`, which links `SFML::Window` and does not open a window
 - Interfaces use the `FooI` suffix (`SceneI`, `RendererI`, `PlatformI`, `ClockI`, `AudioI`)
 - Scenes must not `close()` the platform; quit is `QuitApp` / `closeRequested`

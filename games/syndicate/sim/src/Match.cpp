@@ -122,7 +122,7 @@ void peekMarketEvent(GameState& s)
 
 void emit(GameState& s, GameEvent e)
 {
-    s.events.push_back(std::move(e));
+    s.events.push_back(e);
 }
 
 void payFee(GameState& s, PlayerId payer, NodeId tile)
@@ -194,7 +194,10 @@ void resolveLanding(GameState& s, PlayerId who, NodeId dest)
         {
             if(auto drawn = s.deck.draw(s.rng))
             {
-                (void)s.hands[idx(who)].add(*drawn);
+                if(const auto added = s.hands[idx(who)].add(*drawn); !added)
+                {
+                    s.deck.discard(*drawn);
+                }
             }
         }
         enterManage(s, who);
@@ -746,7 +749,7 @@ std::expected<void, CommandError> Match::apply(PlayerId actor, const Command& cm
                     const PlayerId first = nextSeat(actor, state_.seats);
                     AuctionState auction = startAuction(tile, 3, opening, state_.seats, first, eligible);
                     state_.turnOwner = actor;
-                    state_.phase = InAuction{std::move(auction)};
+                    state_.phase = InAuction{auction};
                     state_.acting = std::get<InAuction>(state_.phase).auction.toAct;
                     return {};
                 }

@@ -3,6 +3,8 @@ title: Syndicate app
 diataxis: reference
 audience: [ai, human]
 related_code:
+  - games/syndicate/CMakeLists.txt
+  - games/syndicate/main.cpp
   - games/syndicate/app/CMakeLists.txt
   - games/syndicate/app/include/syndicate/app/Theme.hpp
   - games/syndicate/app/include/syndicate/app/LayoutView.hpp
@@ -11,6 +13,12 @@ related_code:
   - games/syndicate/app/include/syndicate/app/Bindings.hpp
   - games/syndicate/app/include/syndicate/app/HudModel.hpp
   - games/syndicate/app/include/syndicate/app/PlayScene.hpp
+  - games/syndicate/app/include/syndicate/app/Scenes.hpp
+  - games/syndicate/app/include/syndicate/app/Sounds.hpp
+  - games/syndicate/app/include/syndicate/app/Feedback.hpp
+  - games/syndicate/app/include/syndicate/app/MainMenuScene.hpp
+  - games/syndicate/app/include/syndicate/app/SetupScene.hpp
+  - games/syndicate/app/include/syndicate/app/GameOverScene.hpp
   - games/syndicate/app/src/Theme.cpp
   - games/syndicate/app/src/LayoutView.cpp
   - games/syndicate/app/src/BoardRender.cpp
@@ -18,70 +26,69 @@ related_code:
   - games/syndicate/app/src/Bindings.cpp
   - games/syndicate/app/src/HudModel.cpp
   - games/syndicate/app/src/PlayScene.cpp
+  - games/syndicate/app/src/Sounds.cpp
+  - games/syndicate/app/src/Feedback.cpp
+  - games/syndicate/app/src/Scenes.cpp
+  - games/syndicate/app/src/MainMenuScene.cpp
+  - games/syndicate/app/src/SetupScene.cpp
+  - games/syndicate/app/src/GameOverScene.cpp
   - tests/syndicate/app/CMakeLists.txt
   - tests/syndicate/app/LayoutViewTest.cpp
   - tests/syndicate/app/BoardRenderTest.cpp
   - tests/syndicate/app/PawnAnimatorTest.cpp
   - tests/syndicate/app/HudModelTest.cpp
   - tests/syndicate/app/PlaySceneTest.cpp
+  - tests/syndicate/app/ScenesTest.cpp
+  - tests/syndicate/app/FeedbackTest.cpp
 related_docs:
   - syndicate-sim.md
   - ../explanation/syndicate-design.md
   - engine-render.md
+  - engine-ui.md
+  - engine-save.md
   - source-layout.md
   - ../explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, HudModel, PlayScene, CircleCmd, LineCmd, 1280x720]
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, PawnAnimator, Bindings, HudModel, PlayScene, Scenes, Feedback, Sounds, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
 last_reviewed: 2026-09-29
 ---
 
 # Syndicate app
 
-Headless presentation helpers and play scene in `namespace sgl::syndicate` for the Syndicate board UI. Static library `syndicate_app` links `PUBLIC` `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, and `sgl_ui`. No SFML includes — drawing uses `sgl::RenderQueue` and `CircleCmd` / `LineCmd` / `RectCmd` / `TextCmd` from `<sgl/render/DrawCommand.hpp>`. Include as `<syndicate/app/X.hpp>`. Design size matches other games: **1280×720** (board origin typically `{640, 360}`).
+Presentation layer and playable executable for Syndicate in `namespace sgl::syndicate`. Static library `syndicate_app` links `PUBLIC` `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_audio`, `sgl_fx`, and `sgl_save`. No SFML includes in the library — drawing uses `sgl::RenderQueue` and `CircleCmd` / `LineCmd` / `RectCmd` / `TextCmd`. Include as `<syndicate/app/X.hpp>`. Design size **1280×720**. Executable target `syndicate` (`games/syndicate/main.cpp`) links `syndicate_app` and `sgl_sfml`.
 
-## Theme
+## SyndicateServices
 
-`Theme` holds palette fields: six sector fills (AI … Fintech), `edge`, special tiles (`payday`, `exchange`, `hub`, `audit`, `grant`), `highlight`, and `pawn[4]`. `defaultTheme()` returns distinct, dark-readable colors.
+`SyndicateServices` holds references owned by `main()` for the whole `App::run()`: `actions`, `font`, `seed`, `audio`, `sounds`, `scoresPath`, `highScores`. Scene factories in `Scenes.hpp` capture this struct by value (shallow copies of references).
 
-## LayoutView
+| Factory | Scene |
+|---------|--------|
+| `mainMenu` | `MainMenuScene` (Play / Quit) |
+| `setup` | `SetupScene` (2–4 seats, Human/Bot, Confirm) |
+| `play` | `PlayScene` with `MatchConfig` + seats |
+| `pause` | `sgl::PauseOverlay` |
+| `makeGameOver` | `GameOverScene` with ranking + high-score save |
 
-`LayoutView(origin, outerRadius)` maps `RingSlot` to screen positions:
+## Sounds / Feedback
 
-| Ring | Radius | Slot count |
-|------|--------|------------|
-| 0 | `outerRadius` | 24 |
-| 1 | `outerRadius * 0.62` | 12 |
-| 2 | `outerRadius * 0.30` | 4 |
+`soundSpecs()` returns PCM from `sgl::blip` (`roll`, `fee`, `auction`, `card`, `market`). `main.cpp` uploads via `SfmlAudio`; the app library only holds `SoundIds` / specs. `Feedback(AudioI&, SoundIds)` plays on `Rolled`, `FeePaid`, `AuctionDone`, `CardPlayed`, `MarketShifted`; other `GameEvent` alternatives are silent.
 
-Angle is `slot / count * 2π`; ring 0 slot 0 sits at the top (−Y / smaller screen Y when Y grows down). `nodeRadius()` is `outerRadius * π * 0.7 / 24` (outer circumference / 24 / 2 × 0.7) so neighboring outer nodes do not overlap at 1280×720 with a typical outer radius (~320).
+## Menu / setup / game over
 
-## renderBoard
+- **MainMenuScene:** `MenuModel` + `renderMenu`. Play → `PushScene{setup}`; Quit / cancel / Escape → `QuitApp`.
+- **SetupScene:** cycles seat count 2→3→4, toggles Human/Bot per seat, Confirm → `ReplaceScene{play}` with `MatchConfig{seed, seats, startCash 1500, maxRounds 15, targetNetWorth 6000}`.
+- **GameOverScene:** ranking lines (`P1`… by player id, net worth). Menu → pop + replace main menu; Quit → `QuitApp`. Inserts the winner's net worth into `HighScoreTable` and `ScoreStore::save`; save failure still shows the scene.
 
-`renderBoard(queue, board, ownership, layout, theme, highlighted)` pushes on `Layer::World`:
+## Theme / layout / board / HUD
 
-| Command | Count / rule |
-|---------|----------------|
-| `LineCmd` | One per **unique unordered** edge pair `(min(from,to), max(from,to))` — not one per directed edge |
-| `CircleCmd` | One per node (`board.size()`); fill from tile kind (sector or special); outline from highlight / controller pawn / edge; `outlineThickness = level + 1` |
-
-Highlighted destinations (`MoveOption::destination`) use `theme.highlight` as outline. Controlled tiles (no highlight) use that player's `theme.pawn` color.
-
-## PawnAnimator
-
-Constant-speed polyline motion (default **400** pixels/second via `setSpeed`). `start(id, points)` walks the polyline; `busy()` is true while any seat is mid-path. `position(id)` returns the animated point plus a fixed seat offset `Vec2f{(id - 1.5f) * 12.f, 0}` so up to four pawns on the same tile never stack.
-
-## Bindings
-
-`bindSyndicate(ActionMap&)` registers play and menu actions and returns `SyndicateActions` (`roll`, `endTurn`, `bid`, `passBid`, `pause`, plus `sgl::MenuActions`). Keys: **Space** roll, **Enter** end turn (also menu confirm), **C** bid (`sgl::Key` has no `B`), **P** pass bid, **Escape** pause, **Up/Down** menu, **Backspace** menu cancel. Digit keys are not actions (`InputState` has no digit query); path picks use the pointer.
-
-## HudModel
-
-`HudModel` owns a TTL note queue (`pushNote` / `update` drops expired). `phasePrompt(Phase)` returns a non-empty string containing **Roll**, **Path**, **Buy**, **Bid**, **Trade**, **Manage**, or **Over** for the matching phase. `render` pushes one prompt `TextCmd`, one cash `TextCmd` per seat (`Money.v` via `std::to_string`), six market `RectCmd` bars (height clamped into **50…200** from index), and note `TextCmd`s on `Layer::Hud`.
+Unchanged from prior slices: `Theme` / `defaultTheme()`, `LayoutView`, `renderBoard`, `PawnAnimator`, `HudModel`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **Up/Down** menu, **Backspace** cancel.
 
 ## PlayScene
 
-`PlayScene(MatchConfig, vector<Seat>, FontId, SyndicateActions)` owns a `Match` (via `Match::create`), `PawnAnimator`, `LayoutView` origin `{640, 360}` outer radius **280**, `Theme` from `defaultTheme()`, and `HudModel`. `Seat::bot` marks AI seats; bot personas feed `chooseCommand` after a **0.4 s** think delay when `!animator.busy()`.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Feedback` after each applied command.
 
-Traits: `opaque` true, `blocksUpdate` true, `pausable` true. Pause action → `RequestPause`. Human input maps through free function `commandFromInput` (pointer hit on highlighted nodes within `nodeRadius()*1.5`, Space/Enter/bid/pass as above; purchase: Enter → `DeclinePurchase`, Space → `BuyShares{1}` when legal). `ChooseDestination` starts pawn animation along `option.path` before apply; while `busy()`, further commands are ignored. On `GameOver`, `gameOver()` is true and `update` requests `PushScene` with a temporary nested ranking scene (replaceable by TASK-2.3 `GameOverScene`). Setup failure → single `QuitApp`.
+## main.cpp
+
+`SfmlPlatform` **1280×720** titled **"Syndicate"**, loads `uiFontRelativePath` under `ASSET_DIR`, uploads sounds, resolves `userDataDir("syndicate") / "syndicate.scores"` (temp fallback), `bindSyndicate`, pushes main menu on a `SceneStack` with the pause factory, runs `sgl::App`. Seed from `std::chrono::steady_clock`.
 
 ## Tests
 
@@ -92,3 +99,5 @@ Traits: `opaque` true, `blocksUpdate` true, `pausable` true. Pause action → `R
 | `syndicate_pawn_animator_test` | 400px path at 400 px/s, `busy()`, distinct same-slot positions |
 | `syndicate_hud_model_test` | phasePrompt words; note TTL expiry |
 | `syndicate_play_scene_test` | 4-bot match reaches GameOver + PushScene; human roll ignored on bot turn at dt 0 |
+| `syndicate_scenes_test` | Menu cancel quits; Play pushes setup; setup Confirm replaces with PlayScene |
+| `syndicate_feedback_test` | `Rolled` / `FeePaid` each play ≥1 sound via `AudioSpy` |
