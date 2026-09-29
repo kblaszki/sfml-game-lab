@@ -2,12 +2,14 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <sgl/core/Color.hpp>
 #include <sgl/core/Rect.hpp>
 #include <sgl/core/Vec2.hpp>
 #include <sgl/render/AssetIds.hpp>
 #include <string>
 #include <variant>
+#include <vector>
 
 namespace sgl
 {
@@ -83,7 +85,27 @@ struct CircleCmd
     std::size_t points{32};
 };
 
-using DrawCommand = std::variant<SpriteCmd, RectCmd, TextCmd, LineCmd, CircleCmd>;
+struct Vertex
+{
+    Vec2f position;
+    Color color;
+    Vec2f uv{};
+};
+
+enum class MeshKind : std::uint8_t
+{
+    Triangles,
+    TriangleStrip
+};
+
+struct MeshCmd
+{
+    std::vector<Vertex> vertices;
+    MeshKind kind{MeshKind::Triangles};
+    std::optional<TextureId> texture{};
+};
+
+using DrawCommand = std::variant<SpriteCmd, RectCmd, TextCmd, LineCmd, CircleCmd, MeshCmd>;
 
 struct Entry
 {

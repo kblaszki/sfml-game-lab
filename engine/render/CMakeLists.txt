@@ -1,5 +1,6 @@
 add_library(sgl_render STATIC
     src/RenderQueue.cpp
+    src/Shapes.cpp
 )
 target_include_directories(sgl_render PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include

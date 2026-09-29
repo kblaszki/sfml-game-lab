@@ -18,6 +18,7 @@ related_docs:
   - reference/engine-loop.md
   - reference/engine-render.md
   - reference/engine-fx.md
+  - reference/engine-anim.md
   - reference/engine-collision.md
   - reference/engine-resources.md
   - reference/engine-save.md
@@ -81,6 +82,7 @@ flowchart TD
 | [reference/engine-loop.md](reference/engine-loop.md) | reference | FixedStepLoop, App, PlatformI |
 | [reference/engine-render.md](reference/engine-render.md) | reference | RenderQueue, SortKey, Projection |
 | [reference/engine-fx.md](reference/engine-fx.md) | reference | sgl, ParticleSystem, BurstParams, Pcg32 |
+| [reference/engine-anim.md](reference/engine-anim.md) | reference | sgl, Easing, Tween, Spline, ArcLengthTable |
 | [reference/engine-collision.md](reference/engine-collision.md) | reference | intersect, sweep, reflect |
 | [reference/engine-resources.md](reference/engine-resources.md) | reference | ResourceCache, ResourceError |
 | [reference/engine-save.md](reference/engine-save.md) | reference | sgl, HighScoreTable, SaveError, userDataDir |

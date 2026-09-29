@@ -27,6 +27,8 @@ related_code:
   - engine/audio/CMakeLists.txt
   - engine/ui/CMakeLists.txt
   - engine/fx/CMakeLists.txt
+  - engine/anim/CMakeLists.txt
+  - engine/anim/include/sgl/anim/Easing.hpp
   - engine/save/CMakeLists.txt
   - games/CMakeLists.txt
   - games/tetris/CMakeLists.txt
@@ -55,6 +57,7 @@ related_code:
   - tests/engine/audio/CMakeLists.txt
   - tests/engine/ui/CMakeLists.txt
   - tests/engine/fx/CMakeLists.txt
+  - tests/engine/anim/CMakeLists.txt
   - tests/engine/save/CMakeLists.txt
   - tests/tetris/sim/CMakeLists.txt
   - tests/tetris/app/CMakeLists.txt
@@ -76,6 +79,7 @@ related_docs:
   - engine-audio.md
   - engine-ui.md
   - engine-fx.md
+  - engine-anim.md
   - engine-save.md
   - engine-sfml.md
   - arkanoid-sim.md
@@ -107,13 +111,14 @@ Running tree after cutover: `engine/` (`namespace sgl`) and `games/arkanoid/` (`
 | `engine/input/` | `InputEvent`, `ActionMap`, `InputState`; target `sgl_input` |
 | `engine/scene/` | `SceneI`, `SceneStack`, `SceneRequest`, `SceneTraits`; target `sgl_scene` |
 | `engine/loop/` | `FixedStepLoop`, `App`, `PlatformI`, `ClockI`; target `sgl_loop` |
-| `engine/render/` | `RenderQueue`, `DrawCommand`, `Projection`, `RendererI`; target `sgl_render` |
+| `engine/render/` | `RenderQueue`, `DrawCommand` (includes `MeshCmd`), `Shapes`, `Projection`, `RendererI`; target `sgl_render` |
 | `engine/collision/` | AABB / circle / sweep helpers; target `sgl_collision` |
 | `engine/resources/` | `ResourceCache`, `ResourceError`; target `sgl_resources` |
 | `engine/sfml/` | SFML adapters (`SfmlPlatform`, `SfmlAudio`, `EventTranslate`, …); only engine target that links SFML |
 | `engine/audio/` | `AudioI`, PCM `tone` / `blip`, `NullAudio`; target `sgl_audio` |
 | `engine/ui/` | Menu kit (`MenuModel`, `renderMenu`, `PauseOverlay`); target `sgl_ui` |
 | `engine/fx/` | Fixed-capacity particles; target `sgl_fx` |
+| `engine/anim/` | `Easing`, `Tween`, Catmull-Rom `Spline`, `ArcLengthTable`; target `sgl_anim` (links `sgl_core` only) |
 | `engine/save/` | High-score table, text format, atomic file write, `ScoreStore`; target `sgl_save` |
 | `games/arkanoid/sim/` | Headless breakout (`State`, `step`, levels, `Effects` as timed variants); `arkanoid_sim` |
 | `games/arkanoid/app/` | Scenes, HUD, result overlay, sounds, particles, high scores; `arkanoid_app` |
@@ -146,6 +151,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `sgl_audio` | STATIC | → `sgl_core`; no SFML |
 | `sgl_ui` | STATIC | → `sgl_input`, `sgl_render`, `sgl_scene`; no SFML |
 | `sgl_fx` | STATIC | → `sgl_core`, `sgl_render` |
+| `sgl_anim` | STATIC | → `sgl_core`; easing, tween, spline; no SFML |
 | `sgl_save` | STATIC | → `sgl_core`; no SFML |
 | `sgl_sfml` | STATIC | → `sgl_loop`, `sgl_resources`; links SFML Graphics/Window/System/Audio |
 | `arkanoid_sim` | STATIC | → `sgl_collision`; no SFML |
@@ -172,10 +178,11 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `input_state_test` | `tests/engine/input/` |
 | `scene_stack_test` | `tests/engine/scene/` |
 | `fixed_step_loop_test`, `app_test` | `tests/engine/loop/` |
-| `render_queue_test`, `projection_test` | `tests/engine/render/` |
+| `render_queue_test`, `projection_test`, `shapes_test` | `tests/engine/render/` |
 | `collision_test` | `tests/engine/collision/` |
 | `resource_cache_test` | `tests/engine/resources/` |
 | `particle_system_test` | `tests/engine/fx/` |
+| `anim_test` | `tests/engine/anim/` |
 | `tone_test`, `blip_test` | `tests/engine/audio/` |
 | `menu_model_test`, `pause_overlay_test` | `tests/engine/ui/` |
 | `high_score_table_test`, `save_format_test`, `save_file_test`, `score_store_test` | `tests/engine/save/` |

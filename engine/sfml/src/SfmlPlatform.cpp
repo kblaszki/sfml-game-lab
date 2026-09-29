@@ -1,3 +1,5 @@
+#include <SFML/Window/ContextSettings.hpp>
+
 #include <sgl/sfml/EventTranslate.hpp>
 #include <sgl/sfml/SfmlAudio.hpp>
 #include <sgl/sfml/SfmlPlatform.hpp>
@@ -6,7 +8,11 @@ namespace sgl::sfml
 {
 
 SfmlPlatform::SfmlPlatform(sgl::Vec2u designSize, std::string title)
-    : window_{sf::VideoMode{{designSize.x, designSize.y}}, title, sf::Style::Default}
+    : window_{sf::VideoMode{{designSize.x, designSize.y}},
+              title,
+              sf::Style::Default,
+              sf::State::Windowed,
+              sf::ContextSettings{.antiAliasingLevel = 4}}
     , assets_{}
     , audio_{std::make_unique<SfmlAudio>()}
     , renderer_{window_, assets_}

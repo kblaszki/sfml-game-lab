@@ -24,6 +24,7 @@ C++23 SFML 3.1 game lab. The engine lives in `engine/` (`namespace sgl`). Games 
 - `engine/resources/` — `ResourceCache` (`sgl_resources`)
 - `engine/audio/` — `AudioI`, PCM `tone` (`sgl_audio`)
 - `engine/fx/` — fixed-capacity particles (`sgl_fx`)
+- `engine/anim/` — easing, tween, Catmull-Rom spline (`sgl_anim`)
 - `engine/save/` — high-score table and atomic text write (`sgl_save`)
 - `engine/sfml/` — SFML adapters (`sgl_sfml`); only engine target that links SFML
 - `games/arkanoid/sim/` — headless breakout (`arkanoid_sim`)

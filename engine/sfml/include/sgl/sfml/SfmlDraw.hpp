@@ -4,6 +4,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Angle.hpp>
 
 #include <cmath>
@@ -84,6 +85,21 @@ inline sf::Sprite toSprite(const sgl::SpriteCmd& cmd, const sf::Texture& texture
     sprite.setPosition({cmd.position.x + halfW * cmd.scale.x, cmd.position.y + halfH * cmd.scale.y});
     sprite.setRotation(sf::degrees(cmd.rotationDeg));
     return sprite;
+}
+
+inline sf::VertexArray toVertexArray(const sgl::MeshCmd& cmd)
+{
+    const sf::PrimitiveType type =
+        cmd.kind == sgl::MeshKind::Triangles ? sf::PrimitiveType::Triangles : sf::PrimitiveType::TriangleStrip;
+    sf::VertexArray array{type, cmd.vertices.size()};
+    for(std::size_t i = 0; i < cmd.vertices.size(); ++i)
+    {
+        const sgl::Vertex& v = cmd.vertices[i];
+        array[i].position = {v.position.x, v.position.y};
+        array[i].color = detail::toSfColor(v.color);
+        array[i].texCoords = {v.uv.x, v.uv.y};
+    }
+    return array;
 }
 
 } // namespace sgl::sfml

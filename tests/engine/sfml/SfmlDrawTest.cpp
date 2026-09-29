@@ -110,3 +110,40 @@ TEST(SfmlDrawTest, circleCenterAndRadius)
     EXPECT_EQ(shape.getPointCount(), 16u);
     EXPECT_FLOAT_EQ(shape.getOutlineThickness(), 2.f);
 }
+
+TEST(SfmlDrawTest, meshCmdTrianglesVertexArray)
+{
+    const sgl::MeshCmd cmd{
+        .vertices =
+            {
+                sgl::Vertex{.position = {0.f, 0.f}, .color = {255, 0, 0, 255}},
+                sgl::Vertex{.position = {1.f, 0.f}, .color = {0, 255, 0, 255}},
+                sgl::Vertex{.position = {0.f, 1.f}, .color = {0, 0, 255, 255}},
+            },
+        .kind = sgl::MeshKind::Triangles,
+        .texture = std::nullopt,
+    };
+    const sf::VertexArray array = sgl::sfml::toVertexArray(cmd);
+    EXPECT_EQ(array.getPrimitiveType(), sf::PrimitiveType::Triangles);
+    ASSERT_EQ(array.getVertexCount(), 3u);
+    EXPECT_EQ(array[0].color, sf::Color(255, 0, 0, 255));
+    EXPECT_EQ(array[1].color, sf::Color(0, 255, 0, 255));
+    EXPECT_EQ(array[2].color, sf::Color(0, 0, 255, 255));
+}
+
+TEST(SfmlDrawTest, meshCmdTriangleStripMapsPrimitive)
+{
+    const sgl::MeshCmd cmd{
+        .vertices =
+            {
+                sgl::Vertex{.position = {0.f, 0.f}, .color = {255, 255, 255, 255}},
+                sgl::Vertex{.position = {1.f, 0.f}, .color = {255, 255, 255, 255}},
+                sgl::Vertex{.position = {0.f, 1.f}, .color = {255, 255, 255, 255}},
+            },
+        .kind = sgl::MeshKind::TriangleStrip,
+        .texture = std::nullopt,
+    };
+    const sf::VertexArray array = sgl::sfml::toVertexArray(cmd);
+    EXPECT_EQ(array.getPrimitiveType(), sf::PrimitiveType::TriangleStrip);
+    EXPECT_EQ(array.getVertexCount(), 3u);
+}

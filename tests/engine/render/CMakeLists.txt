@@ -11,3 +11,10 @@ add_unit_test(projection_test
     DEPENDENCIES
         sgl_render
 )
+
+add_unit_test(shapes_test
+    SOURCES
+        ShapesTest.cpp
+    DEPENDENCIES
+        sgl_render
+)

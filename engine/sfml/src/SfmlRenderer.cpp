@@ -1,3 +1,4 @@
+#include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Text.hpp>
 
@@ -79,6 +80,24 @@ void SfmlRenderer::submit(sgl::RenderQueue& queue)
                 else if constexpr(std::is_same_v<T, sgl::LineCmd> || std::is_same_v<T, sgl::CircleCmd>)
                 {
                     target_.draw(toShape(cmd));
+                }
+                else if constexpr(std::is_same_v<T, sgl::MeshCmd>)
+                {
+                    const sf::VertexArray vertices = toVertexArray(cmd);
+                    if(!cmd.texture.has_value())
+                    {
+                        target_.draw(vertices);
+                        return;
+                    }
+                    const sf::Texture* texture = assets_.get(*cmd.texture);
+                    if(texture == nullptr)
+                    {
+                        ++skipped_;
+                        return;
+                    }
+                    sf::RenderStates states;
+                    states.texture = texture;
+                    target_.draw(vertices, states);
                 }
             },
             entry.command);

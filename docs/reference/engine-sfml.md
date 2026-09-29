@@ -17,6 +17,7 @@ related_code:
   - engine/sfml/src/SfmlPlatform.cpp
   - engine/sfml/CMakeLists.txt
   - tests/engine/sfml/EventTranslateTest.cpp
+  - tests/engine/sfml/SfmlDrawTest.cpp
   - tests/engine/sfml/CMakeLists.txt
 related_docs:
   - source-layout.md
@@ -24,7 +25,7 @@ related_docs:
   - engine-render.md
   - engine-resources.md
   - engine-input.md
-keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, SfmlClock, EventTranslate, letterbox]
+keywords: [eng, sgl_sfml, SfmlPlatform, SfmlRenderer, SfmlAssets, SfmlClock, EventTranslate, letterbox, MeshCmd, antiAliasingLevel]
 last_reviewed: 2026-09-29
 ---
 
@@ -71,12 +72,20 @@ GPU caches over `ResourceCache`:
 - `font(key, path)` — missing path → `NotFound`; `openFromFile` failure → `DecodeFailed`
 - `get(TextureId)` / `get(FontId)` — raw SFML pointers (or null)
 
+## SfmlDraw
+
+`SfmlDraw.hpp` converts draw commands to SFML types:
+
+- `toShape(RectCmd|LineCmd|CircleCmd)` — rectangle / line / circle shapes
+- `toSprite(SpriteCmd, texture)` — textured sprite with center origin
+- `toVertexArray(MeshCmd)` — `sf::VertexArray` with `PrimitiveType::Triangles` or `TriangleStrip` from `MeshKind`; each vertex maps position, `detail::toSfColor` color, and `texCoords` from `uv`
+
 ## SfmlRenderer
 
 `SfmlRenderer(sf::RenderTarget&, const SfmlAssets&)` implements `RendererI`:
 
 - `begin()` — clear target; reset `skippedCommands()`
-- `submit(RenderQueue&)` — walk `queue.sorted()`, `std::visit` `SpriteCmd` / `RectCmd` / `TextCmd` / `LineCmd` / `CircleCmd`; missing texture (or font) skips and increments the counter; `Anchor::Center` origins text at local-bounds center. `SfmlDraw.hpp` builds the sprite and the rectangle with origin at the center and position at top-left plus half the size, so `rotationDeg` turns around the center of the unrotated bounds. `rotationDeg == 0` draws as before. `LineCmd` becomes a rotated `sf::RectangleShape` of length `|to-from|` and height `thickness`, origin at the left-middle, positioned at `from`. `CircleCmd` becomes an `sf::CircleShape` with origin at the center.
+- `submit(RenderQueue&)` — walk `queue.sorted()`, `std::visit` `SpriteCmd` / `RectCmd` / `TextCmd` / `LineCmd` / `CircleCmd` / `MeshCmd`; missing texture (or font) skips and increments the counter; untextured `MeshCmd` (`texture` nullopt) always draws; textured mesh uses `sf::RenderStates` with the bound texture. `Anchor::Center` origins text at local-bounds center. `SfmlDraw.hpp` builds the sprite and the rectangle with origin at the center and position at top-left plus half the size, so `rotationDeg` turns around the center of the unrotated bounds. `rotationDeg == 0` draws as before. `LineCmd` becomes a rotated `sf::RectangleShape` of length `|to-from|` and height `thickness`, origin at the left-middle, positioned at `from`. `CircleCmd` becomes an `sf::CircleShape` with origin at the center.
 - `end()` — `display()` only when the target is an `sf::RenderWindow`
 
 ## SfmlPlatform
@@ -85,7 +94,7 @@ GPU caches over `ResourceCache`:
 
 **Member order:** `sf::RenderWindow window_` first, then `SfmlAssets assets_`, then `SfmlRenderer renderer_` — assets destroy before the window so GL textures die while the context still lives.
 
-Constructor `(Vec2u designSize, title)`: window at design size, `Style::Default`, key-repeat off, framerate 60, `sf::View` sized to design space.
+Constructor `(Vec2u designSize, title)`: window at design size, `Style::Default`, `State::Windowed`, `ContextSettings` with `antiAliasingLevel = 4` (4x MSAA), key-repeat off, framerate 60, `sf::View` sized to design space.
 
 **Letterbox:** on `Resized`, recompute a centered viewport that preserves design aspect (pillarbox or letterbox bars). Resize is consumed inside `poll()` and is not forwarded as an `InputEvent`. Mouse pixel positions from `pointerPixel` (`MouseMoved` / `MouseButtonPressed` / `MouseButtonReleased`) are mapped with `mapPixelToCoords` before `translate`.
 
