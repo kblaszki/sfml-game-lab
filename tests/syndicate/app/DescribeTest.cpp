@@ -3,27 +3,45 @@
 #include <string>
 #include <syndicate/app/Describe.hpp>
 #include <syndicate/sim/BoardGraph.hpp>
+#include <syndicate/sim/Cards.hpp>
 #include <syndicate/sim/Commands.hpp>
+#include <syndicate/sim/Events.hpp>
 #include <syndicate/sim/GameState.hpp>
 #include <syndicate/sim/Ids.hpp>
 #include <syndicate/sim/Match.hpp>
 #include <syndicate/sim/Money.hpp>
 #include <variant>
+#include <vector>
 
+using sgl::syndicate::AuctionDone;
 using sgl::syndicate::AwaitPath;
 using sgl::syndicate::AwaitPurchase;
 using sgl::syndicate::BuyMomentum;
 using sgl::syndicate::BuyShares;
+using sgl::syndicate::CardKind;
+using sgl::syndicate::CardPlayed;
 using sgl::syndicate::ChooseDestination;
+using sgl::syndicate::FeePaid;
+using sgl::syndicate::GameEnded;
+using sgl::syndicate::GameEvent;
+using sgl::syndicate::GameState;
 using sgl::syndicate::Label;
+using sgl::syndicate::Liquidated;
+using sgl::syndicate::MarketShifted;
 using sgl::syndicate::Match;
 using sgl::syndicate::MatchConfig;
 using sgl::syndicate::Money;
+using sgl::syndicate::Moved;
 using sgl::syndicate::NodeId;
+using sgl::syndicate::PaydayPaid;
 using sgl::syndicate::PlayerId;
+using sgl::syndicate::Rolled;
 using sgl::syndicate::Sector;
 using sgl::syndicate::SectorTile;
+using sgl::syndicate::SharesBought;
+using sgl::syndicate::TradeResolved;
 using sgl::syndicate::describeCommand;
+using sgl::syndicate::describeEvent;
 using sgl::syndicate::formatMoney;
 using sgl::syndicate::sectorName;
 
@@ -129,4 +147,43 @@ TEST(DescribeTest, buySharesOnBiotechMentionsShareCostAndPercent)
     EXPECT_NE(label.text.find("10%"), std::string::npos) << label.text;
     EXPECT_NE(label.text.find("Cost: $"), std::string::npos) << label.text;
     EXPECT_FALSE(label.tooltip.empty());
+}
+
+TEST(DescribeTest, describeEventCoversAllAlternatives)
+{
+    auto created = Match::create(MatchConfig{.seed = 1, .seats = 2});
+    ASSERT_TRUE(created.has_value());
+    const GameState& state = created->state();
+    const NodeId tile{0};
+    const PlayerId p0{0};
+    const PlayerId p1{1};
+
+    const std::vector<GameEvent> events{
+        Rolled{.player = p0, .roll = 7},
+        Moved{.player = p0, .from = tile, .to = tile, .passesPayday = false},
+        PaydayPaid{.player = p0, .salary = Money{200}, .dividends = Money{50}, .interest = Money{0}},
+        FeePaid{.payer = p0, .tile = tile, .total = Money{150}},
+        Liquidated{.player = p0, .tile = tile, .count = 2, .proceeds = Money{300}},
+        SharesBought{.player = p0, .tile = tile, .count = 1, .cost = Money{100}},
+        AuctionDone{.tile = tile, .shares = 3, .sold = true, .winner = p1, .price = Money{400}},
+        CardPlayed{.player = p0, .kind = CardKind::Audit},
+        TradeResolved{.from = p0, .to = p1, .accepted = true},
+        MarketShifted{.sector = Sector::AI, .delta = 2},
+        GameEnded{},
+    };
+    ASSERT_EQ(events.size(), 11u);
+
+    for(const GameEvent& event: events)
+    {
+        const std::string text = describeEvent(state, event);
+        EXPECT_FALSE(text.empty()) << "empty describeEvent";
+    }
+
+    const FeePaid fee{.payer = p0, .tile = tile, .total = Money{150}};
+    const std::string feeText = describeEvent(state, fee);
+    EXPECT_NE(feeText.find('$'), std::string::npos) << feeText;
+    EXPECT_NE(feeText.find(formatMoney(fee.total)), std::string::npos) << feeText;
+
+    EXPECT_EQ(describeEvent(state, Rolled{.player = p1, .roll = 7}), "P2 rolled 7");
+    EXPECT_EQ(describeEvent(state, GameEnded{}), "Game over");
 }

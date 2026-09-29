@@ -8,6 +8,7 @@ add_library(syndicate_app STATIC
     src/Bindings.cpp
     src/ControlMap.cpp
     src/Describe.cpp
+    src/ActivityLog.cpp
     src/ActionBar.cpp
     src/HandView.cpp
     src/MarketHistory.cpp

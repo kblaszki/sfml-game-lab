@@ -4,6 +4,8 @@ diataxis: explanation
 audience: [ai, human]
 related_code:
   - games/syndicate/app/include/syndicate/app/PlayScene.hpp
+  - games/syndicate/app/include/syndicate/app/LayoutView.hpp
+  - games/syndicate/app/include/syndicate/app/ActivityLog.hpp
   - games/syndicate/app/include/syndicate/app/SpriteBank.hpp
   - games/syndicate/app/src/SpriteBank.cpp
   - engine/render/include/sgl/render/Shapes.hpp
@@ -14,7 +16,7 @@ related_docs:
   - ../reference/syndicate-app.md
   - syndicate-design.md
   - architecture.md
-keywords: [syndicate, UI, procedural, MeshCmd, atlas, hybrid, presentation, animators]
+keywords: [syndicate, UI, procedural, MeshCmd, atlas, hybrid, presentation, animators, ActivityLog, layout]
 last_reviewed: 2026-09-29
 ---
 
@@ -34,7 +36,7 @@ The game stays playable with zero PNGs.
 
 ## Presentation stays outside the sim
 
-`Match::apply` is instant and headless. Animators (`PawnAnimator`, feedback FX, future card flips) live in the app layer and interpret `GameEvent` streams after each command. The sim never knows about sprites or meshes.
+`Match::apply` is instant and headless. Animators (`PawnAnimator`, feedback FX, future card flips) live in the app layer and interpret `GameEvent` streams after each command. The sim never knows about sprites or meshes. Animation never blocks the fixed-step loop: `presentation.busy()` only gates human/bot command input; updates and drains still run every frame.
 
 ```mermaid
 flowchart TD
@@ -42,4 +44,19 @@ flowchart TD
   playScene --> matchApply[Match]
   matchApply --> gameEvents[events]
   gameEvents --> presentation[presentation]
+  gameEvents --> activityLog[ActivityLog]
 ```
+
+## Final play layout (1280×720)
+
+Shared constexpr rects in `LayoutView.hpp` keep chrome off the board AABB:
+
+| Rect | Role |
+|------|------|
+| `kBoardOrigin` / `kBoardRadius` / `kBoardBounds` | Board center (640, 340), radius 270, AABB for overlap tests |
+| `kLeftPanel` | Player panels + hand (16,16 → 324×620) |
+| `kRightChart` | Market trend chart (940,16 → 324×284) |
+| `kRightLog` | Turn activity log (940,316 → 324×320) |
+| `kActionBar` | Command buttons (16,652 → 1248×56) |
+
+`PlayScene` builds `LayoutView{kBoardOrigin, kBoardRadius}` and renders the activity log into `kRightLog`. Chart and action bar consume the matching constants so panels do not cover the board.

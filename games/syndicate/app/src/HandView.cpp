@@ -8,6 +8,7 @@
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/Shapes.hpp>
 #include <syndicate/app/Describe.hpp>
+#include <syndicate/app/LayoutView.hpp>
 #include <utility>
 
 namespace sgl::syndicate
@@ -19,8 +20,8 @@ constexpr float kCardW{96.f};
 constexpr float kCardH{134.f};
 constexpr float kGap{8.f};
 constexpr float kRowStride{104.f};
-constexpr float kPanelLeft{16.f};
-constexpr float kPanelRight{340.f};
+constexpr float kPanelLeft{kLeftPanel.pos.x};
+constexpr float kPanelRight{kLeftPanel.pos.x + kLeftPanel.size.x};
 constexpr float kColX{24.f};
 constexpr float kColY0{420.f};
 constexpr float kRowY{480.f};

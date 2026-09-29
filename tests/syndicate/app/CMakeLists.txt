@@ -75,6 +75,13 @@ add_unit_test(syndicate_describe_test
         syndicate_app
 )
 
+add_unit_test(syndicate_activity_log_test
+    SOURCES
+        ActivityLogTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_action_bar_test
     SOURCES
         ActionBarTest.cpp

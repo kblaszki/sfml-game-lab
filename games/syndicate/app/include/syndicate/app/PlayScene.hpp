@@ -16,6 +16,7 @@
 #include <sgl/ui/HoverAnim.hpp>
 #include <sgl/ui/TooltipSystem.hpp>
 #include <syndicate/app/ActionBar.hpp>
+#include <syndicate/app/ActivityLog.hpp>
 #include <syndicate/app/Bindings.hpp>
 #include <syndicate/app/Feedback.hpp>
 #include <syndicate/app/HandView.hpp>
@@ -75,6 +76,10 @@ public:
 
     [[nodiscard]] bool gameOver() const;
     [[nodiscard]] const Match* match() const noexcept;
+    [[nodiscard]] const ActivityLog& log() const noexcept
+    {
+        return log_;
+    }
 
 private:
     void applyCommand(PlayerId actor, const Command& cmd);
@@ -92,10 +97,12 @@ private:
     std::optional<SyndicateServices> services_;
     std::optional<Feedback> feedback_;
     Theme theme_{defaultTheme()};
-    LayoutView layout_{sgl::Vec2f{640.f, 360.f}, 280.f};
+    LayoutView layout_{kBoardOrigin, kBoardRadius};
     PawnAnimator animator_{layout_};
     Presentation presentation_;
     HudModel hud_{};
+    ActivityLog log_{};
+    int lastLoggedRound_{0};
     PathHighlighter highlighter_{};
     ActionBar actionBar_{};
     HandView handView_{};

@@ -6,6 +6,7 @@
 #include <sgl/render/Shapes.hpp>
 #include <sstream>
 #include <syndicate/app/Describe.hpp>
+#include <syndicate/app/LayoutView.hpp>
 #include <utility>
 #include <variant>
 
@@ -14,10 +15,10 @@ namespace sgl::syndicate
 namespace
 {
 
-constexpr float kBarLeft{16.f};
-constexpr float kBarRight{1264.f};
-constexpr float kBarTop{652.f};
-constexpr float kBarBottom{708.f};
+constexpr float kBarLeft{kActionBar.pos.x};
+constexpr float kBarRight{kActionBar.pos.x + kActionBar.size.x};
+constexpr float kBarTop{kActionBar.pos.y};
+constexpr float kBarBottom{kActionBar.pos.y + kActionBar.size.y};
 constexpr float kGap{8.f};
 constexpr std::size_t kMaxSlots{9};
 

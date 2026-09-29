@@ -4,8 +4,10 @@
 #include <cstdint>
 #include <sgl/core/Overloaded.hpp>
 #include <sstream>
+#include <string>
 #include <syndicate/sim/BoardGraph.hpp>
 #include <syndicate/sim/Economy.hpp>
+#include <syndicate/sim/Events.hpp>
 #include <syndicate/sim/Market.hpp>
 #include <utility>
 #include <variant>
@@ -154,6 +156,100 @@ std::string describeTile(const GameState& state, NodeId tile)
             [](const Grant&) { return std::string{"Grant"}; },
         },
         node.kind);
+}
+
+namespace
+{
+
+[[nodiscard]] std::string playerTag(PlayerId id)
+{
+    return "P" + std::to_string(static_cast<int>(std::to_underlying(id)) + 1);
+}
+
+[[nodiscard]] std::string shortTileName(const GameState& state, NodeId tile)
+{
+    return std::visit(
+        sgl::Overloaded{
+            [&](const SectorTile& sector) { return std::string{sectorName(sector.sector)} + " Lab"; },
+            [](const Payday&) { return std::string{"Payday"}; },
+            [](const Exchange&) { return std::string{"Exchange"}; },
+            [](const Hub&) { return std::string{"Hub"}; },
+            [](const AuditTile&) { return std::string{"Audit"}; },
+            [](const Grant&) { return std::string{"Grant"}; },
+        },
+        state.board.node(tile).kind);
+}
+
+} // namespace
+
+std::string describeEvent(const GameState& state, const GameEvent& event)
+{
+    return std::visit(
+        sgl::Overloaded{
+            [](const Rolled& e) {
+                std::ostringstream out;
+                out << playerTag(e.player) << " rolled " << e.roll;
+                return out.str();
+            },
+            [&](const Moved& e) {
+                std::ostringstream out;
+                out << playerTag(e.player) << " moved to " << shortTileName(state, e.to);
+                return out.str();
+            },
+            [](const PaydayPaid& e) {
+                std::ostringstream out;
+                out << playerTag(e.player) << " payday " << formatMoney(e.salary) << " salary, "
+                    << formatMoney(e.dividends) << " dividends, " << formatMoney(e.interest) << " interest";
+                return out.str();
+            },
+            [&](const FeePaid& e) {
+                std::ostringstream out;
+                out << playerTag(e.payer) << " paid " << formatMoney(e.total) << " fee on "
+                    << shortTileName(state, e.tile);
+                return out.str();
+            },
+            [&](const Liquidated& e) {
+                std::ostringstream out;
+                out << playerTag(e.player) << " liquidated " << static_cast<int>(e.count) << " shares of "
+                    << shortTileName(state, e.tile) << " for " << formatMoney(e.proceeds);
+                return out.str();
+            },
+            [&](const SharesBought& e) {
+                std::ostringstream out;
+                out << playerTag(e.player) << " bought " << static_cast<int>(e.count) << " shares of "
+                    << shortTileName(state, e.tile) << " for " << formatMoney(e.cost);
+                return out.str();
+            },
+            [&](const AuctionDone& e) {
+                std::ostringstream out;
+                out << playerTag(e.winner) << " won " << static_cast<int>(e.shares) << " shares of "
+                    << shortTileName(state, e.tile) << " for " << formatMoney(e.price);
+                return out.str();
+            },
+            [](const CardPlayed& e) {
+                std::ostringstream out;
+                out << playerTag(e.player) << " played " << describeCard(e.kind);
+                return out.str();
+            },
+            [](const TradeResolved& e) {
+                std::ostringstream out;
+                out << playerTag(e.from) << " trade with " << playerTag(e.to)
+                    << (e.accepted ? " accepted" : " rejected");
+                return out.str();
+            },
+            [](const MarketShifted& e) {
+                std::ostringstream out;
+                out << sectorName(e.sector) << ' ';
+                if(e.delta >= 0)
+                {
+                    out << '+';
+                }
+                out << e.delta;
+                return out.str();
+            },
+            [](const GameEnded&) { return std::string{"Game over"}; },
+        },
+        event);
 }
 
 Label describeCommand(const GameState& state, PlayerId /*actor*/, const Command& command)

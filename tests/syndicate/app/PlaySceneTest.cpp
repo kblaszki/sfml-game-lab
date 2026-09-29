@@ -171,6 +171,18 @@ TEST(PlaySceneTest, fourBotsReachGameOverAndPushRanking)
     ASSERT_TRUE(play->gameOver());
     EXPECT_EQ(stack.size(), 2u);
     EXPECT_EQ(dynamic_cast<PlayScene*>(stack.top()), nullptr);
+
+    EXPECT_FALSE(play->log().visible(64).empty());
+    bool sawRound = false;
+    for(const auto& entry: play->log().visible(64))
+    {
+        if(entry.text.find("Round") != std::string::npos)
+        {
+            sawRound = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(sawRound);
 }
 
 TEST(PlaySceneTest, humanRollIgnoredOnBotTurnWithZeroDt)

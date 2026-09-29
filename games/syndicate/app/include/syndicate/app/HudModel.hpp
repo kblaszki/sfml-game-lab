@@ -7,6 +7,7 @@
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/ui/TooltipSystem.hpp>
 #include <string>
+#include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/MarketHistory.hpp>
 #include <syndicate/app/Theme.hpp>
 #include <syndicate/sim/GameState.hpp>
@@ -25,12 +26,13 @@ struct HudNote
 
 [[nodiscard]] inline sgl::Rect<float> playerPanelRect(int seatIndex) noexcept
 {
-    return sgl::Rect<float>{.pos = {16.f, 48.f + static_cast<float>(seatIndex) * 36.f}, .size = {300.f, 32.f}};
+    return sgl::Rect<float>{.pos = {kLeftPanel.pos.x, 48.f + static_cast<float>(seatIndex) * 36.f},
+                            .size = {300.f, 32.f}};
 }
 
 [[nodiscard]] inline sgl::Rect<float> marketChartRect() noexcept
 {
-    return sgl::Rect<float>{.pos = {940.f, 16.f}, .size = {324.f, 284.f}};
+    return kRightChart;
 }
 
 class HudModel

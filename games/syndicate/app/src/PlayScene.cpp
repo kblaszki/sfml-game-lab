@@ -2,7 +2,9 @@
 
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <sgl/core/Color.hpp>
+#include <sgl/core/Overloaded.hpp>
 #include <sgl/core/Rect.hpp>
 #include <sgl/core/Vec2.hpp>
 #include <sgl/render/DrawCommand.hpp>
@@ -16,6 +18,7 @@
 #include <syndicate/app/GameOverScene.hpp>
 #include <syndicate/app/HelpScene.hpp>
 #include <syndicate/app/Scenes.hpp>
+#include <syndicate/sim/Events.hpp>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -343,6 +346,32 @@ void PlayScene::drainFeedback()
     {
         feedback_->onEvents(events);
     }
+
+    const int round = match_->state().round;
+    if(round != lastLoggedRound_)
+    {
+        lastLoggedRound_ = round;
+        log_.push(round, std::nullopt, "— Round " + std::to_string(round) + " —");
+    }
+    for(const GameEvent& event: events)
+    {
+        const std::optional<PlayerId> player = std::visit(
+            sgl::Overloaded{
+                [](const Rolled& e) -> std::optional<PlayerId> { return e.player; },
+                [](const Moved& e) -> std::optional<PlayerId> { return e.player; },
+                [](const PaydayPaid& e) -> std::optional<PlayerId> { return e.player; },
+                [](const FeePaid& e) -> std::optional<PlayerId> { return e.payer; },
+                [](const Liquidated& e) -> std::optional<PlayerId> { return e.player; },
+                [](const SharesBought& e) -> std::optional<PlayerId> { return e.player; },
+                [](const AuctionDone& e) -> std::optional<PlayerId> { return e.winner; },
+                [](const CardPlayed& e) -> std::optional<PlayerId> { return e.player; },
+                [](const TradeResolved& e) -> std::optional<PlayerId> { return e.from; },
+                [](const MarketShifted&) -> std::optional<PlayerId> { return std::nullopt; },
+                [](const GameEnded&) -> std::optional<PlayerId> { return std::nullopt; },
+            },
+            event);
+        log_.push(round, player, describeEvent(match_->state(), event));
+    }
 }
 
 void PlayScene::applyCommand(PlayerId actor, const Command& cmd)
@@ -668,6 +697,7 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     presentation_.render(queue, layout_.origin(), theme_);
     handView_.render(queue, font_, theme_);
     actionBar_.render(queue, makeActionBarStyle(font_), hover_);
+    log_.render(queue, kRightLog, theme_, font_);
     tooltip_.render(queue, sgl::TooltipStyle{.font = tooltipFont()});
 }
 

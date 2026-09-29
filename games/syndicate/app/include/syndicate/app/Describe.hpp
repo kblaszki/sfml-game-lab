@@ -4,6 +4,7 @@
 #include <string_view>
 #include <syndicate/sim/Cards.hpp>
 #include <syndicate/sim/Commands.hpp>
+#include <syndicate/sim/Events.hpp>
 #include <syndicate/sim/GameState.hpp>
 #include <syndicate/sim/Ids.hpp>
 #include <syndicate/sim/Money.hpp>
@@ -26,5 +27,7 @@ struct Label
 [[nodiscard]] std::string describeTile(const GameState& state, NodeId tile);
 
 [[nodiscard]] std::string describeCard(CardKind kind);
+
+[[nodiscard]] std::string describeEvent(const GameState& state, const GameEvent& event);
 
 } // namespace sgl::syndicate
