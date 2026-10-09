@@ -75,6 +75,7 @@ related_code:
   - tests/mocks/RendererMock.hpp
   - tests/mocks/AudioSpy.hpp
   - .github/workflows/ci.yml
+  - scripts/install-deps-ubuntu.sh
 related_docs:
   - engine-core.md
   - engine-input.md
@@ -105,7 +106,7 @@ related_docs:
   - ../../games/syndicate/docs/explanation/ui.md
   - ../../mvp/10-engine-progress.md
 keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, targets, cmake, SceneStack, App, SfmlPlatform]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Source layout reference
@@ -116,6 +117,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 
 | Path | Responsibility |
 |------|----------------|
+| `scripts/` | Host setup helpers (e.g. `install-deps-ubuntu.sh` for apt toolchain + SFML `-dev`) |
+| `assets/syndicate/` | Optional atlas (`atlas.png` + `atlas.txt`) for `SpriteBank` |
 | `engine/core/` | Header-only value types (`Vec2`, `Rect`, `Handle`, `Image`, `Pcg32`, `Overloaded`); target `sgl_core` |
 | `engine/input/` | `InputEvent`, `ActionMap`, `InputState`; target `sgl_input` |
 | `engine/scene/` | `SceneI`, `SceneStack`, `SceneRequest`, `SceneTraits`; target `sgl_scene` |
@@ -135,7 +138,7 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/tetris/sim/` | Headless Tetris rules (`Bag`, scoring, `TetrisGame`, grid, SRS); `tetris_sim` links `sgl_core` only |
 | `games/tetris/app/` | Scenes, HUD, board render, sounds, particles, high scores; `tetris_app` |
 | `games/syndicate/sim/` | Headless Syndicate (`BoardGraph`, `Market`/`Economy`, `Cards`, `Auction`/`Trade`, `Match` turn machine); `syndicate_sim` links `sgl_core` only |
-| `games/syndicate/app/` | Scenes (incl. `PauseMenuScene`, `HelpScene`, `ControlMap`), board UI, Describe/ActivityLog/ActionBar/HandView, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
+| `games/syndicate/app/` | Scenes (incl. `PauseMenuScene`, `HelpScene`, `ControlMap`), board UI, Describe/ActivityLog/ActionBar/HandView, TradeComposeOverlay/TradeRespondPanel, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
 | `games/syndicate/main.cpp` | Wires `SfmlPlatform`, settings/`ScaledAudio`/`setDisplay`, font/sounds/optional atlas, `SceneStack`, `sgl::App`; executable `syndicate` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |

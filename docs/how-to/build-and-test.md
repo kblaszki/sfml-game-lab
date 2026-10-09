@@ -14,17 +14,18 @@ related_code:
   - tests/tetris/app/CMakeLists.txt
   - .github/workflows/ci.yml
   - .clang-tidy
+  - scripts/install-deps-ubuntu.sh
 related_docs:
   - ../tutorials/getting-started.md
   - ../reference/source-layout.md
   - ../reference/engine-audio.md
 keywords: [build, test, ctest, format, presets, build_ut, debug, release, asan, coverage, tidy, arkanoid, tetris, syndicate, SFML, Audio]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Build, test, and format
 
-Prerequisite: toolchain installed (see [getting-started](../tutorials/getting-started.md)). The project is C++23; GoogleTest 1.18 is fetched only for Debug-family presets. Ubuntu CI uses g++-14. CMake FetchContent pulls SFML 3.1 with **Audio** enabled (`SFML_BUILD_AUDIO ON`; Network stays OFF) — no manual SFML install.
+Prerequisite: toolchain installed (see [getting-started](../tutorials/getting-started.md); on Ubuntu/Debian: `sudo ./scripts/install-deps-ubuntu.sh`). The project is C++23; GoogleTest 1.18 is fetched only for Debug-family presets. Ubuntu CI uses g++-14. CMake FetchContent pulls SFML 3.1 with **Audio** enabled (`SFML_BUILD_AUDIO ON`; Network stays OFF) — no manual SFML install.
 
 ## Configure
 

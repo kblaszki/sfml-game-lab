@@ -7,6 +7,7 @@ related_code:
   - CMakeLists.txt
   - cmake/FetchSFML.cmake
   - cmake/FetchGTest.cmake
+  - scripts/install-deps-ubuntu.sh
   - games/arkanoid/main.cpp
   - games/arkanoid/app/include/arkanoid/app/Scenes.hpp
   - games/arkanoid/sim/include/arkanoid/sim/State.hpp
@@ -23,7 +24,7 @@ related_docs:
   - ../explanation/architecture.md
   - ../../mvp/10-engine-progress.md
 keywords: [setup, toolchain, build, run, msys2, ninja, cmake, first time, arkanoid, tetris, syndicate]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Getting started
@@ -32,7 +33,11 @@ Goal: from a fresh clone of sfml-game-lab to a running window. This tutorial lau
 
 ## 1. Install the toolchain
 
-You need CMake, Ninja, and a C++23 compiler on your `PATH`. On Windows this repo is set up around MSYS2 MinGW.
+You need CMake, Ninja, and a C++23 compiler on your `PATH`. On Windows this repo is set up around MSYS2 MinGW. On Ubuntu/Debian, use the install script (newest apt packages; optional clang-format / tidy / ccache / gcovr via `--devtools`):
+
+```bash
+sudo ./scripts/install-deps-ubuntu.sh --devtools
+```
 
 MSYS2 MinGW 64-bit shell:
 
@@ -51,7 +56,7 @@ ninja --version
 cmake --version
 ```
 
-SFML 3.1 (Graphics/Window/System only) and GoogleTest 1.18 are fetched automatically by CMake (`cmake/FetchSFML.cmake`, `cmake/FetchGTest.cmake` in Debug). No separate SFML install.
+SFML 3.1 (Graphics/Window/System/Audio) and GoogleTest 1.18 are fetched automatically by CMake (`cmake/FetchSFML.cmake`, `cmake/FetchGTest.cmake` in Debug). No separate SFML install.
 
 ## 2. Configure
 
