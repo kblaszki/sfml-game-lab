@@ -89,6 +89,27 @@ add_unit_test(syndicate_action_bar_test
         syndicate_app
 )
 
+add_unit_test(syndicate_auction_panel_test
+    SOURCES
+        AuctionPanelTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_insider_peek_banner_test
+    SOURCES
+        InsiderPeekBannerTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
+add_unit_test(syndicate_trade_overlay_test
+    SOURCES
+        TradeOverlayTest.cpp
+    DEPENDENCIES
+        syndicate_app
+)
+
 add_unit_test(syndicate_play_scene_test
     SOURCES
         PlaySceneTest.cpp

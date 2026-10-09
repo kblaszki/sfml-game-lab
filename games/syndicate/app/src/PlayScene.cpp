@@ -1,5 +1,3 @@
-#include <syndicate/app/PlayScene.hpp>
-
 #include <cstddef>
 #include <memory>
 #include <optional>
@@ -17,6 +15,7 @@
 #include <syndicate/app/Describe.hpp>
 #include <syndicate/app/GameOverScene.hpp>
 #include <syndicate/app/HelpScene.hpp>
+#include <syndicate/app/PlayScene.hpp>
 #include <syndicate/app/Scenes.hpp>
 #include <syndicate/sim/Events.hpp>
 #include <utility>
@@ -110,6 +109,12 @@ namespace
         }
     }
     return false;
+}
+
+[[nodiscard]] bool offerTradeSlot(const Match& match)
+{
+    const auto* manage = std::get_if<Manage>(&match.state().phase);
+    return manage != nullptr && manage->tradesProposed < 3;
 }
 
 [[nodiscard]] sgl::MenuStyle makeActionBarStyle(sgl::FontId font)
@@ -355,22 +360,43 @@ void PlayScene::drainFeedback()
     }
     for(const GameEvent& event: events)
     {
-        const std::optional<PlayerId> player = std::visit(
-            sgl::Overloaded{
-                [](const Rolled& e) -> std::optional<PlayerId> { return e.player; },
-                [](const Moved& e) -> std::optional<PlayerId> { return e.player; },
-                [](const PaydayPaid& e) -> std::optional<PlayerId> { return e.player; },
-                [](const FeePaid& e) -> std::optional<PlayerId> { return e.payer; },
-                [](const Liquidated& e) -> std::optional<PlayerId> { return e.player; },
-                [](const SharesBought& e) -> std::optional<PlayerId> { return e.player; },
-                [](const AuctionDone& e) -> std::optional<PlayerId> { return e.winner; },
-                [](const CardPlayed& e) -> std::optional<PlayerId> { return e.player; },
-                [](const TradeResolved& e) -> std::optional<PlayerId> { return e.from; },
-                [](const MarketShifted&) -> std::optional<PlayerId> { return std::nullopt; },
-                [](const GameEnded&) -> std::optional<PlayerId> { return std::nullopt; },
-            },
-            event);
-        log_.push(round, player, describeEvent(match_->state(), event));
+        const std::optional<PlayerId> player =
+            std::visit(sgl::Overloaded{
+                           [](const Rolled& e) -> std::optional<PlayerId> { return e.player; },
+                           [](const Moved& e) -> std::optional<PlayerId> { return e.player; },
+                           [](const PaydayPaid& e) -> std::optional<PlayerId> { return e.player; },
+                           [](const FeePaid& e) -> std::optional<PlayerId> { return e.payer; },
+                           [](const Liquidated& e) -> std::optional<PlayerId> { return e.player; },
+                           [](const SharesBought& e) -> std::optional<PlayerId> { return e.player; },
+                           [](const AuctionDone& e) -> std::optional<PlayerId> { return e.winner; },
+                           [](const CardPlayed& e) -> std::optional<PlayerId> { return e.player; },
+                           [](const TradeResolved& e) -> std::optional<PlayerId> { return e.from; },
+                           [](const MarketShifted&) -> std::optional<PlayerId> { return std::nullopt; },
+                           [](const GameEnded&) -> std::optional<PlayerId> { return std::nullopt; },
+                       },
+                       event);
+        const std::string line = describeEvent(match_->state(), event);
+        log_.push(round, player, line);
+        std::visit(sgl::Overloaded{
+                       [this](const PaydayPaid&) { hud_.pushNote("Payday settled", 2.5f); },
+                       [this](const TradeResolved&) { hud_.pushNote("Trade resolved", 2.5f); },
+                       [this](const AuctionDone&) { hud_.pushNote("Auction closed", 2.5f); },
+                       [](const auto&) {},
+                   },
+                   event);
+    }
+
+    if(match_->state().revealed.has_value())
+    {
+        if(lastRevealNote_ != match_->state().revealed)
+        {
+            lastRevealNote_ = match_->state().revealed;
+            hud_.pushNote("Insider peek ready", 3.f);
+        }
+    }
+    else
+    {
+        lastRevealNote_.reset();
     }
 }
 
@@ -447,7 +473,7 @@ void PlayScene::trySelectTile(const sgl::InputState& input)
     if(hit.has_value())
     {
         selectedTile_ = hit;
-        actionBar_.rebuild(*match_, match_->actingPlayer(), selectedTile_);
+        actionBar_.rebuild(*match_, match_->actingPlayer(), selectedTile_, offerTradeSlot(*match_));
     }
 }
 
@@ -472,6 +498,15 @@ void PlayScene::updateTooltips(const sgl::InputState& input, sgl::Seconds dt)
     const std::size_t actorIdx = seatIndex(actor);
     if(actorIdx < state.hands.size())
     {
+        std::vector<CardKind> playable;
+        for(const Command& cmd: match_->legalCommands(actor))
+        {
+            if(const auto* play = std::get_if<PlayCard>(&cmd))
+            {
+                playable.push_back(play->kind);
+            }
+        }
+        handView_.setPlayableKinds(playable);
         handView_.sync(state.hands[actorIdx], dt);
     }
 
@@ -503,12 +538,11 @@ void PlayScene::updateTooltips(const sgl::InputState& input, sgl::Seconds dt)
     }
     for(int i = 0; i < state.seats; ++i)
     {
-        const Money cash = state.cash[static_cast<std::size_t>(i)];
-        const std::string title = "P" + std::to_string(i + 1) + " " + formatMoney(cash);
+        const std::string tip = hud_.playerTooltip(*match_, i);
         hotspots.push_back(sgl::Hotspot{
             .area = playerPanelRect(i),
-            .title = title,
-            .body = title,
+            .title = "P" + std::to_string(i + 1),
+            .body = tip,
         });
     }
 
@@ -545,6 +579,12 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
 
     presentation_.update(dt);
     hud_.update(dt);
+    if(!onboardingHintsDone_)
+    {
+        onboardingHintsDone_ = true;
+        hud_.pushNote(hintLine(match_->state().phase), 4.f);
+        hud_.pushNote("Press H for phase help", 4.f);
+    }
 
     const sgl::InputState& input = ctx.input();
     const sgl::Vec2f pointer = input.pointer().value_or(sgl::Vec2f{0.f, 0.f});
@@ -561,19 +601,24 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
 
     if(!gameOver())
     {
-        if(input.action(actions_.pause).pressed)
+        const bool closeCompose = tradeCompose_.active() && input.action(actions_.pause).pressed;
+        if(closeCompose)
+        {
+            tradeCompose_.close();
+        }
+        else if(input.action(actions_.pause).pressed)
         {
             ctx.request(sgl::RequestPause{});
         }
 
-        if(presentation_.busy())
+        if(!closeCompose && presentation_.busy())
         {
             if(input.pointerPressed() || input.action(actions_.roll).pressed)
             {
                 presentation_.fastForward();
             }
         }
-        else
+        else if(!closeCompose)
         {
             if(input.action(actions_.help).pressed)
             {
@@ -597,13 +642,21 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
                             applyCommand(actor, cmd);
                         }
                     }
+                    else if(tradeCompose_.active())
+                    {
+                        tradeCompose_.update(input, *match_, layout_, actions_);
+                    }
                     else
                     {
-                        actionBar_.rebuild(*match_, actor, selectedTile_);
+                        actionBar_.rebuild(*match_, actor, selectedTile_, offerTradeSlot(*match_));
                         trySelectTile(input);
                         if(const auto barCmd = actionBar_.update(input, actions_))
                         {
                             applyCommand(actor, *barCmd);
+                        }
+                        else if(actionBar_.consumeTradeRequest())
+                        {
+                            tradeCompose_.open(*match_, actor);
                         }
                         else if(const auto cmd = commandFromInput(*match_, input, actions_, layout_))
                         {
@@ -639,9 +692,7 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
         else
         {
             const sgl::FontId font = font_;
-            ctx.request(sgl::PushScene{[over, font]() {
-                return std::make_unique<GameOverScene>(over, font);
-            }});
+            ctx.request(sgl::PushScene{[over, font]() { return std::make_unique<GameOverScene>(over, font); }});
         }
     }
 }
@@ -664,7 +715,7 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     {
         highlights = &highlighter_.model();
     }
-    renderBoard(queue, s.board, s.ownership, layout_, theme_, highlighted, font_, sprites, highlights);
+    renderBoard(queue, s.board, s.ownership, layout_, theme_, highlighted, font_, sprites, highlights, selectedTile_);
     if(highlights != nullptr)
     {
         highlighter_.render(queue, theme_);
@@ -690,14 +741,18 @@ void PlayScene::render(sgl::RenderQueue& queue) const
                sgl::TextCmd{
                    .font = font_,
                    .text = hintLine(match_->state().phase),
-                   .size = 16,
-                   .position = sgl::Vec2f{24.f, 40.f},
+                   .size = 15,
+                   .position = sgl::Vec2f{24.f, 628.f},
                    .color = sgl::Color{200, 210, 225},
                });
     presentation_.render(queue, layout_.origin(), theme_);
     handView_.render(queue, font_, theme_);
     actionBar_.render(queue, makeActionBarStyle(font_), hover_);
     log_.render(queue, kRightLog, theme_, font_);
+    auctionPanel_.render(queue, *match_, font_, theme_);
+    tradeRespond_.render(queue, *match_, font_, theme_);
+    tradeCompose_.render(queue, font_, theme_);
+    insiderBanner_.render(queue, match_->state(), font_, theme_);
     tooltip_.render(queue, sgl::TooltipStyle{.font = tooltipFont()});
 }
 

@@ -17,10 +17,12 @@
 #include <sgl/ui/TooltipSystem.hpp>
 #include <syndicate/app/ActionBar.hpp>
 #include <syndicate/app/ActivityLog.hpp>
+#include <syndicate/app/AuctionPanel.hpp>
 #include <syndicate/app/Bindings.hpp>
 #include <syndicate/app/Feedback.hpp>
 #include <syndicate/app/HandView.hpp>
 #include <syndicate/app/HudModel.hpp>
+#include <syndicate/app/InsiderPeekBanner.hpp>
 #include <syndicate/app/LayoutView.hpp>
 #include <syndicate/app/PathHighlighter.hpp>
 #include <syndicate/app/PawnAnimator.hpp>
@@ -28,9 +30,12 @@
 #include <syndicate/app/Sounds.hpp>
 #include <syndicate/app/SpriteBank.hpp>
 #include <syndicate/app/Theme.hpp>
+#include <syndicate/app/TradeComposeOverlay.hpp>
+#include <syndicate/app/TradeRespondPanel.hpp>
 #include <syndicate/sim/Bot.hpp>
 #include <syndicate/sim/Commands.hpp>
 #include <syndicate/sim/GameState.hpp>
+#include <syndicate/sim/Market.hpp>
 #include <syndicate/sim/Match.hpp>
 #include <vector>
 
@@ -105,7 +110,11 @@ private:
     int lastLoggedRound_{0};
     PathHighlighter highlighter_{};
     ActionBar actionBar_{};
+    AuctionPanel auctionPanel_{};
+    TradeComposeOverlay tradeCompose_{};
+    TradeRespondPanel tradeRespond_{};
     HandView handView_{};
+    InsiderPeekBanner insiderBanner_{};
     sgl::HoverAnim hover_{};
     sgl::TooltipSystem tooltip_{};
     std::optional<NodeId> selectedTile_{};
@@ -113,6 +122,8 @@ private:
     bool setupFailed_{false};
     bool quitRequested_{false};
     bool endPushed_{false};
+    bool onboardingHintsDone_{false};
+    std::optional<MarketEventCard> lastRevealNote_{};
     float botThink_{0.f};
 };
 

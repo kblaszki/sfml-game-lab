@@ -10,6 +10,10 @@ add_library(syndicate_app STATIC
     src/Describe.cpp
     src/ActivityLog.cpp
     src/ActionBar.cpp
+    src/AuctionPanel.cpp
+    src/TradeComposeOverlay.cpp
+    src/TradeRespondPanel.cpp
+    src/InsiderPeekBanner.cpp
     src/HandView.cpp
     src/MarketHistory.cpp
     src/TrendChart.cpp

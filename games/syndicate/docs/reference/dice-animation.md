@@ -18,7 +18,7 @@ related_docs:
   - ../explanation/ui.md
   - ../../../../docs/reference/engine-anim.md
 keywords: [syndicate, DiceAnimator, Presentation, PawnAnimator, busy, fastForward, d4, tumble]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Dice and pawn presentation
@@ -79,7 +79,7 @@ Sequences dice then pawn path.
 
 ## Input gate (`PlayScene`)
 
-While `presentation.busy()`: pointer press or **Space** (`actions.roll`) calls `fastForward()` and does **not** apply a command. Help, action bar, and bot commands wait until idle. Animation never blocks the fixed-step loop—only command input.
+While `presentation.busy()`: pointer press or **Space** (`actions.roll`) calls `fastForward()` and does **not** apply a command. Help, action bar, and bot commands wait until idle. An open `TradeComposeOverlay` takes the human's input until **Escape** closes it or Confirm applies `ProposeTrade`. Animation never blocks the fixed-step loop—only command input.
 
 `drainFeedback` calls `onRolled` from `Rolled` events. `ChooseDestination` calls `tryStartPathAnimation` → layout positions along `MoveOption::path` → `onPath` **before** `Match::apply`.
 

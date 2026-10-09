@@ -26,8 +26,8 @@ struct HudNote
 
 [[nodiscard]] inline sgl::Rect<float> playerPanelRect(int seatIndex) noexcept
 {
-    return sgl::Rect<float>{.pos = {kLeftPanel.pos.x, 48.f + static_cast<float>(seatIndex) * 36.f},
-                            .size = {300.f, 32.f}};
+    return sgl::Rect<float>{.pos = {kLeftPanel.pos.x, 56.f + static_cast<float>(seatIndex) * 44.f},
+                            .size = {300.f, 40.f}};
 }
 
 [[nodiscard]] inline sgl::Rect<float> marketChartRect() noexcept
@@ -44,6 +44,7 @@ public:
     void render(sgl::RenderQueue& queue, const Match& match, sgl::FontId font, const Theme& theme) const;
 
     [[nodiscard]] std::string phasePrompt(const Phase& phase) const;
+    [[nodiscard]] std::string playerTooltip(const Match& match, int seatIndex) const;
     [[nodiscard]] std::size_t noteCount() const noexcept;
     [[nodiscard]] std::vector<sgl::Hotspot> chartHotspots() const;
 

@@ -128,6 +128,30 @@ std::string describeCard(CardKind kind)
     return "Card";
 }
 
+std::string_view cardEffectHint(CardKind kind)
+{
+    switch(kind)
+    {
+    case CardKind::HostileTakeover:
+        return "Buy 1 share from a rival";
+    case CardKind::Audit:
+        return "Rival pays a tax";
+    case CardKind::MarketCrash:
+        return "Drop a sector index";
+    case CardKind::ShortSqueeze:
+        return "Spike a sector index";
+    case CardKind::Lobbying:
+        return "Free upgrade on a tile";
+    case CardKind::Embargo:
+        return "Lock a tile briefly";
+    case CardKind::Subsidy:
+        return "Cash from the bank";
+    case CardKind::Insider:
+        return "Peek next market event";
+    }
+    return "Play for an effect";
+}
+
 std::string describeTile(const GameState& state, NodeId tile)
 {
     const TileNode& node = state.board.node(tile);

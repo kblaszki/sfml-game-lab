@@ -4,6 +4,7 @@
 #include <sgl/input/InputEvent.hpp>
 #include <sgl/input/InputState.hpp>
 #include <sgl/input/Key.hpp>
+#include <sgl/input/MouseButton.hpp>
 #include <string>
 #include <syndicate/app/ActionBar.hpp>
 #include <syndicate/app/Bindings.hpp>
@@ -21,6 +22,7 @@ using sgl::syndicate::AwaitPath;
 using sgl::syndicate::AwaitPurchase;
 using sgl::syndicate::AwaitRoll;
 using sgl::syndicate::Bid;
+using sgl::syndicate::bindSyndicate;
 using sgl::syndicate::BuyCard;
 using sgl::syndicate::BuyMomentum;
 using sgl::syndicate::BuyShares;
@@ -41,7 +43,6 @@ using sgl::syndicate::SectorTile;
 using sgl::syndicate::SellShares;
 using sgl::syndicate::SyndicateActions;
 using sgl::syndicate::Upgrade;
-using sgl::syndicate::bindSyndicate;
 
 namespace
 {
@@ -93,15 +94,15 @@ namespace
 
 [[nodiscard]] bool labelMentionsMoney(const std::string& title)
 {
-    return title.find("Cost: $") != std::string::npos || title.find("Bid $") != std::string::npos ||
-           title.find("Gain: $") != std::string::npos;
+    return title.find("Cost: $") != std::string::npos || title.find("Bid $") != std::string::npos
+           || title.find("Gain: $") != std::string::npos;
 }
 
 [[nodiscard]] bool commandCostsMoney(const Command& cmd)
 {
-    return std::holds_alternative<BuyShares>(cmd) || std::holds_alternative<Bid>(cmd) ||
-           std::holds_alternative<Upgrade>(cmd) || std::holds_alternative<SellShares>(cmd) ||
-           std::holds_alternative<BuyCard>(cmd) || std::holds_alternative<BuyMomentum>(cmd);
+    return std::holds_alternative<BuyShares>(cmd) || std::holds_alternative<Bid>(cmd)
+           || std::holds_alternative<Upgrade>(cmd) || std::holds_alternative<SellShares>(cmd)
+           || std::holds_alternative<BuyCard>(cmd) || std::holds_alternative<BuyMomentum>(cmd);
 }
 
 [[nodiscard]] bool sameCommand(const Command& a, const Command& b)
@@ -152,8 +153,8 @@ namespace
     return true;
 }
 
-void expectBarMatchesLegal(ActionBar& bar, const Match& m, PlayerId actor, const SyndicateActions& actions,
-                           const sgl::ActionMap& map)
+void expectBarMatchesLegal(
+    ActionBar& bar, const Match& m, PlayerId actor, const SyndicateActions& actions, const sgl::ActionMap& map)
 {
     bar.rebuild(m, actor, std::nullopt);
     const std::vector<Command> expected = expectedBarCommands(m, actor);
@@ -355,4 +356,49 @@ TEST(ActionBarTest, slotZeroReturnsFirstNonDestination)
     ASSERT_TRUE(got.has_value());
     EXPECT_TRUE(sameCommand(*got, expected.front()));
     EXPECT_FALSE(std::holds_alternative<ChooseDestination>(*got));
+}
+
+TEST(ActionBarTest, offerTradeAddsAppSlotWithinCap)
+{
+    sgl::ActionMap map{};
+    const SyndicateActions actions = bindSyndicate(map);
+    ActionBar bar;
+    Match m = mustCreate(MatchConfig{.seed = 1, .seats = 2});
+
+    bar.rebuild(m, P(0), std::nullopt, false);
+    const std::size_t base = bar.size();
+
+    bar.rebuild(m, P(0), std::nullopt, true);
+    EXPECT_EQ(bar.size(), base + 1);
+    EXPECT_LE(bar.size(), 9u);
+    ASSERT_FALSE(bar.hotspots().empty());
+    EXPECT_NE(bar.hotspots().back().title.find("Trade"), std::string::npos);
+
+    const auto command = bar.update(inputWith(sgl::Key::Num1, map), actions);
+    ASSERT_TRUE(command.has_value());
+    EXPECT_TRUE(std::holds_alternative<sgl::syndicate::RollDice>(*command));
+    EXPECT_FALSE(bar.consumeTradeRequest());
+
+    bar.rebuild(m, P(0), std::nullopt, true);
+    constexpr sgl::Key kNums[9] = {sgl::Key::Num1,
+                                   sgl::Key::Num2,
+                                   sgl::Key::Num3,
+                                   sgl::Key::Num4,
+                                   sgl::Key::Num5,
+                                   sgl::Key::Num6,
+                                   sgl::Key::Num7,
+                                   sgl::Key::Num8,
+                                   sgl::Key::Num9};
+    const auto tradeKey = bar.update(inputWith(kNums[bar.size() - 1], map), actions);
+    EXPECT_FALSE(tradeKey.has_value());
+    EXPECT_TRUE(bar.consumeTradeRequest());
+    EXPECT_FALSE(bar.consumeTradeRequest());
+
+    bar.rebuild(m, P(0), std::nullopt, true);
+    const sgl::Rect<float> area = bar.hotspots().back().area;
+    const sgl::Vec2f pos{area.pos.x + area.size.x * 0.5f, area.pos.y + area.size.y * 0.5f};
+    sgl::InputState click;
+    click.apply(sgl::MouseUp{.button = sgl::MouseButton::Left, .pos = pos}, map);
+    EXPECT_FALSE(bar.update(click, actions).has_value());
+    EXPECT_TRUE(bar.consumeTradeRequest());
 }

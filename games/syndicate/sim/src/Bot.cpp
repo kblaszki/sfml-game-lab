@@ -1,8 +1,7 @@
-#include <syndicate/sim/Bot.hpp>
-
 #include <cstddef>
 #include <cstdint>
 #include <syndicate/sim/BoardGraph.hpp>
+#include <syndicate/sim/Bot.hpp>
 #include <syndicate/sim/Economy.hpp>
 #include <syndicate/sim/GameState.hpp>
 #include <syndicate/sim/Market.hpp>
@@ -135,6 +134,30 @@ namespace
             else if constexpr(std::is_same_v<T, BuyMomentum>)
             {
                 return 10;
+            }
+            else if constexpr(std::is_same_v<T, RespondTrade>)
+            {
+                const auto* pending = std::get_if<AwaitTradeResponse>(&s.phase);
+                if(pending == nullptr)
+                {
+                    return c.accept ? 1 : 2;
+                }
+                const TradeOffer& offer = pending->offer;
+                std::int64_t net = offer.cashFrom.v - offer.cashTo.v;
+                for(const ShareLot& lot: offer.sharesFrom)
+                {
+                    net += sharePrice(s.board, s.market, lot.tile).v * static_cast<std::int64_t>(lot.count);
+                }
+                for(const ShareLot& lot: offer.sharesTo)
+                {
+                    net -= sharePrice(s.board, s.market, lot.tile).v * static_cast<std::int64_t>(lot.count);
+                }
+                const bool favorsSelf = net > 0;
+                if(favorsSelf)
+                {
+                    return c.accept ? 40 : 5;
+                }
+                return c.accept ? 5 : 40;
             }
             else
             {

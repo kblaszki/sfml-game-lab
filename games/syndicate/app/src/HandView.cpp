@@ -7,6 +7,7 @@
 #include <sgl/core/Color.hpp>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/Shapes.hpp>
+#include <span>
 #include <syndicate/app/Describe.hpp>
 #include <syndicate/app/LayoutView.hpp>
 #include <utility>
@@ -36,7 +37,48 @@ constexpr float kCorner{8.f};
     return sgl::Color{c.r, c.g, c.b, static_cast<std::uint8_t>(std::lround(static_cast<float>(c.a) * a))};
 }
 
+[[nodiscard]] sgl::Color kindAccent(CardKind kind)
+{
+    switch(kind)
+    {
+    case CardKind::HostileTakeover:
+        return sgl::Color{220, 80, 80};
+    case CardKind::Audit:
+        return sgl::Color{255, 100, 140};
+    case CardKind::MarketCrash:
+        return sgl::Color{120, 100, 200};
+    case CardKind::ShortSqueeze:
+        return sgl::Color{80, 200, 120};
+    case CardKind::Lobbying:
+        return sgl::Color{80, 160, 255};
+    case CardKind::Embargo:
+        return sgl::Color{200, 140, 60};
+    case CardKind::Subsidy:
+        return sgl::Color{100, 220, 180};
+    case CardKind::Insider:
+        return sgl::Color{200, 160, 255};
+    }
+    return sgl::Color{160, 160, 180};
+}
+
+[[nodiscard]] bool containsKind(std::span<const CardKind> kinds, CardKind kind)
+{
+    for(const CardKind k: kinds)
+    {
+        if(k == kind)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
+
+void HandView::setPlayableKinds(std::span<const CardKind> kinds)
+{
+    playableKinds_.assign(kinds.begin(), kinds.end());
+}
 
 bool HandView::useRowLayout() noexcept
 {
@@ -121,6 +163,14 @@ void HandView::reconcile(const Hand& hand)
             handOrder_.push_back(cardToSlot[ci]);
         }
     }
+
+    for(Slot& slot: slots_)
+    {
+        if(!slot.leaving)
+        {
+            slot.playable = containsKind(playableKinds_, slot.kind);
+        }
+    }
 }
 
 void HandView::rebuildHotspots()
@@ -135,10 +185,15 @@ void HandView::rebuildHotspots()
         }
         const Slot& slot = slots_[si];
         const std::string name{describeCard(slot.kind)};
+        std::string body{cardEffectHint(slot.kind)};
+        if(slot.playable)
+        {
+            body += " (playable)";
+        }
         hotspots_.push_back(sgl::Hotspot{
             .area = slot.slotRect,
             .title = name,
-            .body = name,
+            .body = std::move(body),
         });
     }
 }
@@ -193,6 +248,7 @@ void HandView::render(sgl::RenderQueue& queue, sgl::FontId font, const Theme& th
     {
         const sgl::Vec2f pos = slot.pos.value();
         const sgl::Rect<float> drawn{.pos = pos, .size = {kCardW, kCardH}};
+        const sgl::Color accent = kindAccent(slot.kind);
         const sgl::Color fill =
             withAlpha(sgl::Color{static_cast<std::uint8_t>(theme.edge.r / 2),
                                  static_cast<std::uint8_t>(theme.edge.g / 2),
@@ -200,16 +256,32 @@ void HandView::render(sgl::RenderQueue& queue, sgl::FontId font, const Theme& th
                                  230},
                       slot.alpha);
         const sgl::Color textColor = withAlpha(sgl::Color{235, 238, 245}, slot.alpha);
+        const sgl::Color hintColor = withAlpha(sgl::Color{200, 205, 220}, slot.alpha);
+        const float outlineW = slot.playable ? 3.f : 1.5f;
+        const sgl::Color dimAccent{static_cast<std::uint8_t>(accent.r / 2), static_cast<std::uint8_t>(accent.g / 2),
+                                   static_cast<std::uint8_t>(accent.b / 2), 220};
+        const sgl::Color outline = withAlpha(slot.playable ? accent : dimAccent, slot.alpha);
 
         queue.push(sgl::Layer::Hud, depth++, sgl::roundedRect(drawn, kCorner, fill));
+        queue.push(sgl::Layer::Hud, depth++, sgl::roundedRectOutline(drawn, kCorner, outlineW, outline));
         queue.push(sgl::Layer::Hud,
                    depth++,
                    sgl::TextCmd{
                        .font = font,
                        .text = std::string{describeCard(slot.kind)},
-                       .size = 12,
-                       .position = {pos.x + kCardW * 0.5f, pos.y + kCardH * 0.5f},
+                       .size = 11,
+                       .position = {pos.x + kCardW * 0.5f, pos.y + 36.f},
                        .color = textColor,
+                       .anchor = sgl::Anchor::Center,
+                   });
+        queue.push(sgl::Layer::Hud,
+                   depth++,
+                   sgl::TextCmd{
+                       .font = font,
+                       .text = std::string{cardEffectHint(slot.kind)},
+                       .size = 9,
+                       .position = {pos.x + kCardW * 0.5f, pos.y + 78.f},
+                       .color = hintColor,
                        .anchor = sgl::Anchor::Center,
                    });
     }

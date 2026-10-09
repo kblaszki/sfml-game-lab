@@ -144,8 +144,12 @@ void PathHighlighter::render(sgl::RenderQueue& queue, const Theme& theme) const
 
     for(std::size_t i = 0; i < destinationCenters_.size(); ++i)
     {
-        queue.push(sgl::Layer::World, depth++,
-                   sgl::radialGlow(destinationCenters_[i], glowInner, glowOuter, theme.highlight));
+        const bool isHovered = model_.hovered.has_value() && *model_.hovered == i;
+        const sgl::Color glow = isHovered ? theme.highlight
+                                          : sgl::Color{theme.highlight.r, theme.highlight.g, theme.highlight.b, 90};
+        const float outer = isHovered ? glowOuter : glowOuter * 0.75f;
+        const float inner = isHovered ? glowInner : glowInner * 0.7f;
+        queue.push(sgl::Layer::World, depth++, sgl::radialGlow(destinationCenters_[i], inner, outer, glow));
     }
 
     const float arrowSize = std::max(nodeRadius_ * 0.9f, 8.f);

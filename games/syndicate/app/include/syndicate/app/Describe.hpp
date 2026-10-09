@@ -28,6 +28,9 @@ struct Label
 
 [[nodiscard]] std::string describeCard(CardKind kind);
 
+/// One-line effect hint for hand chrome (no target required).
+[[nodiscard]] std::string_view cardEffectHint(CardKind kind);
+
 [[nodiscard]] std::string describeEvent(const GameState& state, const GameEvent& event);
 
 } // namespace sgl::syndicate

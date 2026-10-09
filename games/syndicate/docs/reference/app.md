@@ -17,6 +17,10 @@ related_code:
   - games/syndicate/app/include/syndicate/app/Describe.hpp
   - games/syndicate/app/include/syndicate/app/ActivityLog.hpp
   - games/syndicate/app/include/syndicate/app/ActionBar.hpp
+  - games/syndicate/app/include/syndicate/app/AuctionPanel.hpp
+  - games/syndicate/app/include/syndicate/app/TradeComposeOverlay.hpp
+  - games/syndicate/app/include/syndicate/app/TradeRespondPanel.hpp
+  - games/syndicate/app/include/syndicate/app/InsiderPeekBanner.hpp
   - games/syndicate/app/include/syndicate/app/HandView.hpp
   - games/syndicate/app/include/syndicate/app/MarketHistory.hpp
   - games/syndicate/app/include/syndicate/app/TrendChart.hpp
@@ -43,6 +47,10 @@ related_code:
   - games/syndicate/app/src/Describe.cpp
   - games/syndicate/app/src/ActivityLog.cpp
   - games/syndicate/app/src/ActionBar.cpp
+  - games/syndicate/app/src/AuctionPanel.cpp
+  - games/syndicate/app/src/TradeComposeOverlay.cpp
+  - games/syndicate/app/src/TradeRespondPanel.cpp
+  - games/syndicate/app/src/InsiderPeekBanner.cpp
   - games/syndicate/app/src/HandView.cpp
   - games/syndicate/app/src/MarketHistory.cpp
   - games/syndicate/app/src/TrendChart.cpp
@@ -72,6 +80,9 @@ related_code:
   - tests/syndicate/app/DescribeTest.cpp
   - tests/syndicate/app/ActivityLogTest.cpp
   - tests/syndicate/app/ActionBarTest.cpp
+  - tests/syndicate/app/AuctionPanelTest.cpp
+  - tests/syndicate/app/InsiderPeekBannerTest.cpp
+  - tests/syndicate/app/TradeOverlayTest.cpp
   - tests/syndicate/app/PlaySceneTest.cpp
   - tests/syndicate/app/ScenesTest.cpp
   - tests/syndicate/app/ControlMapTest.cpp
@@ -92,8 +103,8 @@ related_docs:
   - ../../../../docs/reference/pause-overlay.md
   - ../../../../docs/reference/source-layout.md
   - ../../../../docs/explanation/architecture.md
-keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, MarketHistory, TrendChart, PathHighlighter, PawnAnimator, DiceAnimator, Presentation, Bindings, ControlMap, HelpScene, PauseMenuScene, Settings, Describe, ActivityLog, ActionBar, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
-last_reviewed: 2026-09-29
+keywords: [syndicate, app, Theme, LayoutView, renderBoard, HandView, MarketHistory, TrendChart, PathHighlighter, PawnAnimator, DiceAnimator, Presentation, Bindings, ControlMap, HelpScene, PauseMenuScene, Settings, Describe, ActivityLog, ActionBar, AuctionPanel, TradeComposeOverlay, TradeRespondPanel, HudModel, PlayScene, tooltip, Scenes, Feedback, Sounds, SpriteBank, MainMenuScene, SetupScene, GameOverScene, syndicate executable, 1280x720]
+last_reviewed: 2026-10-09
 ---
 
 # Syndicate app
@@ -126,7 +137,7 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 ## Sounds / Feedback
 
-`soundSpecs()` returns PCM from `sgl::blip` (`roll`, `fee`, `auction`, `card`, `market`). `main.cpp` uploads via `SfmlAudio`; the app library only holds `SoundIds` / specs. `Feedback(AudioI&, SoundIds)` plays on `Rolled`, `FeePaid`, `AuctionDone`, `CardPlayed`, `MarketShifted`; other `GameEvent` alternatives are silent.
+`soundSpecs()` returns PCM from `sgl::blip` (`roll`, `fee`, `auction`, `card`, `market`). `main.cpp` uploads via `SfmlAudio`; the app library only holds `SoundIds` / specs. `Feedback(AudioI&, SoundIds)` plays on `Rolled`, `FeePaid`, `AuctionDone`, `CardPlayed`, `MarketShifted`, and reuses those blips for `TradeResolved` (auction), `SharesBought` (card), `PaydayPaid` (market), `Liquidated` (fee).
 
 ## Menu / setup / game over
 
@@ -138,9 +149,9 @@ Presentation layer and playable executable for Syndicate in `namespace sgl::synd
 
 `Theme` / `defaultTheme()`, `LayoutView`, shared layout rects (`kBoardOrigin`/`kBoardRadius`, `kLeftPanel`, `kRightChart`, `kRightLog`, `kActionBar`, `kBoardBounds`), `renderBoard`, `PawnAnimator`, `DiceAnimator`, `Presentation`, `HudModel`, `ActivityLog`, `HandView`, `MarketHistory`, `TrendChart`, `PathHighlighter`. Bindings: **Space** roll, **Enter** end turn / menu confirm, **C** bid, **P** pass, **Escape** pause, **H** help, **Left/Right** settings nudges, **Num1–Num9** action-bar slots, **Up/Down** menu, **Backspace** cancel.
 
-`renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` + `HighlightModel*` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`); when `highlights` is non-null, destination nodes use a thicker outline.
+`renderBoard` draws 40 node circles, unique undirected edges, and a size-11 short label per node (`AI`/`CLN`/`BIO`/`CYB`/`LOG`/`FIN`, `PAY`/`EXC`/`HUB`/`AUD`/`GRA`) just below the node. Optional trailing `FontId` + `SpriteBank*` + `HighlightModel*` + `selectedTile` (defaults) emit centered atlas sprites when present (`sector/*`, `tile/*`); when `highlights` is non-null, destination nodes use a thicker outline. `selectedTile` adds a highlight ring; seats with shares get colored pips; `level` 1–3 draws a gold badge. `PathHighlighter` dims non-hovered destination glows.
 
-`HudModel` draws one rounded player panel per seat (`playerPanelRect` inside `kLeftPanel`) with `P{n} {formatMoney(cash)}`; the acting seat gets a brighter outline. Phase prompt and note TTL are unchanged. Market bars are replaced by `renderTrendChart` in `kRightChart` (via `marketChartRect()`): six stacked sparklines from an internal `MarketHistory` (ring of 32 samples per sector). `recordMarket` appends the current `Market` index; `chartHotspots()` returns one hotspot per sector row.
+`HudModel` draws one rounded player panel per seat (`playerPanelRect` inside `kLeftPanel`) with cash + `netWorth`, a progress bar vs `targetNetWorth`, debt tint when cash &lt; 0, and round/target chrome under the phase prompt. `playerTooltip` summarizes cash/NW/shares/control. `pushNote` drives floating tips (onboarding, payday/trade/auction beats, Insider peek). Market trend uses `renderTrendChart` in `kRightChart` via `MarketHistory` (ring of 32 samples per sector).
 
 `ActivityLog` (cap 64) stores turn lines from drained `GameEvent`s (`describeEvent`). `visible(n)` returns the newest `n` entries oldest-first. Render fills `kRightLog` (rounded panel, 4px player stripe, wrapped text, newest at the bottom). Round changes push a `— Round N —` separator entry.
 
@@ -154,7 +165,7 @@ Match rolls are **d4+d4** (faces 1..4, total 2..8). `DiceAnimator` shows two pro
 
 ## HandView
 
-`HandView` mirrors the acting player's `Hand` (cap 5). Cards are 96×134; layout is a column at x=24 starting y=420 (8px gap) because five row strides do not fit in `kLeftPanel` width. Newly appeared cards tween from x=−120 with `easeOutBack` over 0.35s; removed cards slide toward x=400 and fade out over 0.35s. `hit` / hotspots use settled slot rects; `render` uses the animated position. Hotspot body is `describeCard`.
+`HandView` mirrors the acting player's `Hand` (cap 5). Cards are 96×134; layout is a column at x=24 starting y=420 (8px gap) because five row strides do not fit in `kLeftPanel` width. Kind-colored outlines, `cardEffectHint` body lines, and thicker outline when `setPlayableKinds` marks a `PlayCard` as legal. Newly appeared cards tween from x=−120 with `easeOutBack` over 0.35s; removed cards slide toward x=400 and fade out over 0.35s. `InsiderPeekBanner` draws `state.revealed` (sector + delta) on `Layer::Overlay` while a peek is active.
 
 ## Describe helpers
 
@@ -167,11 +178,47 @@ Match rolls are **d4+d4** (faces 1..4, total 2..8). `DiceAnimator` shows two pro
 
 ## ActionBar
 
-`ActionBar` rebuilds from `Match::legalCommands`, drops `ChooseDestination`, prefers commands for `selectedTile` when capping at 9, and lays out up to nine buttons in `kActionBar` (y 652..708 / x 16..1264). Slots bind to **Num1–Num9**; pointer release on a button applies that command. Enter is not treated as a bar click (legacy `EndTurn` path stays on Enter). Hotspots feed tooltips (`title` = label, `body` = tooltip).
+`ActionBar` rebuilds from `Match::legalCommands`, drops `ChooseDestination`, prefers commands for `selectedTile` when capping at 9, and lays out up to nine buttons in `kActionBar` (y 652..708 / x 16..1264). Slots bind to **Num1–Num9**; pointer release on a button applies that command. Enter is not treated as a bar click (legacy `EndTurn` path stays on Enter). Hotspots feed tooltips (`title` = label, `body` = tooltip). `rebuild(..., offerTrade)` appends an app-only **Trade** slot when true. That slot counts toward the cap of 9 (command slots shrink to 8). Activating it (Num or click) does not return a `Command`; `consumeTradeRequest()` reports it once. `ProposeTrade` stays out of `legalCommands`.
+
+## AuctionPanel
+
+`AuctionPanel` draws a centered `Layer::Overlay` status card when `Phase` is `InAuction`. It reads `AuctionState` (`tile`, `shares`, `highBid`, `leader`, `toAct`, `active`) via `Match::state()` and does not handle input — Bid/Pass stay on the ActionBar and **C**/**P**. `visible(phase)` is true only for `InAuction`. `PlayScene` renders it after the activity log and before tooltips.
+
+```mermaid
+sequenceDiagram
+  participant Play as PlayScene
+  participant Match as Match
+  participant Panel as AuctionPanel
+  Play->>Match: state phase InAuction
+  Play->>Panel: render match
+  Panel->>Match: auction fields
+  Note over Panel: lot highBid leader toAct
+```
+
+## Trade compose and respond
+
+`TradeComposeOverlay` is the Manage-phase draft. `open(match, from)` selects the first other seat as `to`, with `cashFrom` 0, `cashTo` 0, and empty share lots. **Left/Right** cycle `to`. **Up/Down** change `cashFrom` in steps of 25, clamped to the proposer's cash. A click on an owned sector tile toggles one share in `sharesFrom`. **Confirm** calls `validateTrade` and, when that succeeds, `Match::apply(ProposeTrade)`. **Cancel** closes the overlay. Confirm and Cancel are clickable rects on a left-side `Layer::Overlay` card (`confirmRect` / `cancelRect`).
+
+`TradeRespondPanel` draws when `Phase` is `AwaitTradeResponse`: proposer, recipient, `cashFrom`, `cashTo`, and both share-lot summaries. It takes no input. Accept and Reject stay on the ActionBar.
+
+```mermaid
+sequenceDiagram
+  participant Play as PlayScene
+  participant Bar as ActionBar
+  participant Compose as TradeComposeOverlay
+  participant Match as Match
+  participant Respond as TradeRespondPanel
+  Play->>Bar: rebuild offerTrade
+  Bar-->>Play: consumeTradeRequest
+  Play->>Compose: open
+  Compose->>Match: apply ProposeTrade
+  Match-->>Play: AwaitTradeResponse
+  Play->>Respond: render offer
+```
 
 ## PlayScene
 
-Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `HandView`, `HoverAnim`, `TooltipSystem`, `Presentation` (seed from `MatchConfig::seed` or `services.seed`), `PathHighlighter`, and `ActivityLog`. Board layout uses `LayoutView{kBoardOrigin, kBoardRadius}`. Records the market into `HudModel` at startup and after each successful `apply`. On a human turn while presentation is idle: **H** (help) pushes `HelpScene` on the tab matching the current phase when presentation is not busy; otherwise rebuilds the bar, optionally selects a Manage/AwaitPurchase tile from a board click (not on a button), then applies `actionBar.update` before falling back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. In `AwaitPath`, builds/updates the path highlighter and passes `&highlighter.model()` into `renderBoard`, then `highlighter.render` after the board. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, market chart rows, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/highlights/pawns, HUD, `hintLine(phase)` at y=40 under the phase prompt, dice at layout origin, hand, action bar, activity log in `kRightLog`, then tooltip last. Pause → `RequestPause`. On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled`, `Feedback`, and the activity log (`describeEvent` + round separators) after each applied command. `log()` exposes the log for tests.
+Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)` and services `(SyndicateServices, MatchConfig, seats)` which also owns `Feedback`. Owns `ActionBar`, `AuctionPanel`, `TradeComposeOverlay`, `TradeRespondPanel`, `HandView`, `HoverAnim`, `TooltipSystem`, `Presentation` (seed from `MatchConfig::seed` or `services.seed`), `PathHighlighter`, and `ActivityLog`. Board layout uses `LayoutView{kBoardOrigin, kBoardRadius}`. Records the market into `HudModel` at startup and after each successful `apply`. On a human turn while presentation is idle: **H** (help) pushes `HelpScene` on the tab matching the current phase when presentation is not busy. While `TradeComposeOverlay` is active, its `update` handles input and the bar / `commandFromInput` are skipped; **Escape** closes the overlay. Otherwise the bar rebuilds (`offerTrade` in `Manage` while `tradesProposed < 3`), a board click may select a Manage/AwaitPurchase tile, then a bar command is applied, a Trade activation opens the composer, or input falls back to `commandFromInput` (Space/Enter/C/P/path click). While presentation is busy, pointer press or roll key calls `presentation.fastForward()` and does not apply a command. In `AwaitPath`, builds/updates the path highlighter and passes `&highlighter.model()` into `renderBoard`, then `highlighter.render` after the board. Each update collects hotspots for board tiles (`describeTile`), action-bar buttons, hand cards, market chart rows, and player panels, then drives `TooltipSystem` (font = `bodyFont` when set, else scene `font_`). Hover does not consume clicks. Renders board/highlights/pawns, HUD, `hintLine(phase)` at y=40 under the phase prompt, dice at layout origin, hand, action bar, activity log in `kRightLog`, `AuctionPanel` when in auction, then `TradeRespondPanel` and `TradeComposeOverlay`, then tooltip last. Pause → `RequestPause` (Escape closes an open composer first). On `GameOver`, pushes `GameOverScene` (via `makeGameOver` when services are present). `drainEvents` feeds `Presentation::onRolled`, `Feedback`, and the activity log (`describeEvent` + round separators) after each applied command. `log()` exposes the log for tests.
 
 ## main.cpp
 
@@ -182,7 +229,7 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | Suite | Focus |
 |-------|-------|
 | `syndicate_layout_view_test` | Outer spacing, slot 0 above origin, ring 2 closer; play layout rects pairwise non-overlapping |
-| `syndicate_board_render_test` | 40 circles, 40 short labels, line count = unique unordered edges, centers match layout |
+| `syndicate_board_render_test` | 40 circles, 40 short labels, line count = unique unordered edges, centers match layout; selection/pips/level add circles |
 | `syndicate_hand_view_test` | Appear tween: x off-screen at dt=0, at slot x after 0.35s |
 | `syndicate_pawn_animator_test` | Catmull-Rom ease-in-out path, `busy()`, distinct same-slot positions |
 | `syndicate_dice_animator_test` | d4+d4 tumble intervals non-decreasing, settle on roll 7, fast-forward |
@@ -193,10 +240,13 @@ Two constructors: test-friendly `(MatchConfig, seats, FontId, SyndicateActions)`
 | `syndicate_hud_model_test` | phasePrompt words; note TTL expiry |
 | `syndicate_describe_test` | `formatMoney` scales; Biotech `BuyShares{1}` label facts; `describeEvent` all 11 alternatives |
 | `syndicate_activity_log_test` | Cap 64; `visible(10)` newest 10 chronological |
-| `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot |
+| `syndicate_action_bar_test` | legal−destination commands for AwaitRoll/Purchase/Auction/Manage; Num1 returns first slot; Trade slot when `offerTrade` |
+| `syndicate_auction_panel_test` | `visible` only in `InAuction`; overlay commands when auction active, none otherwise |
+| `syndicate_insider_peek_banner_test` | Hidden without `revealed`; draws overlay when peek set |
+| `syndicate_trade_overlay_test` | Compose applies `ProposeTrade`; respond panel emits overlay commands in `AwaitTradeResponse` |
 | `syndicate_play_scene_test` | 4-bot GameOver + non-empty activity log with Round; human roll ignored on bot turn; human Num buy + Manage Upgrade/PlayCard; tile hover tooltip |
 | `syndicate_scenes_test` | Menu cancel quits; Play/Settings/Help; setup Confirm → Play; pause Resume/Settings/Quit |
 | `syndicate_control_map_test` | Phase coverage, hint bounds, bound key names in map text |
 | `syndicate_help_scene_test` | Manage tab selected; Right moves to next tab |
-| `syndicate_feedback_test` | `Rolled` / `FeePaid` each play ≥1 sound via `AudioSpy` |
+| `syndicate_feedback_test` | `Rolled` / `FeePaid` / trade / payday play via `AudioSpy` |
 | `syndicate_sprite_bank_test` | Empty bank nullopt; manifest entry → matching `SpriteCmd` source |

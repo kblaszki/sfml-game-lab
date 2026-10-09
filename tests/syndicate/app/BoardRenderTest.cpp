@@ -98,6 +98,12 @@ TEST(BoardRenderTest, circlesAndUniqueEdges)
     EXPECT_EQ(countCircles(queue), 40u);
     EXPECT_EQ(countTexts(queue), 40u);
 
+    ownership.holdings(NodeId{0}).shares[0] = 3;
+    ownership.holdings(NodeId{0}).level = 2;
+    sgl::RenderQueue decorated;
+    renderBoard(decorated, board, ownership, layout, theme, {}, {}, nullptr, nullptr, NodeId{0});
+    EXPECT_GT(countCircles(decorated), 40u);
+
     const auto expectedLines = uniqueUnorderedEdgeCount(board);
     EXPECT_EQ(countLines(queue), expectedLines);
     EXPECT_GT(countLines(queue), 0u);

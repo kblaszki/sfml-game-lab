@@ -23,7 +23,7 @@ related_docs:
   - ../../../../docs/reference/engine-save.md
   - ../../../../docs/reference/pause-overlay.md
 keywords: [syndicate, how-to, Bindings, ControlMap, HelpScene, Settings, ActionBar, PauseMenuScene]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Navigate UI, settings, and help
@@ -49,11 +49,11 @@ Player and developer guide for Syndicate controls, chrome, settings persistence,
 
 Mouse: click glowing path tiles in `AwaitPath`; click board tiles in Manage / purchase to filter the bar; click action-bar buttons; hover for tooltips. While dice/pawn presentation is busy, click or Space **fast-forwards** animation instead of issuing a command ([dice-animation.md](../reference/dice-animation.md)).
 
-`controlMap()` / `hintLine(phase)` in `ControlMap.cpp` mirror these rows for help and the on-screen hint.
+`controlMap()` / `hintLine(phase)` in `ControlMap.cpp` mirror these rows for help and the on-screen hint (also drawn above the ActionBar). On the first `PlayScene` update, two short `HudModel` notes show the current phase hint and remind you to press **H** for Help.
 
 ## ActionBar and tooltips
 
-`ActionBar` rebuilds from `Match::legalCommands`, drops `ChooseDestination`, caps at nine slots preferring `selectedTile`, and lays out in `kActionBar`. Slots bind to Num1–Num9; pointer release applies the command. Hotspots feed `TooltipSystem` (`title` = label, `body` = tooltip from `describeCommand`). Enter is **not** a bar click (legacy EndTurn stays on Enter).
+`ActionBar` rebuilds from `Match::legalCommands`, drops `ChooseDestination`, caps at nine slots preferring `selectedTile`, and lays out in `kActionBar`. In `Manage`, while fewer than three trades have been proposed, PlayScene passes `offerTrade` so a **Trade** slot is appended (it counts toward the nine). Num1–Num9 and pointer release activate a slot. The Trade slot opens `TradeComposeOverlay` instead of applying a `Command`. Other slots apply the command. Hotspots feed `TooltipSystem` (`title` = label, `body` = tooltip from `describeCommand`). Enter is **not** a bar click (legacy EndTurn stays on Enter).
 
 PlayScene also hotspots board tiles (`describeTile`), hand cards (`describeCard`), market chart rows, and player panels.
 

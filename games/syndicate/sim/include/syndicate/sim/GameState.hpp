@@ -83,6 +83,8 @@ struct MarketEventCard
 {
     Sector sector;
     int delta;
+
+    bool operator==(const MarketEventCard&) const = default;
 };
 
 struct GameState

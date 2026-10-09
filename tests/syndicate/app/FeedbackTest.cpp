@@ -53,3 +53,28 @@ TEST(FeedbackTest, feePlaysSound)
     ASSERT_GE(audio.plays.size(), 1u);
     EXPECT_EQ(audio.plays[0].id, ids.fee);
 }
+
+TEST(FeedbackTest, tradeAndPaydayPlaySounds)
+{
+    sgl::AudioSpy audio;
+    const auto ids = makeIds();
+    sgl::syndicate::Feedback feedback{audio, ids};
+
+    const sgl::syndicate::GameEvent trade = sgl::syndicate::TradeResolved{
+        .from = sgl::syndicate::PlayerId{0},
+        .to = sgl::syndicate::PlayerId{1},
+        .accepted = true,
+    };
+    feedback.onEvents(std::span{&trade, 1});
+    ASSERT_GE(audio.plays.size(), 1u);
+    EXPECT_EQ(audio.plays.back().id, ids.auction);
+
+    const sgl::syndicate::GameEvent payday = sgl::syndicate::PaydayPaid{
+        .player = sgl::syndicate::PlayerId{0},
+        .salary = sgl::syndicate::Money{100},
+        .dividends = sgl::syndicate::Money{20},
+        .interest = sgl::syndicate::Money{0},
+    };
+    feedback.onEvents(std::span{&payday, 1});
+    EXPECT_EQ(audio.plays.back().id, ids.market);
+}

@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <set>
@@ -6,6 +8,7 @@
 #include <string>
 #include <string_view>
 #include <syndicate/app/BoardRender.hpp>
+#include <syndicate/sim/Ids.hpp>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -161,7 +164,8 @@ void renderBoard(sgl::RenderQueue& queue,
                  const std::vector<MoveOption>& highlighted,
                  sgl::FontId font,
                  const SpriteBank* sprites,
-                 const HighlightModel* highlights)
+                 const HighlightModel* highlights,
+                 std::optional<NodeId> selectedTile)
 {
     std::set<std::pair<std::uint16_t, std::uint16_t>> undirected;
     for(std::size_t i = 0; i < board.size(); ++i)
@@ -219,6 +223,12 @@ void renderBoard(sgl::RenderQueue& queue,
         {
             outlineThickness += 2.f;
         }
+        const bool selected = selectedTile.has_value() && *selectedTile == id;
+        if(selected)
+        {
+            outline = theme.highlight;
+            outlineThickness += 3.f;
+        }
 
         queue.push(sgl::Layer::World, 1000.f + static_cast<float>(i),
                    sgl::CircleCmd{.center = center,
@@ -227,6 +237,53 @@ void renderBoard(sgl::RenderQueue& queue,
                                   .outline = outline,
                                   .outlineThickness = outlineThickness,
                                   .points = 32});
+
+        if(selected)
+        {
+            queue.push(sgl::Layer::World, 1100.f + static_cast<float>(i),
+                       sgl::CircleCmd{.center = center,
+                                      .radius = r + 5.f,
+                                      .fill = sgl::Color{0, 0, 0, 0},
+                                      .outline = theme.highlight,
+                                      .outlineThickness = 2.f,
+                                      .points = 32});
+        }
+
+        // Share pips: up to 4 seats, arranged on a small orbit outside the node.
+        int pipIndex = 0;
+        for(std::size_t seat = 0; seat < kMaxPlayers; ++seat)
+        {
+            const std::uint8_t shares = hold.shares[seat];
+            if(shares == 0)
+            {
+                continue;
+            }
+            const float angle = static_cast<float>(pipIndex) * 0.9f - 1.2f;
+            const float pipR = std::max(2.5f, std::min(4.5f, 2.f + static_cast<float>(shares) * 0.35f));
+            const sgl::Vec2f pipCenter{center.x + std::cos(angle) * (r + 6.f),
+                                      center.y + std::sin(angle) * (r + 6.f)};
+            queue.push(sgl::Layer::World, 1600.f + static_cast<float>(i) + static_cast<float>(seat) * 0.1f,
+                       sgl::CircleCmd{.center = pipCenter,
+                                      .radius = pipR,
+                                      .fill = theme.pawn[seat],
+                                      .outline = sgl::Color{20, 20, 30},
+                                      .outlineThickness = 1.f,
+                                      .points = 12});
+            ++pipIndex;
+        }
+
+        // Level badge (1..3) as a small filled disc at top-right of the node.
+        if(hold.level > 0)
+        {
+            const sgl::Vec2f badge{center.x + r * 0.55f, center.y - r * 0.55f};
+            queue.push(sgl::Layer::World, 1700.f + static_cast<float>(i),
+                       sgl::CircleCmd{.center = badge,
+                                      .radius = 4.f + static_cast<float>(hold.level),
+                                      .fill = sgl::Color{250, 240, 180},
+                                      .outline = sgl::Color{40, 40, 50},
+                                      .outlineThickness = 1.f,
+                                      .points = 12});
+        }
 
         if(sprites != nullptr)
         {

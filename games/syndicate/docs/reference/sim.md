@@ -41,7 +41,7 @@ related_docs:
   - ../../../../docs/reference/source-layout.md
   - ../../../../docs/explanation/architecture.md
 keywords: [syndicate, sim, Money, BoardGraph, standardBoard, moveOptions, Match, turn machine, Payday, CSR, NodeId, Bot, BotPersona]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Syndicate sim
@@ -202,6 +202,6 @@ Deterministic heuristic over `Match::legalCommands`. Wired via `parts/bot.cmake`
 | `BotPersona` | `riskAppetite` (`Percent`, default 100) and `cashReserve` (`Money`, default 200). |
 | `chooseCommand(match, self, persona)` | Scores each legal command with fixed integers; picks the max score (lowest index on ties). No RNG. Empty legal → `EndTurn{}`. |
 
-Heuristic highlights: `RollDice` 100; `ChooseDestination` path/fee/payday/free-share bonuses; `BuyShares` / `Bid` respect `cashReserve` (else −100); `Upgrade` 35 if affordable; `PlayCard` 25; `BuyMomentum` 10; `PassBid` 5; `DeclinePurchase` 1; `EndTurn` and other commands 0.
+Heuristic highlights: `RollDice` 100; `ChooseDestination` path/fee/payday/free-share bonuses; `BuyShares` / `Bid` respect `cashReserve` (else −100); `Upgrade` 35 if affordable; `PlayCard` 25; `BuyMomentum` 10; `PassBid` 5; `DeclinePurchase` 1; `EndTurn` and other commands 0. `RespondTrade` scores the responder's net: `cashFrom - cashTo`, plus `sharePrice` of `sharesFrom`, minus `sharePrice` of `sharesTo`. When that net is positive, accept scores 40 and reject scores 5; otherwise reject scores 40 and accept scores 5. Both scores stay above −1.
 
-Tests: `syndicate_bot_test` (fresh `RollDice`, 50 seeds × 4 seats × 6 rounds to `GameOver` with share invariant, no `BuyShares` into negative cash, chosen command always legal).
+Tests: `syndicate_bot_test` (fresh `RollDice`, 50 seeds × 4 seats × 6 rounds to `GameOver` with share invariant, no `BuyShares` into negative cash, chosen command always legal, favorable `RespondTrade` accepted, unfavorable rejected).

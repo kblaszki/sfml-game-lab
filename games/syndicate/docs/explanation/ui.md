@@ -6,8 +6,14 @@ related_code:
   - games/syndicate/app/include/syndicate/app/PlayScene.hpp
   - games/syndicate/app/include/syndicate/app/LayoutView.hpp
   - games/syndicate/app/include/syndicate/app/ActivityLog.hpp
+  - games/syndicate/app/include/syndicate/app/AuctionPanel.hpp
+  - games/syndicate/app/include/syndicate/app/TradeComposeOverlay.hpp
+  - games/syndicate/app/include/syndicate/app/TradeRespondPanel.hpp
   - games/syndicate/app/include/syndicate/app/SpriteBank.hpp
   - games/syndicate/app/src/SpriteBank.cpp
+  - games/syndicate/app/src/AuctionPanel.cpp
+  - games/syndicate/app/src/TradeComposeOverlay.cpp
+  - games/syndicate/app/src/TradeRespondPanel.cpp
   - engine/render/include/sgl/render/Shapes.hpp
   - engine/render/include/sgl/render/DrawCommand.hpp
   - engine/sfml/include/sgl/sfml/SfmlPlatform.hpp
@@ -16,8 +22,8 @@ related_docs:
   - ../reference/app.md
   - design.md
   - ../../../../docs/explanation/architecture.md
-keywords: [syndicate, UI, procedural, MeshCmd, atlas, hybrid, presentation, animators, ActivityLog, layout]
-last_reviewed: 2026-09-29
+keywords: [syndicate, UI, procedural, MeshCmd, atlas, hybrid, presentation, animators, ActivityLog, AuctionPanel, TradeComposeOverlay, TradeRespondPanel, layout]
+last_reviewed: 2026-10-09
 ---
 
 # Syndicate UI presentation
@@ -38,6 +44,8 @@ The game stays playable with zero PNGs.
 
 `Match::apply` is instant and headless. Animators (`PawnAnimator`, feedback FX, future card flips) live in the app layer and interpret `GameEvent` streams after each command. The sim never knows about sprites or meshes. Animation never blocks the fixed-step loop: `presentation.busy()` only gates human/bot command input; updates and drains still run every frame.
 
+Phase status overlays (`AuctionPanel`, `TradeComposeOverlay`, `TradeRespondPanel`) are widgets inside `PlayScene`, not `SceneStack` scenes. They read `Match` state. Bid/Pass and Accept/Reject stay on the ActionBar. The composer is the one overlay that applies a command: it builds a `TradeOffer` and calls `Match::apply(ProposeTrade)`.
+
 ```mermaid
 flowchart TD
   inputEvt[Input] --> playScene[PlayScene]
@@ -45,6 +53,9 @@ flowchart TD
   matchApply --> gameEvents[events]
   gameEvents --> presentation[presentation]
   gameEvents --> activityLog[ActivityLog]
+  playScene --> auctionPanel[AuctionPanel]
+  playScene --> tradeCompose[TradeComposeOverlay]
+  playScene --> tradeRespond[TradeRespondPanel]
 ```
 
 ## Final play layout (1280×720)

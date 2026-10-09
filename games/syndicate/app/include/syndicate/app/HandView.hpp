@@ -20,6 +20,7 @@ namespace sgl::syndicate
 class HandView
 {
 public:
+    void setPlayableKinds(std::span<const CardKind> kinds);
     void sync(const Hand& hand, sgl::Seconds dt);
     void render(sgl::RenderQueue& queue, sgl::FontId font, const Theme& theme) const;
     [[nodiscard]] std::optional<std::size_t> hit(sgl::Vec2f pointer) const;
@@ -33,6 +34,7 @@ private:
         sgl::Tween<sgl::Vec2f> pos{};
         float alpha{1.f};
         bool leaving{false};
+        bool playable{false};
         sgl::Seconds leaveElapsed{};
     };
 
@@ -44,6 +46,7 @@ private:
     std::vector<Slot> slots_;
     std::vector<std::size_t> handOrder_;
     std::vector<sgl::Hotspot> hotspots_;
+    std::vector<CardKind> playableKinds_;
 };
 
 } // namespace sgl::syndicate

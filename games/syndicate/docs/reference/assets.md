@@ -18,12 +18,12 @@ related_docs:
   - ../../../../docs/reference/source-layout.md
   - ../explanation/ui.md
 keywords: [syndicate, atlas, SpriteBank, PNG, assets, theme, procedural fallback]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-10-09
 ---
 
 # Syndicate assets
 
-Optional raster pack for Syndicate presentation. The game is complete with **zero PNGs**: missing atlas files or missing region names fall back to procedural chrome (`MeshCmd` / shapes). Design size **1280×720**.
+Optional raster pack for Syndicate presentation. A minimal procedural `assets/syndicate/atlas.png` + `atlas.txt` ships with sector/tile/card color chips so `SpriteBank` can load in `main.cpp`; missing region names still fall back to procedural chrome (`MeshCmd` / shapes). Design size **1280×720**.
 
 ## Format rules
 
