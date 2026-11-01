@@ -1,5 +1,6 @@
 #include <asteroids/app/Bindings.hpp>
 #include <asteroids/app/Scenes.hpp>
+#include <asteroids/app/Sounds.hpp>
 #include <asteroids/app/Theme.hpp>
 #include <cstdint>
 #include <filesystem>
@@ -7,9 +8,14 @@
 #include <sgl/loop/App.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/resources/ResourceError.hpp>
+#include <sgl/save/HighScoreTable.hpp>
+#include <sgl/save/SaveFile.hpp>
+#include <sgl/save/ScoreStore.hpp>
 #include <sgl/scene/SceneStack.hpp>
+#include <sgl/sfml/SfmlAudio.hpp>
 #include <sgl/sfml/SfmlClock.hpp>
 #include <sgl/sfml/SfmlPlatform.hpp>
+#include <string_view>
 
 namespace
 {
@@ -20,6 +26,22 @@ constexpr std::uint64_t kDefaultSeed{42};
 {
     std::cerr << sgl::describe(err) << '\n';
     return 1;
+}
+
+void assignSound(sgl::asteroids::SoundIds& ids, std::string_view key, sgl::SoundId id)
+{
+    if(key == "fire")
+    {
+        ids.fire = id;
+    }
+    else if(key == "hit")
+    {
+        ids.hit = id;
+    }
+    else if(key == "die")
+    {
+        ids.die = id;
+    }
 }
 
 } // namespace
@@ -38,9 +60,33 @@ int main()
     }
     const sgl::FontId fontId = *fontLoaded;
 
+    auto& sfmlAudio = platform.audio();
+    sgl::asteroids::SoundIds sounds{};
+    for(const sgl::asteroids::SoundSpec& spec: sgl::asteroids::soundSpecs())
+    {
+        const auto uploaded = sfmlAudio.upload(spec.key, spec.pcm);
+        if(!uploaded)
+        {
+            return fail(uploaded.error());
+        }
+        assignSound(sounds, spec.key, *uploaded);
+    }
+
+    std::filesystem::path scoresPath;
+    if(const auto dir = sgl::userDataDir("asteroids"))
+    {
+        scoresPath = *dir / "asteroids.scores";
+    }
+    else
+    {
+        scoresPath = std::filesystem::temp_directory_path() / "asteroids.scores";
+    }
+    sgl::HighScoreTable highScores = sgl::ScoreStore::load(scoresPath, sgl::asteroids::kHighScoreCapacity);
+
     sgl::ActionMap map;
     const sgl::asteroids::AsteroidsActions actions = sgl::asteroids::bindAsteroids(map);
-    const sgl::asteroids::AppServices services{actions, fontId, kDefaultSeed};
+    const sgl::asteroids::AppServices services{
+        actions, fontId, kDefaultSeed, platform.audio(), sounds, scoresPath, highScores};
 
     sgl::SceneStack stack{sgl::asteroids::pause(services)};
     stack.push(sgl::asteroids::mainMenu(services)());

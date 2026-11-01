@@ -18,7 +18,7 @@ related_docs:
   - explanation/design.md
   - ../../../docs/index.md
   - ../../../docs/explanation/architecture.md
-keywords: [asteroids, docs, index, diataxis, sim, app, scenes, AsteroidsGame]
+keywords: [asteroids, docs, index, diataxis, sim, app, scenes, sounds, high scores, AsteroidsGame]
 last_reviewed: 2026-11-01
 ---
 
@@ -31,5 +31,5 @@ Asteroids on the `sgl` engine: `namespace sgl::asteroids`, targets `asteroids_si
 | Tutorials | none yet | |
 | How-to | none yet | |
 | Reference | [reference/sim.md](reference/sim.md) | AsteroidsGame, rocks, bullets, wrap, Playing, Dead, Wave |
-| Reference | [reference/app.md](reference/app.md) | bindAsteroids, scenes, PlayScene, ship triangle, SceneStack |
+| Reference | [reference/app.md](reference/app.md) | bindAsteroids, scenes, PlayScene, sounds, high scores, ship triangle, SceneStack |
 | Explanation | [explanation/design.md](explanation/design.md) | scene flow, menu, pause, game over |

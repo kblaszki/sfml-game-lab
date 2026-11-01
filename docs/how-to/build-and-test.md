@@ -89,7 +89,7 @@ Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`,
 - Tetris: `tetris_grid_test`, `tetris_srs_test`, `tetris_bag_test`, `tetris_scoring_test`, `tetris_game_test`, `tetris_property_test`, `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test`
 - Syndicate: `syndicate_money_test`, `syndicate_match_test`, `syndicate_layout_view_test`, `syndicate_play_scene_test`, `syndicate_scenes_test`, `syndicate_feedback_test`, …
 - Snake: `snake_game_test`, `snake_scenes_test`, `snake_play_scene_test`, `snake_sounds_test`, `snake_feedback_test`
-- Asteroids: `asteroids_game_test`, `asteroids_scenes_test`, `asteroids_play_scene_test`
+- Asteroids: `asteroids_game_test`, `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test`
 
 `build_ut` builds every suite registered with `add_unit_test(...)` (`cmake/AddUnitTest.cmake`). In Debug it also depends on `check_boundaries`, so building tests enforces the engine/games SFML and include-boundary rules.
 

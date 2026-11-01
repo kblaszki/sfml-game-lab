@@ -1,6 +1,8 @@
 add_library(asteroids_app STATIC
     src/Bindings.cpp
     src/InputMapping.cpp
+    src/Sounds.cpp
+    src/Feedback.cpp
     src/Scenes.cpp
     src/MainMenuScene.cpp
     src/PlayScene.cpp

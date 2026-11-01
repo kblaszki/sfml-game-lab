@@ -1,5 +1,6 @@
 #pragma once
 
+#include <asteroids/app/Feedback.hpp>
 #include <asteroids/app/Scenes.hpp>
 #include <asteroids/sim/AsteroidsGame.hpp>
 #include <sgl/scene/SceneI.hpp>
@@ -22,6 +23,7 @@ public:
 private:
     AppServices services_;
     AsteroidsGame game_;
+    Feedback feedback_;
 };
 
 } // namespace sgl::asteroids

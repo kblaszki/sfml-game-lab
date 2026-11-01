@@ -161,8 +161,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/snake/app/` | Scenes, board, sounds, feedback, and high scores (menu, play, pause, game over); `snake_app` (no SFML) |
 | `games/snake/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `snake` |
 | `games/asteroids/sim/` | Headless Asteroids (`AsteroidsGame`: ship, bullets, splitting rocks, wrap); `asteroids_sim` links `sgl_core` only |
-| `games/asteroids/app/` | Scenes and ship, rock, and bullet drawing (menu, play, pause, game over); `asteroids_app` (no SFML) |
-| `games/asteroids/main.cpp` | Wires `SfmlPlatform`, font, `SceneStack`, `sgl::App`; executable `asteroids` |
+| `games/asteroids/app/` | Scenes, ship, rock, and bullet drawing, sounds, feedback, and high scores (menu, play, pause, game over); `asteroids_app` (no SFML) |
+| `games/asteroids/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `asteroids` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -206,7 +206,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `snake_app` | STATIC | → `snake_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
 | `snake` | executable | `games/snake/main.cpp` → `snake_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `asteroids_sim` | STATIC | → `sgl_core`; `AsteroidsGame` ship, bullets, splitting rocks, wrap; no SFML |
-| `asteroids_app` | STATIC | → `asteroids_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes; no SFML |
+| `asteroids_app` | STATIC | → `asteroids_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
 | `asteroids` | executable | `games/asteroids/main.cpp` → `asteroids_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
@@ -241,7 +241,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `snake_game_test` | `tests/snake/sim/` |
 | `snake_scenes_test`, `snake_play_scene_test`, `snake_sounds_test`, `snake_feedback_test` | `tests/snake/app/` |
 | `asteroids_game_test` | `tests/asteroids/sim/` |
-| `asteroids_scenes_test`, `asteroids_play_scene_test` | `tests/asteroids/app/` |
+| `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test` | `tests/asteroids/app/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 
