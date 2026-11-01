@@ -127,7 +127,7 @@ flowchart TD
 | Syndicate | [games/syndicate/docs/index.md](../games/syndicate/docs/index.md) | design, UI, board-graph, economy, sim, cards, auction, app, assets, dice-animation, add-an-influence-card, navigate-ui-settings-help |
 | Snake | [games/snake/docs/index.md](../games/snake/docs/index.md) | sim, app |
 | Asteroids | [games/asteroids/docs/index.md](../games/asteroids/docs/index.md) | sim, app |
-| Dodger | [games/dodger/docs/index.md](../games/dodger/docs/index.md) | sim |
+| Dodger | [games/dodger/docs/index.md](../games/dodger/docs/index.md) | sim, app |
 
 ## Design notes (not Diátaxis)
 

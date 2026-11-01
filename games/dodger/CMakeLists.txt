@@ -1,1 +1,10 @@
 add_subdirectory(sim)
+add_subdirectory(app)
+
+add_executable(dodger main.cpp)
+target_compile_features(dodger PRIVATE cxx_std_23)
+target_compile_options(dodger PRIVATE ${BASE_COMPILE_FLAGS})
+target_link_libraries(dodger PRIVATE dodger_app sgl_sfml)
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/assets" ASSET_DIR_NORM)
+target_compile_definitions(dodger PRIVATE ASSET_DIR="${ASSET_DIR_NORM}")
+add_dependencies(dodger check_boundaries)
