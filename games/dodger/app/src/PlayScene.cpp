@@ -14,6 +14,7 @@ namespace sgl::dodger
 PlayScene::PlayScene(const AppServices& services)
     : services_{services}
     , game_{services.seed, services.tuning}
+    , feedback_{services.audio, services.sounds}
 {
 }
 
@@ -32,6 +33,7 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
     }
 
     const auto events = game_.step(toSimInput(input, services_.actions), dt);
+    feedback_.onEvents(events);
     for(const DodgerEvent& event: events)
     {
         if(std::holds_alternative<Died>(event))

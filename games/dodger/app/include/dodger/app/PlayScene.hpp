@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dodger/app/Feedback.hpp>
 #include <dodger/app/Scenes.hpp>
 #include <dodger/sim/DodgerGame.hpp>
 #include <sgl/scene/SceneI.hpp>
@@ -22,6 +23,7 @@ public:
 private:
     AppServices services_;
     DodgerGame game_;
+    Feedback feedback_;
 };
 
 } // namespace sgl::dodger

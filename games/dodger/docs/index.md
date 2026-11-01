@@ -18,7 +18,7 @@ related_docs:
   - explanation/design.md
   - ../../../docs/index.md
   - ../../../docs/explanation/architecture.md
-keywords: [dodger, docs, index, diataxis, sim, app, scenes, DodgerGame, hazards, paddle]
+keywords: [dodger, docs, index, diataxis, sim, app, scenes, sounds, high scores, DodgerGame, hazards, paddle]
 last_reviewed: 2026-11-01
 ---
 
@@ -31,5 +31,5 @@ Dodger on the `sgl` engine: `namespace sgl::dodger`, targets `dodger_sim`, `dodg
 | Tutorials | none yet | |
 | How-to | none yet | |
 | Reference | [reference/sim.md](reference/sim.md) | DodgerGame, paddle, hazards, HazardCleared, Died, Playing, Dead |
-| Reference | [reference/app.md](reference/app.md) | bindDodger, scenes, PlayScene, RectCmd, SceneStack |
+| Reference | [reference/app.md](reference/app.md) | bindDodger, scenes, PlayScene, sounds, high scores, RectCmd, SceneStack |
 | Explanation | [explanation/design.md](explanation/design.md) | scene flow, menu, pause, game over |

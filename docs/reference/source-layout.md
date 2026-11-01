@@ -173,8 +173,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/asteroids/app/` | Scenes, ship, rock, and bullet drawing, sounds, feedback, and high scores (menu, play, pause, game over); `asteroids_app` (no SFML) |
 | `games/asteroids/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `asteroids` |
 | `games/dodger/sim/` | Headless Dodger (`DodgerGame`: paddle, falling hazards, score, death); `dodger_sim` links `sgl_core` only |
-| `games/dodger/app/` | Scenes (menu, play, pause, game over) and paddle/hazard `RectCmd`s; `dodger_app` (no SFML) |
-| `games/dodger/main.cpp` | Wires `SfmlPlatform`, font, `SceneStack`, `sgl::App`; executable `dodger` |
+| `games/dodger/app/` | Scenes, paddle and hazard `RectCmd`s, die sound, feedback, and high scores (menu, play, pause, game over); `dodger_app` (no SFML) |
+| `games/dodger/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `dodger` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -222,7 +222,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `asteroids_app` | STATIC | → `asteroids_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
 | `asteroids` | executable | `games/asteroids/main.cpp` → `asteroids_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `dodger_sim` | STATIC | → `sgl_core`; `DodgerGame` paddle, falling hazards, score, and death; no SFML |
-| `dodger_app` | STATIC | → `dodger_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`; scenes; no SFML |
+| `dodger_app` | STATIC | → `dodger_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_audio`, `sgl_save`; scenes, die sound, feedback, high scores; no SFML |
 | `dodger` | executable | `games/dodger/main.cpp` → `dodger_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
@@ -259,7 +259,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `asteroids_game_test` | `tests/asteroids/sim/` |
 | `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test` | `tests/asteroids/app/` |
 | `dodger_game_test` | `tests/dodger/sim/` |
-| `dodger_scenes_test`, `dodger_play_scene_test` | `tests/dodger/app/` |
+| `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test` | `tests/dodger/app/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 

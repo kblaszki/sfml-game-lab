@@ -1,9 +1,14 @@
+#include <mocks/AudioSpy.hpp>
+
+#include <chrono>
 #include <dodger/app/Bindings.hpp>
 #include <dodger/app/GameOverScene.hpp>
 #include <dodger/app/PlayScene.hpp>
 #include <dodger/app/Scenes.hpp>
+#include <dodger/app/Sounds.hpp>
 #include <dodger/sim/Tuning.hpp>
 #include <dodger/sim/Types.hpp>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <sgl/core/Time.hpp>
 #include <sgl/input/InputEvent.hpp>
@@ -11,10 +16,28 @@
 #include <sgl/input/Key.hpp>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
+#include <sgl/save/HighScoreTable.hpp>
 #include <sgl/scene/SceneStack.hpp>
+#include <string>
+#include <system_error>
 
 namespace
 {
+
+sgl::dodger::SoundIds testSoundIds()
+{
+    return sgl::dodger::SoundIds{
+        .die = sgl::SoundId{.id = 1},
+    };
+}
+
+[[nodiscard]] std::filesystem::path uniqueScoresPath()
+{
+    static int seq = 0;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    return std::filesystem::temp_directory_path()
+           / ("dodger_play_" + std::to_string(stamp) + "_" + std::to_string(++seq) + ".scores");
+}
 
 struct Fixture
 {
@@ -22,14 +45,30 @@ struct Fixture
         : map{}
         , actions{sgl::dodger::bindDodger(map)}
         , font{}
-        , services{actions, font, 1}
+        , audio{}
+        , sounds{testSoundIds()}
+        , scoresPath{uniqueScoresPath()}
+        , highScores{sgl::dodger::kHighScoreCapacity}
+        , services{actions, font, 1, audio, sounds, scoresPath, highScores}
         , stack{sgl::dodger::pause(services)}
     {
+    }
+
+    ~Fixture()
+    {
+        std::error_code ec;
+        std::filesystem::remove(scoresPath, ec);
+        std::filesystem::remove(std::filesystem::path(scoresPath.native() + std::filesystem::path(".tmp").native()),
+                                ec);
     }
 
     sgl::ActionMap map;
     sgl::dodger::DodgerActions actions;
     sgl::FontId font;
+    sgl::AudioSpy audio;
+    sgl::dodger::SoundIds sounds;
+    std::filesystem::path scoresPath;
+    sgl::HighScoreTable highScores;
     sgl::dodger::AppServices services;
     sgl::SceneStack stack;
 };
@@ -118,4 +157,16 @@ TEST(PlaySceneTest, diedReachesGameOver)
     EXPECT_EQ(f.stack.size(), 1u);
     EXPECT_EQ(over->score(), 0);
     EXPECT_FALSE(over->traits().pausable);
+    EXPECT_TRUE(over->isNewRecord());
+    EXPECT_FALSE(over->saveFailed());
+
+    bool heardDie = false;
+    for(const sgl::AudioSpy::Play& played: f.audio.plays)
+    {
+        if(played.id == f.sounds.die)
+        {
+            heardDie = true;
+        }
+    }
+    EXPECT_TRUE(heardDie);
 }

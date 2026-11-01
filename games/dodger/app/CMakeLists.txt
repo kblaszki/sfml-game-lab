@@ -1,6 +1,8 @@
 add_library(dodger_app STATIC
     src/Bindings.cpp
     src/InputMapping.cpp
+    src/Sounds.cpp
+    src/Feedback.cpp
     src/Scenes.cpp
     src/MainMenuScene.cpp
     src/PlayScene.cpp
@@ -19,4 +21,6 @@ target_link_libraries(dodger_app PUBLIC
     sgl_input
     sgl_ui
     sgl_loop
+    sgl_audio
+    sgl_save
 )
