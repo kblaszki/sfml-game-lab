@@ -13,7 +13,7 @@ related_docs:
   - explanation/design.md
   - ../../../docs/index.md
   - ../../../docs/explanation/architecture.md
-keywords: [snake, docs, index, diataxis, app, scenes]
+keywords: [snake, docs, index, diataxis, app, scenes, sounds, high scores]
 last_reviewed: 2026-11-01
 ---
 
@@ -26,5 +26,5 @@ Snake on the `sgl` engine: `namespace sgl::snake`, targets `snake_sim`, `snake_a
 | Tutorials | none yet | |
 | How-to | none yet | |
 | Reference | [reference/sim.md](reference/sim.md) | SnakeGame, food, move interval, death, Playing, Dead |
-| Reference | [reference/app.md](reference/app.md) | bindSnake, scenes, PlayScene, 40px board, SceneStack |
+| Reference | [reference/app.md](reference/app.md) | bindSnake, scenes, PlayScene, sounds, high scores, 40px board, SceneStack |
 | Explanation | [explanation/design.md](explanation/design.md) | scene flow, menu, pause, game over |

@@ -1,3 +1,7 @@
+#include <mocks/AudioSpy.hpp>
+
+#include <chrono>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <sgl/core/Time.hpp>
 #include <sgl/input/InputEvent.hpp>
@@ -8,10 +12,29 @@
 #include <snake/app/GameOverScene.hpp>
 #include <snake/app/PlayScene.hpp>
 #include <snake/app/Scenes.hpp>
+#include <snake/app/Sounds.hpp>
 #include <snake/sim/Types.hpp>
+#include <string>
+#include <system_error>
 
 namespace
 {
+
+sgl::snake::SoundIds testSoundIds()
+{
+    return sgl::snake::SoundIds{
+        .eat = sgl::SoundId{.id = 1},
+        .die = sgl::SoundId{.id = 2},
+    };
+}
+
+[[nodiscard]] std::filesystem::path uniqueScoresPath()
+{
+    static int seq = 0;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    return std::filesystem::temp_directory_path()
+           / ("snake_play_" + std::to_string(stamp) + "_" + std::to_string(++seq) + ".scores");
+}
 
 struct Fixture
 {
@@ -19,14 +42,30 @@ struct Fixture
         : map{}
         , actions{sgl::snake::bindSnake(map)}
         , font{}
-        , services{actions, font, 1}
+        , audio{}
+        , sounds{testSoundIds()}
+        , scoresPath{uniqueScoresPath()}
+        , highScores{sgl::snake::kHighScoreCapacity}
+        , services{actions, font, 1, audio, sounds, scoresPath, highScores}
         , stack{sgl::snake::pause(services)}
     {
+    }
+
+    ~Fixture()
+    {
+        std::error_code ec;
+        std::filesystem::remove(scoresPath, ec);
+        std::filesystem::remove(std::filesystem::path(scoresPath.native() + std::filesystem::path(".tmp").native()),
+                                ec);
     }
 
     sgl::ActionMap map;
     sgl::snake::SnakeActions actions;
     sgl::FontId font;
+    sgl::AudioSpy audio;
+    sgl::snake::SoundIds sounds;
+    std::filesystem::path scoresPath;
+    sgl::HighScoreTable highScores;
     sgl::snake::AppServices services;
     sgl::SceneStack stack;
 };
@@ -74,4 +113,14 @@ TEST(PlaySceneTest, diesAfterRunningIntoWall)
     ASSERT_NE(over, nullptr);
     EXPECT_EQ(f.stack.size(), 1u);
     EXPECT_GE(over->score(), 0);
+
+    bool heardDie = false;
+    for(const sgl::AudioSpy::Play& play: f.audio.plays)
+    {
+        if(play.id == f.sounds.die)
+        {
+            heardDie = true;
+        }
+    }
+    EXPECT_TRUE(heardDie);
 }

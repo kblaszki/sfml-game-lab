@@ -11,3 +11,17 @@ add_unit_test(snake_play_scene_test
     DEPENDENCIES
         snake_app
 )
+
+add_unit_test(snake_sounds_test
+    SOURCES
+        SoundsTest.cpp
+    DEPENDENCIES
+        snake_app
+)
+
+add_unit_test(snake_feedback_test
+    SOURCES
+        FeedbackTest.cpp
+    DEPENDENCIES
+        snake_app
+)

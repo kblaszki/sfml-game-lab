@@ -149,8 +149,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/syndicate/app/` | Scenes (incl. `PauseMenuScene`, `HelpScene`, `ControlMap`), board UI, Describe/ActivityLog/ActionBar/HandView, TradeComposeOverlay/TradeRespondPanel, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
 | `games/syndicate/main.cpp` | Wires `SfmlPlatform`, settings/`ScaledAudio`/`setDisplay`, font/sounds/optional atlas, `SceneStack`, `sgl::App`; executable `syndicate` |
 | `games/snake/sim/` | Headless Snake (`SnakeGame`: move interval, food, wall and self death); `snake_sim` links `sgl_core` only |
-| `games/snake/app/` | Scenes and board presentation (menu, play, pause, game over); `snake_app` (no SFML) |
-| `games/snake/main.cpp` | Wires `SfmlPlatform`, font, `SceneStack`, `sgl::App`; executable `snake` |
+| `games/snake/app/` | Scenes, board, sounds, feedback, and high scores (menu, play, pause, game over); `snake_app` (no SFML) |
+| `games/snake/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `snake` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -190,7 +190,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `syndicate_app` | STATIC | → `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_anim`, `sgl_audio`, `sgl_fx`, `sgl_save`, `sgl_resources`; scenes + board UI + HandView + SpriteBank; no SFML |
 | `syndicate` | executable | `games/syndicate/main.cpp` → `syndicate_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `snake_sim` | STATIC | → `sgl_core`; `SnakeGame` move, eat, and death rules; no SFML |
-| `snake_app` | STATIC | → `snake_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`; scenes and board; no SFML |
+| `snake_app` | STATIC | → `snake_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
 | `snake` | executable | `games/snake/main.cpp` → `snake_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
@@ -223,7 +223,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test` | `tests/arkanoid/app/` |
 | `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test` | `tests/tetris/app/` |
 | `snake_game_test` | `tests/snake/sim/` |
-| `snake_scenes_test`, `snake_play_scene_test` | `tests/snake/app/` |
+| `snake_scenes_test`, `snake_play_scene_test`, `snake_sounds_test`, `snake_feedback_test` | `tests/snake/app/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 

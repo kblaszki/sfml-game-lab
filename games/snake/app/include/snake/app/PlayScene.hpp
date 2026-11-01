@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sgl/scene/SceneI.hpp>
+#include <snake/app/Feedback.hpp>
 #include <snake/app/Scenes.hpp>
 #include <snake/sim/SnakeGame.hpp>
 
@@ -22,6 +23,7 @@ public:
 private:
     AppServices services_;
     SnakeGame game_;
+    Feedback feedback_;
 };
 
 } // namespace sgl::snake

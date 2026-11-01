@@ -1,9 +1,12 @@
 #pragma once
 
+#include <cstddef>
+#include <optional>
 #include <sgl/scene/SceneI.hpp>
 #include <sgl/ui/MenuModel.hpp>
 #include <sgl/ui/MenuStyle.hpp>
 #include <snake/app/Scenes.hpp>
+#include <string>
 
 namespace sgl::snake
 {
@@ -18,10 +21,14 @@ public:
     sgl::SceneTraits traits() const override;
 
     [[nodiscard]] int score() const noexcept;
+    [[nodiscard]] bool isNewRecord() const noexcept;
+    [[nodiscard]] bool saveFailed() const noexcept;
 
 private:
     AppServices services_;
     int score_{};
+    std::optional<std::size_t> rank_{};
+    std::string saveError_{};
     sgl::MenuModel model_;
     sgl::MenuStyle style_{};
 };
