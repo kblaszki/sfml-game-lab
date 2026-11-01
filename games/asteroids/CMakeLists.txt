@@ -1,1 +1,10 @@
 add_subdirectory(sim)
+add_subdirectory(app)
+
+add_executable(asteroids main.cpp)
+target_compile_features(asteroids PRIVATE cxx_std_23)
+target_compile_options(asteroids PRIVATE ${BASE_COMPILE_FLAGS})
+target_link_libraries(asteroids PRIVATE asteroids_app sgl_sfml)
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/assets" ASSET_DIR_NORM)
+target_compile_definitions(asteroids PRIVATE ASSET_DIR="${ASSET_DIR_NORM}")
+add_dependencies(asteroids check_boundaries)
