@@ -44,6 +44,7 @@ related_code:
   - games/syndicate/app/CMakeLists.txt
   - games/snake/CMakeLists.txt
   - games/snake/sim/CMakeLists.txt
+  - games/snake/app/CMakeLists.txt
   - cmake/CheckBoundaries.cmake
   - games/arkanoid/CMakeLists.txt
   - games/arkanoid/main.cpp
@@ -73,6 +74,7 @@ related_code:
   - tests/syndicate/sim/CMakeLists.txt
   - tests/syndicate/app/CMakeLists.txt
   - tests/snake/sim/CMakeLists.txt
+  - tests/snake/app/CMakeLists.txt
   - tests/mocks/ClockMock.hpp
   - tests/mocks/PlatformMock.hpp
   - tests/mocks/RendererMock.hpp
@@ -101,6 +103,8 @@ related_docs:
   - ../../games/syndicate/docs/reference/app.md
   - ../../games/syndicate/docs/reference/assets.md
   - ../../games/snake/docs/reference/sim.md
+  - ../../games/snake/docs/reference/app.md
+  - ../../games/snake/docs/explanation/design.md
   - input-and-events.md
   - pause-overlay.md
   - ../how-to/build-and-test.md
@@ -115,7 +119,7 @@ last_reviewed: 2026-11-01
 
 # Source layout reference
 
-Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, `syndicate`, and `snake` (`namespace sgl::<game>`). `arkanoid`, `tetris`, and `syndicate` each build an executable. `snake` builds `snake_sim` only. Contract: [architecture.md](../explanation/architecture.md).
+Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, `syndicate`, and `snake` (`namespace sgl::<game>`). Each of those games builds an executable. Contract: [architecture.md](../explanation/architecture.md).
 
 ## Directories
 
@@ -145,6 +149,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/syndicate/app/` | Scenes (incl. `PauseMenuScene`, `HelpScene`, `ControlMap`), board UI, Describe/ActivityLog/ActionBar/HandView, TradeComposeOverlay/TradeRespondPanel, MarketHistory/TrendChart/PathHighlighter, DiceAnimator/Presentation/PawnAnimator, SpriteBank, sounds, feedback, high scores; `syndicate_app` (no SFML) |
 | `games/syndicate/main.cpp` | Wires `SfmlPlatform`, settings/`ScaledAudio`/`setDisplay`, font/sounds/optional atlas, `SceneStack`, `sgl::App`; executable `syndicate` |
 | `games/snake/sim/` | Headless Snake (`SnakeGame`: move interval, food, wall and self death); `snake_sim` links `sgl_core` only |
+| `games/snake/app/` | Scenes and board presentation (menu, play, pause, game over); `snake_app` (no SFML) |
+| `games/snake/main.cpp` | Wires `SfmlPlatform`, font, `SceneStack`, `sgl::App`; executable `snake` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -152,10 +158,10 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `tests/arkanoid/` | Sim and app suites (Debug only) |
 | `tests/tetris/` | Sim and app suites (Debug only) |
 | `tests/syndicate/` | Sim and app suites (Debug only) |
-| `tests/snake/` | Sim suites (Debug only) |
+| `tests/snake/` | Sim and app suites (Debug only) |
 | `tests/mocks/` | `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy` (engine ports) |
 
-Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/<sim|app>/X.hpp>`, `<snake/sim/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
+Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/<sim|app>/X.hpp>`, `<snake/<sim|app>/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
 
 ## Build targets
 
@@ -184,6 +190,8 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `syndicate_app` | STATIC | → `syndicate_sim`, `sgl_render`, `sgl_scene`, `sgl_core`, `sgl_input`, `sgl_ui`, `sgl_anim`, `sgl_audio`, `sgl_fx`, `sgl_save`, `sgl_resources`; scenes + board UI + HandView + SpriteBank; no SFML |
 | `syndicate` | executable | `games/syndicate/main.cpp` → `syndicate_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `snake_sim` | STATIC | → `sgl_core`; `SnakeGame` move, eat, and death rules; no SFML |
+| `snake_app` | STATIC | → `snake_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`; scenes and board; no SFML |
+| `snake` | executable | `games/snake/main.cpp` → `snake_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
 
@@ -215,6 +223,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test` | `tests/arkanoid/app/` |
 | `tetris_input_mapping_test`, `tetris_board_render_test`, `tetris_hud_test`, `tetris_scenes_test`, `tetris_sounds_test`, `tetris_feedback_test` | `tests/tetris/app/` |
 | `snake_game_test` | `tests/snake/sim/` |
+| `snake_scenes_test`, `snake_play_scene_test` | `tests/snake/app/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 

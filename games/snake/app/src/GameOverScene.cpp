@@ -1,0 +1,129 @@
+#include <sgl/render/DrawCommand.hpp>
+#include <sgl/render/RenderQueue.hpp>
+#include <sgl/scene/SceneContext.hpp>
+#include <sgl/ui/Button.hpp>
+#include <sgl/ui/RenderMenu.hpp>
+#include <snake/app/GameOverScene.hpp>
+#include <snake/app/Theme.hpp>
+#include <string>
+#include <vector>
+
+namespace sgl::snake
+{
+namespace
+{
+
+constexpr sgl::Vec2f kButtonSize{360.f, 64.f};
+constexpr float kMenuY{420.f};
+constexpr float kQuitY{500.f};
+
+[[nodiscard]] sgl::Rect<float> centeredButton(float y)
+{
+    return sgl::Rect<float>{
+        .pos = {(designWidth - kButtonSize.x) * 0.5f, y},
+        .size = kButtonSize,
+    };
+}
+
+[[nodiscard]] std::vector<sgl::Button> makeButtons()
+{
+    return {
+        sgl::Button{.rect = centeredButton(kMenuY), .label = "Menu"},
+        sgl::Button{.rect = centeredButton(kQuitY), .label = "Quit"},
+    };
+}
+
+[[nodiscard]] sgl::MenuStyle makeStyle(sgl::FontId font)
+{
+    return sgl::MenuStyle{
+        .font = font,
+        .textSize = 26,
+        .idle = menuButton,
+        .focused = menuButtonFocus,
+        .text = menuLabel,
+        .panel = panelBox,
+        .cornerRadius = 0.f,
+        .bodyFont = font,
+    };
+}
+
+} // namespace
+
+GameOverScene::GameOverScene(const AppServices& services, int score)
+    : services_{services}
+    , score_{score}
+    , model_{makeButtons()}
+    , style_{makeStyle(services.font)}
+{
+}
+
+int GameOverScene::score() const noexcept
+{
+    return score_;
+}
+
+void GameOverScene::update(sgl::SceneContext& ctx, sgl::Seconds)
+{
+    const sgl::MenuActions actions = menuActions(services_.actions);
+    if(const auto activated = model_.update(ctx.input(), actions))
+    {
+        if(*activated == 0)
+        {
+            ctx.request(sgl::ReplaceScene{mainMenu(services_)});
+        }
+        else
+        {
+            ctx.request(sgl::QuitApp{});
+        }
+        return;
+    }
+
+    if(model_.cancelled())
+    {
+        ctx.request(sgl::ReplaceScene{mainMenu(services_)});
+    }
+}
+
+void GameOverScene::render(sgl::RenderQueue& queue) const
+{
+    queue.push(sgl::Layer::Background,
+               0.f,
+               sgl::RectCmd{
+                   .rect = {.pos = {0.f, 0.f}, .size = {designWidth, designHeight}},
+                   .fill = gridFill,
+               });
+    queue.push(sgl::Layer::Overlay,
+               1.f,
+               sgl::RectCmd{
+                   .rect = {.pos = {340.f, 160.f}, .size = {600.f, 220.f}},
+                   .fill = panelBox,
+               });
+    queue.push(sgl::Layer::Overlay,
+               2.f,
+               sgl::TextCmd{
+                   .font = services_.font,
+                   .text = "Game Over",
+                   .size = 42,
+                   .position = {designWidth * 0.5f, 220.f},
+                   .color = titleGreen,
+                   .anchor = sgl::Anchor::Center,
+               });
+    queue.push(sgl::Layer::Overlay,
+               3.f,
+               sgl::TextCmd{
+                   .font = services_.font,
+                   .text = "Score " + std::to_string(score_),
+                   .size = 28,
+                   .position = {designWidth * 0.5f, 280.f},
+                   .color = hudText,
+                   .anchor = sgl::Anchor::Center,
+               });
+    sgl::renderMenu(queue, model_, style_, sgl::Layer::Overlay);
+}
+
+sgl::SceneTraits GameOverScene::traits() const
+{
+    return sgl::SceneTraits{.opaque = true, .blocksUpdate = true, .pausable = false};
+}
+
+} // namespace sgl::snake

@@ -1,1 +1,10 @@
 add_subdirectory(sim)
+add_subdirectory(app)
+
+add_executable(snake main.cpp)
+target_compile_features(snake PRIVATE cxx_std_23)
+target_compile_options(snake PRIVATE ${BASE_COMPILE_FLAGS})
+target_link_libraries(snake PRIVATE snake_app sgl_sfml)
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/assets" ASSET_DIR_NORM)
+target_compile_definitions(snake PRIVATE ASSET_DIR="${ASSET_DIR_NORM}")
+add_dependencies(snake check_boundaries)
