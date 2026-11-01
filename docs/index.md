@@ -38,10 +38,11 @@ related_docs:
   - ../games/arkanoid/docs/index.md
   - ../games/tetris/docs/index.md
   - ../games/syndicate/docs/index.md
+  - ../games/snake/docs/index.md
   - ../mvp/README.md
   - ../mvp/10-engine-progress.md
 keywords: [documentation, diataxis, index, map, navigation, docs, games]
-last_reviewed: 2026-09-29
+last_reviewed: 2026-11-01
 ---
 
 # Documentation map
@@ -122,6 +123,7 @@ flowchart TD
 | Arkanoid | [games/arkanoid/docs/index.md](../games/arkanoid/docs/index.md) | sim, app, physics-and-states, add-stage-or-powerup |
 | Tetris | [games/tetris/docs/index.md](../games/tetris/docs/index.md) | sim, app |
 | Syndicate | [games/syndicate/docs/index.md](../games/syndicate/docs/index.md) | design, UI, board-graph, economy, sim, cards, auction, app, assets, dice-animation, add-an-influence-card, navigate-ui-settings-help |
+| Snake | [games/snake/docs/index.md](../games/snake/docs/index.md) | sim |
 
 ## Design notes (not Diátaxis)
 

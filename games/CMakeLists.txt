@@ -1,3 +1,4 @@
 add_subdirectory(arkanoid)
 add_subdirectory(tetris)
 add_subdirectory(syndicate)
+add_subdirectory(snake)
