@@ -1,1 +1,10 @@
 add_subdirectory(sim)
+add_subdirectory(app)
+
+add_executable(tower main.cpp)
+target_compile_features(tower PRIVATE cxx_std_23)
+target_compile_options(tower PRIVATE ${BASE_COMPILE_FLAGS})
+target_link_libraries(tower PRIVATE tower_app sgl_sfml)
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/assets" ASSET_DIR_NORM)
+target_compile_definitions(tower PRIVATE ASSET_DIR="${ASSET_DIR_NORM}")
+add_dependencies(tower check_boundaries)

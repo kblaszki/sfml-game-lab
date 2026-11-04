@@ -129,7 +129,7 @@ flowchart TD
 | Snake | [games/snake/docs/index.md](../games/snake/docs/index.md) | sim, app |
 | Asteroids | [games/asteroids/docs/index.md](../games/asteroids/docs/index.md) | sim, app, assets |
 | Dodger | [games/dodger/docs/index.md](../games/dodger/docs/index.md) | sim, app |
-| Tower | [games/tower/docs/index.md](../games/tower/docs/index.md) | sim |
+| Tower | [games/tower/docs/index.md](../games/tower/docs/index.md) | sim, app |
 
 ## Design notes (not Diátaxis)
 

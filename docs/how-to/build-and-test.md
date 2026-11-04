@@ -82,7 +82,7 @@ gcovr --root . --filter 'engine/.*' --exclude 'engine/sfml/.*' --filter 'games/.
 
 On Windows, install `gcovr` with the system Python (`py -m pip install gcovr`), not inside MSYS2. Run it as `py -m gcovr` with the same flags when the `gcovr` command is not on `PATH`. `gcov` on `PATH` must be the MinGW one that built the preset (`C:\msys64\mingw64\bin`). HTML lands in `build/coverage/html/index.html`.
 
-Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`):
+Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/`):
 
 - Engine: `vec_test`, `rect_test`, `handle_test`, `image_test`, `random_test`, `input_state_test`, `scene_stack_test`, `fixed_step_loop_test`, `app_test`, `render_queue_test`, `projection_test`, `collision_test`, `resource_cache_test`, `tone_test`, `particle_system_test`, save suites, `event_translate_test`, …
 - Arkanoid: `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test`, `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test`
@@ -91,6 +91,7 @@ Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`,
 - Snake: `snake_game_test`, `snake_scenes_test`, `snake_play_scene_test`, `snake_sounds_test`, `snake_feedback_test`
 - Asteroids: `asteroids_game_test`, `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test`, `asteroids_sprite_bank_test`
 - Dodger: `dodger_game_test`, `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test`
+- Tower: `tower_game_test`, `tower_scenes_test`, `tower_play_scene_test`
 
 `build_ut` builds every suite registered with `add_unit_test(...)` (`cmake/AddUnitTest.cmake`). In Debug it also depends on `check_boundaries`, so building tests enforces the engine/games SFML and include-boundary rules.
 
