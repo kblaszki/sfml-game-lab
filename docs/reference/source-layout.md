@@ -119,6 +119,7 @@ related_docs:
   - ../../games/snake/docs/explanation/design.md
   - ../../games/asteroids/docs/reference/sim.md
   - ../../games/asteroids/docs/reference/app.md
+  - ../../games/asteroids/docs/reference/assets.md
   - ../../games/asteroids/docs/explanation/design.md
   - ../../games/dodger/docs/reference/sim.md
   - ../../games/dodger/docs/reference/app.md
@@ -132,7 +133,7 @@ related_docs:
   - ../../games/syndicate/docs/explanation/ui.md
   - ../../mvp/10-engine-progress.md
 keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, snake, asteroids, dodger, targets, cmake, SceneStack, App, SfmlPlatform]
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-04
 ---
 
 # Source layout reference
@@ -145,6 +146,7 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 |------|----------------|
 | `scripts/` | Host setup helpers (e.g. `install-deps-ubuntu.sh` for apt toolchain + SFML `-dev`) |
 | `assets/syndicate/` | Optional atlas (`atlas.png` + `atlas.txt`) for `SpriteBank` |
+| `assets/asteroids/` | Optional atlas (`atlas.png` + `atlas.txt`, Kenney CC0 subset) for Asteroids `SpriteBank` |
 | `engine/core/` | Header-only value types (`Vec2`, `Rect`, `Handle`, `Image`, `Pcg32`, `Overloaded`); target `sgl_core` |
 | `engine/input/` | `InputEvent`, `ActionMap`, `InputState`; target `sgl_input` |
 | `engine/scene/` | `SceneI`, `SceneStack`, `SceneRequest`, `SceneTraits`; target `sgl_scene` |
@@ -170,8 +172,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/snake/app/` | Scenes, board, sounds, feedback, and high scores (menu, play, pause, game over); `snake_app` (no SFML) |
 | `games/snake/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `snake` |
 | `games/asteroids/sim/` | Headless Asteroids (`AsteroidsGame`: ship, bullets, splitting rocks, wrap); `asteroids_sim` links `sgl_core` only |
-| `games/asteroids/app/` | Scenes, ship, rock, and bullet drawing, sounds, feedback, and high scores (menu, play, pause, game over); `asteroids_app` (no SFML) |
-| `games/asteroids/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `asteroids` |
+| `games/asteroids/app/` | Scenes, SpriteBank, ship/rock/bullet drawing (sprites or procedural), sounds, feedback, and high scores; `asteroids_app` (no SFML) |
+| `games/asteroids/main.cpp` | Wires `SfmlPlatform`, font, optional atlas, sounds, high scores, `SceneStack`, `sgl::App`; executable `asteroids` |
 | `games/dodger/sim/` | Headless Dodger (`DodgerGame`: paddle, falling hazards, score, death); `dodger_sim` links `sgl_core` only |
 | `games/dodger/app/` | Scenes, paddle and hazard `RectCmd`s, die sound, feedback, and high scores (menu, play, pause, game over); `dodger_app` (no SFML) |
 | `games/dodger/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `dodger` |
@@ -257,7 +259,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `snake_game_test` | `tests/snake/sim/` |
 | `snake_scenes_test`, `snake_play_scene_test`, `snake_sounds_test`, `snake_feedback_test` | `tests/snake/app/` |
 | `asteroids_game_test` | `tests/asteroids/sim/` |
-| `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test` | `tests/asteroids/app/` |
+| `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test`, `asteroids_sprite_bank_test` | `tests/asteroids/app/` |
 | `dodger_game_test` | `tests/dodger/sim/` |
 | `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test` | `tests/dodger/app/` |
 

@@ -1,12 +1,14 @@
 #include <asteroids/app/Bindings.hpp>
 #include <asteroids/app/Scenes.hpp>
 #include <asteroids/app/Sounds.hpp>
+#include <asteroids/app/SpriteBank.hpp>
 #include <asteroids/app/Theme.hpp>
 #include <cstdint>
 #include <filesystem>
 #include <iostream>
 #include <sgl/loop/App.hpp>
 #include <sgl/render/RenderQueue.hpp>
+#include <sgl/resources/Atlas.hpp>
 #include <sgl/resources/ResourceError.hpp>
 #include <sgl/save/HighScoreTable.hpp>
 #include <sgl/save/SaveFile.hpp>
@@ -83,10 +85,27 @@ int main()
     }
     sgl::HighScoreTable highScores = sgl::ScoreStore::load(scoresPath, sgl::asteroids::kHighScoreCapacity);
 
+    const auto atlasPng = std::filesystem::path{ASSET_DIR} / "asteroids" / "atlas.png";
+    const auto atlasTxt = std::filesystem::path{ASSET_DIR} / "asteroids" / "atlas.txt";
+    sgl::asteroids::SpriteBank sprites{};
+    if(std::filesystem::exists(atlasPng) && std::filesystem::exists(atlasTxt))
+    {
+        if(const auto text = sgl::readTextFile(atlasTxt))
+        {
+            if(const auto manifest = sgl::parseAtlas(*text))
+            {
+                if(const auto id = platform.assets().textureFile("asteroids/atlas", atlasPng, true))
+                {
+                    sprites = sgl::asteroids::SpriteBank{*id, *manifest};
+                }
+            }
+        }
+    }
+
     sgl::ActionMap map;
     const sgl::asteroids::AsteroidsActions actions = sgl::asteroids::bindAsteroids(map);
     const sgl::asteroids::AppServices services{
-        actions, fontId, kDefaultSeed, platform.audio(), sounds, scoresPath, highScores};
+        actions, fontId, kDefaultSeed, platform.audio(), sounds, scoresPath, highScores, {}, std::move(sprites)};
 
     sgl::SceneStack stack{sgl::asteroids::pause(services)};
     stack.push(sgl::asteroids::mainMenu(services)());

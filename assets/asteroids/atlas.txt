@@ -1,0 +1,6 @@
+bg/space 0 0 1280 720
+ship/player 2 722 99 75
+rock/large 103 722 101 84
+rock/medium 206 722 43 43
+rock/small 251 722 28 28
+bullet 281 722 48 46

@@ -25,3 +25,10 @@ add_unit_test(asteroids_feedback_test
     DEPENDENCIES
         asteroids_app
 )
+
+add_unit_test(asteroids_sprite_bank_test
+    SOURCES
+        SpriteBankTest.cpp
+    DEPENDENCIES
+        asteroids_app
+)

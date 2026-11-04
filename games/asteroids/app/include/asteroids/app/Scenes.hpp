@@ -2,6 +2,7 @@
 
 #include <asteroids/app/Bindings.hpp>
 #include <asteroids/app/Sounds.hpp>
+#include <asteroids/app/SpriteBank.hpp>
 #include <asteroids/sim/Tuning.hpp>
 #include <cstddef>
 #include <cstdint>
@@ -17,6 +18,7 @@ namespace sgl::asteroids
 inline constexpr std::size_t kHighScoreCapacity{5};
 
 // References are owned by main() for the whole App::run(); scenes must not outlive that.
+// SpriteBank is a value (empty when atlas files are missing).
 struct AppServices
 {
     const AsteroidsActions& actions;
@@ -27,6 +29,7 @@ struct AppServices
     std::filesystem::path scoresPath{};
     sgl::HighScoreTable& highScores;
     Tuning tuning{};
+    SpriteBank sprites{};
 };
 
 [[nodiscard]] sgl::SceneFactory mainMenu(const AppServices& services);

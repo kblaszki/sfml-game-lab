@@ -44,7 +44,7 @@ related_docs:
   - ../mvp/README.md
   - ../mvp/10-engine-progress.md
 keywords: [documentation, diataxis, index, map, navigation, docs, games]
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-04
 ---
 
 # Documentation map
@@ -126,7 +126,7 @@ flowchart TD
 | Tetris | [games/tetris/docs/index.md](../games/tetris/docs/index.md) | sim, app |
 | Syndicate | [games/syndicate/docs/index.md](../games/syndicate/docs/index.md) | design, UI, board-graph, economy, sim, cards, auction, app, assets, dice-animation, add-an-influence-card, navigate-ui-settings-help |
 | Snake | [games/snake/docs/index.md](../games/snake/docs/index.md) | sim, app |
-| Asteroids | [games/asteroids/docs/index.md](../games/asteroids/docs/index.md) | sim, app |
+| Asteroids | [games/asteroids/docs/index.md](../games/asteroids/docs/index.md) | sim, app, assets |
 | Dodger | [games/dodger/docs/index.md](../games/dodger/docs/index.md) | sim, app |
 
 ## Design notes (not Diátaxis)
