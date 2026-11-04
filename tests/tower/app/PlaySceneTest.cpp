@@ -1,3 +1,7 @@
+#include <mocks/AudioSpy.hpp>
+
+#include <chrono>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <sgl/core/Time.hpp>
 #include <sgl/input/InputEvent.hpp>
@@ -5,17 +9,38 @@
 #include <sgl/input/Key.hpp>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
+#include <sgl/resources/Atlas.hpp>
 #include <sgl/scene/SceneStack.hpp>
+#include <system_error>
 #include <tower/app/Bindings.hpp>
 #include <tower/app/GameOverScene.hpp>
 #include <tower/app/PlayScene.hpp>
 #include <tower/app/Scenes.hpp>
+#include <tower/app/Sounds.hpp>
 #include <tower/sim/Tuning.hpp>
 #include <tower/sim/Types.hpp>
 #include <variant>
+#include <vector>
 
 namespace
 {
+
+sgl::tower::SoundIds testSoundIds()
+{
+    return sgl::tower::SoundIds{
+        .jump = sgl::SoundId{.id = 1},
+        .land = sgl::SoundId{.id = 2},
+        .die = sgl::SoundId{.id = 3},
+    };
+}
+
+[[nodiscard]] std::filesystem::path uniqueScoresPath()
+{
+    static int seq = 0;
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    return std::filesystem::temp_directory_path()
+           / ("tower_play_" + std::to_string(stamp) + "_" + std::to_string(++seq) + ".scores");
+}
 
 struct Fixture
 {
@@ -23,14 +48,28 @@ struct Fixture
         : map{}
         , actions{sgl::tower::bindTower(map)}
         , font{}
-        , services{actions, font, 1}
+        , audio{}
+        , sounds{testSoundIds()}
+        , scoresPath{uniqueScoresPath()}
+        , highScores{sgl::tower::kHighScoreCapacity}
+        , services{actions, font, 1, audio, sounds, scoresPath, highScores}
         , stack{sgl::tower::pause(services)}
     {
+    }
+
+    ~Fixture()
+    {
+        std::error_code ec;
+        std::filesystem::remove(scoresPath, ec);
     }
 
     sgl::ActionMap map;
     sgl::tower::TowerActions actions;
     sgl::FontId font;
+    sgl::AudioSpy audio;
+    sgl::tower::SoundIds sounds;
+    std::filesystem::path scoresPath;
+    sgl::HighScoreTable highScores;
     sgl::tower::AppServices services;
     sgl::SceneStack stack;
 };
@@ -119,6 +158,8 @@ TEST(PlaySceneTest, rightIsHeldAndJumpIsPressedEdge)
 
     EXPECT_GT(play->game().player().pos.x, originX);
     EXPECT_FALSE(play->game().player().grounded);
+    ASSERT_FALSE(f.audio.plays.empty());
+    EXPECT_EQ(f.audio.plays.front().id, f.sounds.jump);
 
     input.beginFrame();
     bool landed = false;
@@ -132,6 +173,15 @@ TEST(PlaySceneTest, rightIsHeldAndJumpIsPressedEdge)
         }
     }
     ASSERT_TRUE(landed);
+    bool heardLand = false;
+    for(const sgl::AudioSpy::Play& playSound: f.audio.plays)
+    {
+        if(playSound.id == f.sounds.land)
+        {
+            heardLand = true;
+        }
+    }
+    EXPECT_TRUE(heardLand);
 
     f.stack.update(input, sgl::kTick);
     EXPECT_TRUE(play->game().player().grounded);
@@ -172,4 +222,96 @@ TEST(PlaySceneTest, diedReachesGameOver)
     EXPECT_EQ(f.stack.size(), 1u);
     EXPECT_EQ(over->score(), 0);
     EXPECT_FALSE(over->traits().pausable);
+    bool heardDie = false;
+    for(const sgl::AudioSpy::Play& playSound: f.audio.plays)
+    {
+        if(playSound.id == f.sounds.die)
+        {
+            heardDie = true;
+        }
+    }
+    EXPECT_TRUE(heardDie);
+}
+
+sgl::tower::SpriteBank testSprites()
+{
+    sgl::AtlasManifest manifest{std::vector<sgl::AtlasEntry>{
+        sgl::AtlasEntry{.name = "bg/sky", .rect = sgl::AtlasRect{.x = 0, .y = 0, .w = 32, .h = 32}},
+        sgl::AtlasEntry{.name = "player/idle", .rect = sgl::AtlasRect{.x = 0, .y = 32, .w = 10, .h = 14}},
+        sgl::AtlasEntry{.name = "player/jump", .rect = sgl::AtlasRect{.x = 10, .y = 32, .w = 10, .h = 14}},
+        sgl::AtlasEntry{.name = "plat/ice", .rect = sgl::AtlasRect{.x = 20, .y = 32, .w = 8, .h = 8}},
+    }};
+    return sgl::tower::SpriteBank{sgl::TextureId{7}, std::move(manifest)};
+}
+
+TEST(PlaySceneTest, spritesReplaceRectsWhenRegionsExist)
+{
+    Fixture f;
+    f.services.sprites = testSprites();
+    f.stack.push(sgl::tower::play(f.services)());
+    auto* play = dynamic_cast<sgl::tower::PlayScene*>(f.stack.top());
+    ASSERT_NE(play, nullptr);
+
+    const sgl::tower::PlayerView player = play->game().player();
+    const sgl::Rect<float> playerRect = screenRect(player.pos, player.size, play->game().cameraBottom());
+
+    sgl::RenderQueue queue;
+    play->render(queue);
+
+    int sprites = 0;
+    EXPECT_EQ(countRect(queue, playerRect), 0);
+    for(const sgl::Entry& entry: queue.sorted())
+    {
+        if(std::holds_alternative<sgl::SpriteCmd>(entry.command))
+        {
+            ++sprites;
+        }
+    }
+    EXPECT_GE(sprites, 3);
+}
+
+TEST(PlaySceneTest, leftFacingFlipsPlayerSprite)
+{
+    Fixture f;
+    f.services.tuning.startPlatformW = sgl::tower::kWorldW;
+    f.services.tuning.iceFriction = 0.f;
+    f.services.sprites = testSprites();
+    f.stack.push(sgl::tower::play(f.services)());
+    auto* play = dynamic_cast<sgl::tower::PlayScene*>(f.stack.top());
+    ASSERT_NE(play, nullptr);
+
+    sgl::InputState input;
+    input.apply(sgl::KeyDown{.key = sgl::Key::Left}, f.map);
+    for(int i = 0; i < 5; ++i)
+    {
+        f.stack.update(input, sgl::kTick);
+        input.beginFrame();
+    }
+    ASSERT_LT(play->game().player().vel.x, 0.f);
+    ASSERT_TRUE(play->game().player().grounded);
+
+    const sgl::tower::PlayerView player = play->game().player();
+    const sgl::Rect<float> playerRect = screenRect(player.pos, player.size, play->game().cameraBottom());
+    const auto idle =
+        f.services.sprites.sprite("player/idle", playerRect.pos, playerRect.size, sgl::Color{255, 255, 255, 255});
+    ASSERT_TRUE(idle.has_value());
+    const float destW = idle->source.size.x * idle->scale.x;
+
+    sgl::RenderQueue queue;
+    play->render(queue);
+    const sgl::SpriteCmd* drawn = nullptr;
+    for(const sgl::Entry& entry: queue.sorted())
+    {
+        if(const auto* sprite = std::get_if<sgl::SpriteCmd>(&entry.command))
+        {
+            if(sprite->source.pos.x == idle->source.pos.x && sprite->source.size.x == idle->source.size.x)
+            {
+                drawn = sprite;
+            }
+        }
+    }
+    ASSERT_NE(drawn, nullptr);
+    EXPECT_FLOAT_EQ(drawn->scale.x, -idle->scale.x);
+    EXPECT_FLOAT_EQ(drawn->position.x, playerRect.pos.x + destW);
+    EXPECT_FLOAT_EQ(drawn->position.y, playerRect.pos.y);
 }

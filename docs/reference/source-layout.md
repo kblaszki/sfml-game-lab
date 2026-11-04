@@ -132,6 +132,7 @@ related_docs:
   - ../../games/dodger/docs/explanation/design.md
   - ../../games/tower/docs/reference/sim.md
   - ../../games/tower/docs/reference/app.md
+  - ../../games/tower/docs/reference/assets.md
   - ../../games/tower/docs/explanation/design.md
   - input-and-events.md
   - pause-overlay.md
@@ -156,6 +157,7 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `scripts/` | Host setup helpers (e.g. `install-deps-ubuntu.sh` for apt toolchain + SFML `-dev`) |
 | `assets/syndicate/` | Optional atlas (`atlas.png` + `atlas.txt`) for `SpriteBank` |
 | `assets/asteroids/` | Optional atlas (`atlas.png` + `atlas.txt`, Kenney CC0 subset) for Asteroids `SpriteBank` |
+| `assets/tower/` | Optional atlas (`atlas.png` + `atlas.txt`, Kenney CC0 subset) for Tower `SpriteBank` |
 | `engine/core/` | Header-only value types (`Vec2`, `Rect`, `Handle`, `Image`, `Pcg32`, `Overloaded`); target `sgl_core` |
 | `engine/input/` | `InputEvent`, `ActionMap`, `InputState`; target `sgl_input` |
 | `engine/scene/` | `SceneI`, `SceneStack`, `SceneRequest`, `SceneTraits`; target `sgl_scene` |
@@ -187,8 +189,8 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/dodger/app/` | Scenes, paddle and hazard `RectCmd`s, die sound, feedback, and high scores (menu, play, pause, game over); `dodger_app` (no SFML) |
 | `games/dodger/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `dodger` |
 | `games/tower/sim/` | Headless Tower (`TowerGame`: jump, ice run, one-way platforms, rising camera, score, death); `tower_sim` links `sgl_core` only |
-| `games/tower/app/` | Scenes and platform/player `RectCmd`s with sim +Y flipped into the view (menu, play, pause, game over); `tower_app` (no SFML) |
-| `games/tower/main.cpp` | Wires `SfmlPlatform`, font, `SceneStack`, `sgl::App`; executable `tower` |
+| `games/tower/app/` | Scenes, SpriteBank (sprites or platform/player `RectCmd`s), sounds, feedback, and high scores; sim +Y flipped into the view; `tower_app` (no SFML) |
+| `games/tower/main.cpp` | Wires `SfmlPlatform`, font, optional atlas, sounds, high scores, `SceneStack`, `sgl::App`; executable `tower` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -240,7 +242,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `dodger_app` | STATIC | → `dodger_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_audio`, `sgl_save`; scenes, die sound, feedback, high scores; no SFML |
 | `dodger` | executable | `games/dodger/main.cpp` → `dodger_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `tower_sim` | STATIC | → `sgl_core`; `TowerGame` jump, ice friction, one-way platforms, rising camera; no SFML |
-| `tower_app` | STATIC | → `tower_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`; scenes; no SFML |
+| `tower_app` | STATIC | → `tower_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
 | `tower` | executable | `games/tower/main.cpp` → `tower_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
@@ -279,7 +281,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `dodger_game_test` | `tests/dodger/sim/` |
 | `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test` | `tests/dodger/app/` |
 | `tower_game_test` | `tests/tower/sim/` |
-| `tower_scenes_test`, `tower_play_scene_test` | `tests/tower/app/` |
+| `tower_scenes_test`, `tower_play_scene_test`, `tower_sounds_test`, `tower_feedback_test`, `tower_sprite_bank_test` | `tests/tower/app/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 

@@ -1,6 +1,9 @@
 add_library(tower_app STATIC
     src/Bindings.cpp
     src/InputMapping.cpp
+    src/Sounds.cpp
+    src/Feedback.cpp
+    src/SpriteBank.cpp
     src/Scenes.cpp
     src/MainMenuScene.cpp
     src/PlayScene.cpp
@@ -19,4 +22,7 @@ target_link_libraries(tower_app PUBLIC
     sgl_input
     sgl_ui
     sgl_loop
+    sgl_resources
+    sgl_audio
+    sgl_save
 )

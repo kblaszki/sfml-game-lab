@@ -1,0 +1,5 @@
+# Tower atlas. Kenney CC0. See ATTRIBUTION.md.
+bg/sky 0 0 1280 720
+player/idle 2 722 120 201
+player/jump 124 722 150 181
+plat/ice 276 722 70 70

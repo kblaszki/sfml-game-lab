@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sgl/scene/SceneI.hpp>
+#include <tower/app/Feedback.hpp>
 #include <tower/app/Scenes.hpp>
 #include <tower/sim/TowerGame.hpp>
 
@@ -22,6 +23,7 @@ public:
 private:
     AppServices services_;
     TowerGame game_;
+    Feedback feedback_;
 };
 
 } // namespace sgl::tower

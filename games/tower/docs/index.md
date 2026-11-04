@@ -15,10 +15,11 @@ related_code:
 related_docs:
   - reference/sim.md
   - reference/app.md
+  - reference/assets.md
   - explanation/design.md
   - ../../../docs/index.md
   - ../../../docs/explanation/architecture.md
-keywords: [tower, docs, index, diataxis, sim, app, TowerGame, platforms, camera, Landed, Died, scenes]
+keywords: [tower, docs, index, diataxis, sim, app, TowerGame, platforms, camera, Landed, Died, scenes, sounds, high scores, assets, SpriteBank]
 last_reviewed: 2026-11-04
 ---
 
@@ -31,5 +32,6 @@ Tower on the `sgl` engine: `namespace sgl::tower`, targets `tower_sim`, `tower_a
 | Tutorials | none yet | |
 | How-to | none yet | |
 | Reference | [reference/sim.md](reference/sim.md) | TowerGame, platforms, Landed, Died, camera, Playing, Dead |
-| Reference | [reference/app.md](reference/app.md) | bindTower, scenes, PlayScene, RectCmd, screenY, SceneStack |
-| Explanation | [explanation/design.md](explanation/design.md) | scene flow, menu, pause, game over |
+| Reference | [reference/app.md](reference/app.md) | bindTower, scenes, PlayScene, sounds, high scores, SpriteBank, screenY, SceneStack |
+| Reference | [reference/assets.md](reference/assets.md) | atlas, Kenney CC0, procedural fallback |
+| Explanation | [explanation/design.md](explanation/design.md) | scene flow, menu, pause, game over, sounds |
