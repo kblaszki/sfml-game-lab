@@ -53,6 +53,8 @@ related_code:
   - games/dodger/sim/CMakeLists.txt
   - games/dodger/app/CMakeLists.txt
   - games/dodger/main.cpp
+  - games/tower/CMakeLists.txt
+  - games/tower/sim/CMakeLists.txt
   - cmake/CheckBoundaries.cmake
   - games/arkanoid/CMakeLists.txt
   - games/arkanoid/main.cpp
@@ -87,6 +89,7 @@ related_code:
   - tests/asteroids/app/CMakeLists.txt
   - tests/dodger/sim/CMakeLists.txt
   - tests/dodger/app/CMakeLists.txt
+  - tests/tower/sim/CMakeLists.txt
   - tests/mocks/ClockMock.hpp
   - tests/mocks/PlatformMock.hpp
   - tests/mocks/RendererMock.hpp
@@ -124,6 +127,7 @@ related_docs:
   - ../../games/dodger/docs/reference/sim.md
   - ../../games/dodger/docs/reference/app.md
   - ../../games/dodger/docs/explanation/design.md
+  - ../../games/tower/docs/reference/sim.md
   - input-and-events.md
   - pause-overlay.md
   - ../how-to/build-and-test.md
@@ -132,13 +136,13 @@ related_docs:
   - ../../games/syndicate/docs/explanation/design.md
   - ../../games/syndicate/docs/explanation/ui.md
   - ../../mvp/10-engine-progress.md
-keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, snake, asteroids, dodger, targets, cmake, SceneStack, App, SfmlPlatform]
+keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, snake, asteroids, dodger, tower, targets, cmake, SceneStack, App, SfmlPlatform]
 last_reviewed: 2026-11-04
 ---
 
 # Source layout reference
 
-Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, `syndicate`, `snake`, `asteroids`, and `dodger` (`namespace sgl::<game>`). Arkanoid, Tetris, Syndicate, Snake, Asteroids, and Dodger each build an executable. Contract: [architecture.md](../explanation/architecture.md).
+Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, `syndicate`, `snake`, `asteroids`, `dodger`, and `tower` (`namespace sgl::<game>`). Arkanoid, Tetris, Syndicate, Snake, Asteroids, and Dodger each build an executable. Tower builds the headless `tower_sim` library only. Contract: [architecture.md](../explanation/architecture.md).
 
 ## Directories
 
@@ -177,6 +181,7 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/dodger/sim/` | Headless Dodger (`DodgerGame`: paddle, falling hazards, score, death); `dodger_sim` links `sgl_core` only |
 | `games/dodger/app/` | Scenes, paddle and hazard `RectCmd`s, die sound, feedback, and high scores (menu, play, pause, game over); `dodger_app` (no SFML) |
 | `games/dodger/main.cpp` | Wires `SfmlPlatform`, font, sounds, high scores, `SceneStack`, `sgl::App`; executable `dodger` |
+| `games/tower/sim/` | Headless Tower (`TowerGame`: jump, ice run, one-way platforms, rising camera, score, death); `tower_sim` links `sgl_core` only |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -187,9 +192,10 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `tests/snake/` | Sim and app suites (Debug only) |
 | `tests/asteroids/` | Sim and app suites (Debug only) |
 | `tests/dodger/` | Sim and app suites (Debug only) |
+| `tests/tower/` | Sim suites (Debug only) |
 | `tests/mocks/` | `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy` (engine ports) |
 
-Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/<sim|app>/X.hpp>`, `<snake/<sim|app>/X.hpp>`, `<asteroids/<sim|app>/X.hpp>`, `<dodger/<sim|app>/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
+Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/<sim|app>/X.hpp>`, `<snake/<sim|app>/X.hpp>`, `<asteroids/<sim|app>/X.hpp>`, `<dodger/<sim|app>/X.hpp>`, `<tower/sim/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
 
 ## Build targets
 
@@ -226,6 +232,7 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `dodger_sim` | STATIC | → `sgl_core`; `DodgerGame` paddle, falling hazards, score, and death; no SFML |
 | `dodger_app` | STATIC | → `dodger_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_audio`, `sgl_save`; scenes, die sound, feedback, high scores; no SFML |
 | `dodger` | executable | `games/dodger/main.cpp` → `dodger_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
+| `tower_sim` | STATIC | → `sgl_core`; `TowerGame` jump, ice friction, one-way platforms, rising camera; no SFML |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
 
@@ -233,7 +240,7 @@ Configure presets: `debug`, `release`, `asan` (`SGL_ENABLE_ASAN` on GCC/Clang), 
 
 ## Unit test suites (Debug)
 
-Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, and `tests/dodger/`:
+Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, and `tests/tower/`:
 
 | Suite | Leaf |
 |-------|------|
@@ -262,6 +269,7 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test`, `asteroids_sprite_bank_test` | `tests/asteroids/app/` |
 | `dodger_game_test` | `tests/dodger/sim/` |
 | `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test` | `tests/dodger/app/` |
+| `tower_game_test` | `tests/tower/sim/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 
