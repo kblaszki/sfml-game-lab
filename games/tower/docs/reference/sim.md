@@ -54,7 +54,7 @@ stateDiagram-v2
 2. Tick boost timers; advance `timeSinceLand`.
 3. If `jump` and grounded → optional edge mul on support (`EdgeJumped`), `vy = jumpSpeedEffective()` (× edge), leave ground.
 4. Horizontal accel + clamp to `runSpeedCap()`; ice friction when the step started grounded.
-5. Integrate X; if past shaft edges → clamp, reverse `vx` by `wallBounce`, emit `WallBounced`. Airborne: climb boost `wallKickBase + wallKickSpeedMul * |vx|` (× wall combo mul), refresh combo timer. Grounded: no kick.
+5. Integrate X; if past shaft edges → clamp. Only when `vx` is toward that wall: reverse `vx` by `wallBounce`, emit `WallBounced`. Airborne climb boost (and combo-timer refresh) applies only when the wall side differs from the last boosted wall (alternate left/right; reset on land). Holding into the same wall only clamps and kills inward `vx` — no kick spam. Grounded: reverse only, no kick.
 6. Gravity / Y integrate; one-way land → update combo/score, `Landed`.
 7. Player AABB vs bonuses → apply, emit `BonusPicked`.
 8. Peak/score floor; raise `cameraBottom`; spawn/cull platforms and bonuses in the shaft.
@@ -62,7 +62,7 @@ stateDiagram-v2
 
 ### Combo
 
-On `Landed`: if `timeSinceLand <= comboWindow` then `combo = min(combo+1, comboCap)`, else `combo = 1`. Add `combo * comboPoints` to `score`. Airborne wall bounce sets `timeSinceLand = 0` (keeps the chain without incrementing).
+On `Landed`: if `timeSinceLand <= comboWindow` then `combo = min(combo+1, comboCap)`, else `combo = 1`. Add `combo * comboPoints` to `score`. An airborne **climb-boost** wall hit sets `timeSinceLand = 0` (keeps the chain without incrementing).
 
 ### Spawn
 

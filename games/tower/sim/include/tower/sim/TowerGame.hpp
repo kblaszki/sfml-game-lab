@@ -49,6 +49,13 @@ private:
     [[nodiscard]] bool supported() const noexcept;
     [[nodiscard]] const PlatformView* supportPlatform() const noexcept;
 
+    enum class WallSide : std::uint8_t
+    {
+        None,
+        Left,
+        Right
+    };
+
     Tuning tuning_{};
     sgl::Pcg32 rng_;
     PlayerView player_{};
@@ -62,6 +69,7 @@ private:
     int nextBand_{1};
     int score_{0};
     int combo_{0};
+    WallSide lastBoostWall_{WallSide::None};
     bool over_{false};
 };
 

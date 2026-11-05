@@ -313,26 +313,52 @@ void TowerGame::bounceWalls(std::vector<TowerEvent>& events)
 {
     const float left = playLeft();
     const float right = playRight();
-    bool bounced = false;
+
+    WallSide hit = WallSide::None;
     if(player_.pos.x < left)
     {
         player_.pos.x = left;
-        player_.vel.x = std::abs(player_.vel.x) * tuning_.wallBounce;
-        bounced = true;
+        hit = WallSide::Left;
     }
     else if(player_.pos.x + player_.size.x > right)
     {
         player_.pos.x = right - player_.size.x;
-        player_.vel.x = -std::abs(player_.vel.x) * tuning_.wallBounce;
-        bounced = true;
+        hit = WallSide::Right;
     }
-
-    if(!bounced)
+    else
     {
         return;
     }
 
-    if(!player_.grounded)
+    const bool approaching =
+        (hit == WallSide::Left && player_.vel.x < 0.f) || (hit == WallSide::Right && player_.vel.x > 0.f);
+    if(!approaching)
+    {
+        // Pressed into the wall after a bounce: keep them inside the shaft, no kick spam.
+        if(hit == WallSide::Left)
+        {
+            player_.vel.x = std::max(0.f, player_.vel.x);
+        }
+        else
+        {
+            player_.vel.x = std::min(0.f, player_.vel.x);
+        }
+        return;
+    }
+
+    if(hit == WallSide::Left)
+    {
+        player_.vel.x = std::abs(player_.vel.x) * tuning_.wallBounce;
+    }
+    else
+    {
+        player_.vel.x = -std::abs(player_.vel.x) * tuning_.wallBounce;
+    }
+
+    // Climb boost only when alternating walls (or first wall after a land). Same-wall
+    // re-hits while holding into one side must not keep launching the player upward.
+    const bool climbBoost = !player_.grounded && lastBoostWall_ != hit;
+    if(climbBoost)
     {
         float boost = tuning_.wallKickBase + tuning_.wallKickSpeedMul * std::abs(player_.vel.x);
         if(combo_ > 0 && tuning_.wallComboMul > 0.f)
@@ -342,6 +368,7 @@ void TowerGame::bounceWalls(std::vector<TowerEvent>& events)
         }
         player_.vel.y = std::max(player_.vel.y, boost);
         timeSinceLand_ = 0.f;
+        lastBoostWall_ = hit;
     }
     events.push_back(WallBounced{});
 }
@@ -387,6 +414,7 @@ void TowerGame::onDied(std::vector<TowerEvent>& events)
 {
     over_ = true;
     combo_ = 0;
+    lastBoostWall_ = WallSide::None;
     events.push_back(Died{});
 }
 
@@ -420,6 +448,7 @@ void TowerGame::tryLand(float previousFeet, std::vector<TowerEvent>& events)
     player_.pos.y = landedTop;
     player_.vel.y = 0.f;
     player_.grounded = true;
+    lastBoostWall_ = WallSide::None;
     if(timeSinceLand_ <= tuning_.comboWindow)
     {
         combo_ = std::min(combo_ + 1, std::max(tuning_.comboCap, 1));

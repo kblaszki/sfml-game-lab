@@ -505,6 +505,54 @@ TEST(TowerGameShould, airborneWallBoostScalesWithSpeed)
     EXPECT_GT(game.player().vel.y, tuning.wallKickBase);
 }
 
+TEST(TowerGameShould, sameWallHugDoesNotKeepClimbBoosting)
+{
+    Tuning tuning;
+    tuning.startPlatformW = kWorldW;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 0.f;
+    tuning.jumpSpeed = 100.f;
+    tuning.wallThickness = 100.f;
+    tuning.wallBounce = 0.95f;
+    tuning.wallKickBase = 400.f;
+    tuning.wallKickSpeedMul = 0.f;
+    tuning.wallComboMul = 0.f;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 400.f;
+    tuning.heightAccel = 0.f;
+    TowerGame game{1, tuning};
+
+    SimInput jump;
+    jump.jump = true;
+    game.step(jump, kTick);
+    ASSERT_FALSE(game.player().grounded);
+
+    SimInput left;
+    left.left = true;
+    int wallHits = 0;
+    int climbBoosts = 0;
+    for(int i = 0; i < 300 && !game.over(); ++i)
+    {
+        const float vyBefore = game.player().vel.y;
+        const std::vector<TowerEvent> events = game.step(left, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(!std::holds_alternative<WallBounced>(event))
+            {
+                continue;
+            }
+            ++wallHits;
+            if(game.player().vel.y > vyBefore + 1.f)
+            {
+                ++climbBoosts;
+            }
+        }
+    }
+
+    EXPECT_GE(wallHits, 2);   // same wall can re-hit while held
+    EXPECT_EQ(climbBoosts, 1); // only the first contact of that side boosts
+}
+
 TEST(TowerGameShould, groundedWallHitDoesNotKick)
 {
     Tuning tuning;
