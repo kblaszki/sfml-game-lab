@@ -42,10 +42,11 @@ related_docs:
   - ../games/asteroids/docs/index.md
   - ../games/dodger/docs/index.md
   - ../games/tower/docs/index.md
+  - ../games/tappy/docs/index.md
   - ../mvp/README.md
   - ../mvp/10-engine-progress.md
 keywords: [documentation, diataxis, index, map, navigation, docs, games]
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-05
 ---
 
 # Documentation map
@@ -130,6 +131,7 @@ flowchart TD
 | Asteroids | [games/asteroids/docs/index.md](../games/asteroids/docs/index.md) | sim, app, assets |
 | Dodger | [games/dodger/docs/index.md](../games/dodger/docs/index.md) | sim, app |
 | Tower | [games/tower/docs/index.md](../games/tower/docs/index.md) | sim, app, assets |
+| Tappy | [games/tappy/docs/index.md](../games/tappy/docs/index.md) | sim, app, assets |
 
 ## Design notes (not Diátaxis)
 

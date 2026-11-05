@@ -57,6 +57,10 @@ related_code:
   - games/tower/sim/CMakeLists.txt
   - games/tower/app/CMakeLists.txt
   - games/tower/main.cpp
+  - games/tappy/CMakeLists.txt
+  - games/tappy/sim/CMakeLists.txt
+  - games/tappy/app/CMakeLists.txt
+  - games/tappy/main.cpp
   - cmake/CheckBoundaries.cmake
   - games/arkanoid/CMakeLists.txt
   - games/arkanoid/main.cpp
@@ -93,6 +97,8 @@ related_code:
   - tests/dodger/app/CMakeLists.txt
   - tests/tower/sim/CMakeLists.txt
   - tests/tower/app/CMakeLists.txt
+  - tests/tappy/sim/CMakeLists.txt
+  - tests/tappy/app/CMakeLists.txt
   - tests/mocks/ClockMock.hpp
   - tests/mocks/PlatformMock.hpp
   - tests/mocks/RendererMock.hpp
@@ -134,6 +140,10 @@ related_docs:
   - ../../games/tower/docs/reference/app.md
   - ../../games/tower/docs/reference/assets.md
   - ../../games/tower/docs/explanation/design.md
+  - ../../games/tappy/docs/reference/sim.md
+  - ../../games/tappy/docs/reference/app.md
+  - ../../games/tappy/docs/reference/assets.md
+  - ../../games/tappy/docs/explanation/design.md
   - input-and-events.md
   - pause-overlay.md
   - ../how-to/build-and-test.md
@@ -142,13 +152,13 @@ related_docs:
   - ../../games/syndicate/docs/explanation/design.md
   - ../../games/syndicate/docs/explanation/ui.md
   - ../../mvp/10-engine-progress.md
-keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, snake, asteroids, dodger, tower, targets, cmake, SceneStack, App, SfmlPlatform]
-last_reviewed: 2026-11-04
+keywords: [layout, directories, sgl, arkanoid, tetris, syndicate, snake, asteroids, dodger, tower, tappy, targets, cmake, SceneStack, App, SfmlPlatform]
+last_reviewed: 2026-11-05
 ---
 
 # Source layout reference
 
-Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, `syndicate`, `snake`, `asteroids`, `dodger`, and `tower` (`namespace sgl::<game>`). Arkanoid, Tetris, Syndicate, Snake, Asteroids, Dodger, and Tower each build an executable. Contract: [architecture.md](../explanation/architecture.md).
+Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `tetris`, `syndicate`, `snake`, `asteroids`, `dodger`, `tower`, and `tappy` (`namespace sgl::<game>`). Each of those games builds an executable. Contract: [architecture.md](../explanation/architecture.md).
 
 ## Directories
 
@@ -158,6 +168,7 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `assets/syndicate/` | Optional atlas (`atlas.png` + `atlas.txt`) for `SpriteBank` |
 | `assets/asteroids/` | Optional atlas (`atlas.png` + `atlas.txt`, Kenney CC0 subset) for Asteroids `SpriteBank` |
 | `assets/tower/` | Optional atlas (`atlas.png` + `atlas.txt`, Kenney CC0 subset) for Tower `SpriteBank` |
+| `assets/tappy/` | Optional atlas (`atlas.png` + `atlas.txt`) for Tappy `SpriteBank` |
 | `engine/core/` | Header-only value types (`Vec2`, `Rect`, `Handle`, `Image`, `Pcg32`, `Overloaded`); target `sgl_core` |
 | `engine/input/` | `InputEvent`, `ActionMap`, `InputState`; target `sgl_input` |
 | `engine/scene/` | `SceneI`, `SceneStack`, `SceneRequest`, `SceneTraits`; target `sgl_scene` |
@@ -191,6 +202,9 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `games/tower/sim/` | Headless Tower (`TowerGame`: jump, ice run, one-way platforms, rising camera, score, death); `tower_sim` links `sgl_core` only |
 | `games/tower/app/` | Scenes, SpriteBank (sprites or platform/player `RectCmd`s), sounds, feedback, and high scores; sim +Y flipped into the view; `tower_app` (no SFML) |
 | `games/tower/main.cpp` | Wires `SfmlPlatform`, font, optional atlas, sounds, high scores, `SceneStack`, `sgl::App`; executable `tower` |
+| `games/tappy/sim/` | Headless Tappy (`TappyGame`: flap, scroll, gates, score, death); `tappy_sim` links `sgl_core` only |
+| `games/tappy/app/` | Scenes, SpriteBank, flap/clear/die sounds, feedback, high scores; `tappy_app` (no SFML) |
+| `games/tappy/main.cpp` | Wires `SfmlPlatform`, font, optional atlas, sounds, high scores, `SceneStack`, `sgl::App`; executable `tappy` |
 | `games/<game>/docs/` | Per-game Diátaxis docs (`index.md`, `tutorials/`, `how-to/`, `reference/`, `explanation/`); not built |
 | `docs/` | Engine and cross-game Diátaxis docs; map in `docs/index.md` |
 | `assets/fonts/` | UI TTF (`ASSET_DIR` → `assets/`) |
@@ -202,9 +216,10 @@ Running tree: `engine/` (`namespace sgl`) and `games/<game>/` for `arkanoid`, `t
 | `tests/asteroids/` | Sim and app suites (Debug only) |
 | `tests/dodger/` | Sim and app suites (Debug only) |
 | `tests/tower/` | Sim and app suites (Debug only) |
+| `tests/tappy/` | Sim and app suites (Debug only) |
 | `tests/mocks/` | `ClockMock`, `PlatformMock`, `RendererMock`, `AudioSpy` (engine ports) |
 
-Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/<sim|app>/X.hpp>`, `<snake/<sim|app>/X.hpp>`, `<asteroids/<sim|app>/X.hpp>`, `<dodger/<sim|app>/X.hpp>`, `<tower/<sim|app>/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
+Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<sim|app>/X.hpp>`, `<syndicate/<sim|app>/X.hpp>`, `<snake/<sim|app>/X.hpp>`, `<asteroids/<sim|app>/X.hpp>`, `<dodger/<sim|app>/X.hpp>`, `<tower/<sim|app>/X.hpp>`, `<tappy/<sim|app>/X.hpp>`. Only `engine/sfml` and `games/<game>/main.cpp` may include `<SFML/...>`. The engine never includes a game header.
 
 ## Build targets
 
@@ -244,6 +259,9 @@ Include layout: `<sgl/<module>/X.hpp>`, `<arkanoid/<sim|app>/X.hpp>`, `<tetris/<
 | `tower_sim` | STATIC | → `sgl_core`; `TowerGame` jump, ice friction, one-way platforms, rising camera; no SFML |
 | `tower_app` | STATIC | → `tower_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
 | `tower` | executable | `games/tower/main.cpp` → `tower_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
+| `tappy_sim` | STATIC | → `sgl_core`; `TappyGame` flap, scroll, gates, score, death; no SFML |
+| `tappy_app` | STATIC | → `tappy_sim`, `sgl_scene`, `sgl_render`, `sgl_input`, `sgl_ui`, `sgl_loop`, `sgl_resources`, `sgl_audio`, `sgl_save`; scenes, sounds, feedback, high scores; no SFML |
+| `tappy` | executable | `games/tappy/main.cpp` → `tappy_app`, `sgl_sfml`; `ASSET_DIR` → `assets/` |
 | `format` | custom | clang-format in place (Debug configure) |
 | `tidy` | custom | `run-clang-tidy` on `engine/` and `games/` (Debug configure) |
 
@@ -251,7 +269,7 @@ Configure presets: `debug`, `release`, `asan` (`SGL_ENABLE_ASAN` on GCC/Clang), 
 
 ## Unit test suites (Debug)
 
-Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, and `tests/tower/`:
+Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/`, and `tests/tappy/`:
 
 | Suite | Leaf |
 |-------|------|
@@ -282,6 +300,8 @@ Registered with `add_unit_test` under `tests/engine/`, `tests/arkanoid/`, `tests
 | `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test` | `tests/dodger/app/` |
 | `tower_game_test` | `tests/tower/sim/` |
 | `tower_scenes_test`, `tower_play_scene_test`, `tower_sounds_test`, `tower_feedback_test`, `tower_sprite_bank_test` | `tests/tower/app/` |
+| `tappy_game_test` | `tests/tappy/sim/` |
+| `tappy_scenes_test`, `tappy_play_scene_test`, `tappy_sounds_test`, `tappy_feedback_test`, `tappy_sprite_bank_test` | `tests/tappy/app/` |
 
 All suites are headless except `event_translate_test`, which links SFML Window headers only and still opens no window.
 

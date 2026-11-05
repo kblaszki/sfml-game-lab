@@ -82,7 +82,7 @@ gcovr --root . --filter 'engine/.*' --exclude 'engine/sfml/.*' --filter 'games/.
 
 On Windows, install `gcovr` with the system Python (`py -m pip install gcovr`), not inside MSYS2. Run it as `py -m gcovr` with the same flags when the `gcovr` command is not on `PATH`. `gcov` on `PATH` must be the MinGW one that built the preset (`C:\msys64\mingw64\bin`). HTML lands in `build/coverage/html/index.html`.
 
-Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/`):
+Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/`, `tests/tappy/`):
 
 - Engine: `vec_test`, `rect_test`, `handle_test`, `image_test`, `random_test`, `input_state_test`, `scene_stack_test`, `fixed_step_loop_test`, `app_test`, `render_queue_test`, `projection_test`, `collision_test`, `resource_cache_test`, `tone_test`, `particle_system_test`, save suites, `event_translate_test`, …
 - Arkanoid: `arkanoid_sim_test`, `arkanoid_physics_test`, `arkanoid_sim_property_test`, `arkanoid_powerup_test`, `arkanoid_assets_test`, `arkanoid_hud_test`, `arkanoid_scene_render_test`, `arkanoid_scenes_test`, `arkanoid_result_scene_test`, `arkanoid_sounds_test`, `arkanoid_feedback_test`
@@ -92,6 +92,7 @@ Suites (`tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`,
 - Asteroids: `asteroids_game_test`, `asteroids_scenes_test`, `asteroids_play_scene_test`, `asteroids_sounds_test`, `asteroids_feedback_test`, `asteroids_sprite_bank_test`
 - Dodger: `dodger_game_test`, `dodger_scenes_test`, `dodger_play_scene_test`, `dodger_sounds_test`, `dodger_feedback_test`
 - Tower: `tower_game_test`, `tower_scenes_test`, `tower_play_scene_test`, `tower_sounds_test`, `tower_feedback_test`, `tower_sprite_bank_test`
+- Tappy: `tappy_game_test`, `tappy_scenes_test`, `tappy_play_scene_test`, `tappy_sounds_test`, `tappy_feedback_test`, `tappy_sprite_bank_test`
 
 `build_ut` builds every suite registered with `add_unit_test(...)` (`cmake/AddUnitTest.cmake`). In Debug it also depends on `check_boundaries`, so building tests enforces the engine/games SFML and include-boundary rules.
 

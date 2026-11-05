@@ -1,0 +1,6 @@
+# Tappy atlas. Procedural stand-ins; replace with Kenney Tappy Plane CC0 crops. See ATTRIBUTION.md.
+bg/sky 0 0 1280 720
+bg/hills 0 720 1280 300
+player/blue 0 1020 88 64
+gate/rockTop 0 1084 80 200
+gate/rockBottom 80 1084 80 200

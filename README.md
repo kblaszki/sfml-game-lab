@@ -1,6 +1,6 @@
 # sfml-game-lab
 
-A lab of small C++23 games on a shared [SFML](https://www.sfml-dev.org/) 3.1 engine (2D now, 2.5D-ready). Seven titles ship today: a three-stage breakout in `games/arkanoid/`, Tetris in `games/tetris/`, Syndicate in `games/syndicate/`, Snake in `games/snake/`, Asteroids in `games/asteroids/`, Dodger in `games/dodger/`, and Tower in `games/tower/`. All use CMake presets and windowless unit tests.
+A lab of small C++23 games on a shared [SFML](https://www.sfml-dev.org/) 3.1 engine (2D now, 2.5D-ready). Eight titles ship today: a three-stage breakout in `games/arkanoid/`, Tetris in `games/tetris/`, Syndicate in `games/syndicate/`, Snake in `games/snake/`, Asteroids in `games/asteroids/`, Dodger in `games/dodger/`, Tower in `games/tower/`, and Tappy in `games/tappy/`. All use CMake presets and windowless unit tests.
 
 The engine lives in `engine/` (`namespace sgl`). Prospective notes stay in [`mvp/`](mvp/README.md) (`01`–`09`); what landed is [`mvp/10`](mvp/10-engine-progress.md). The contract is [`docs/explanation/architecture.md`](docs/explanation/architecture.md).
 
@@ -41,13 +41,14 @@ cd sfml-game-lab
 | `games/asteroids/` | Headless sim, scenes, and the `asteroids` executable |
 | `games/dodger/` | Headless sim, scenes, and the `dodger` executable |
 | `games/tower/` | Headless sim, scenes, and the `tower` executable |
+| `games/tappy/` | Headless sim, scenes, and the `tappy` executable |
 | `assets/fonts/` | UI TTF (`ASSET_DIR`) |
-| `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/` | Debug GoogleTest (no window, except event translation) |
+| `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/`, `tests/tappy/` | Debug GoogleTest (no window, except event translation) |
 | `docs/` | Diátaxis documentation for the engine (map: `docs/index.md`) |
 | `games/<game>/docs/` | Diátaxis documentation for each game |
 | `mvp/` | Prospective design (`01`–`09`) and living progress (`10`) |
 
-Executable targets: `arkanoid`, `tetris`, `syndicate`, `snake`, `asteroids`, `dodger`, and `tower`. Only `engine/sfml` and `games/<game>/main.cpp` include SFML.
+Executable targets: `arkanoid`, `tetris`, `syndicate`, `snake`, `asteroids`, `dodger`, `tower`, and `tappy`. Only `engine/sfml` and `games/<game>/main.cpp` include SFML.
 
 ## Building the Project
 
@@ -113,6 +114,8 @@ Build and run Dodger with target `dodger` (`./build/debug/bin/dodger` or `dodger
 
 Build and run Tower with target `tower` (`./build/debug/bin/tower` or `tower.exe` on Windows). A 1280×720 window titled "Tower" opens on a Play / Quit menu; Play starts a game (Left/Right or A/D run, Space or Up or W jumps). Escape or P pauses.
 
+Build and run Tappy with target `tappy` (`./build/debug/bin/tappy` or `tappy.exe` on Windows). A 1280×720 window titled "Tappy" opens on a Play / Quit menu; Play starts a flap game (Space or Up or W). Escape or P pauses.
+
 ## Running the Tests
 
 Tests are available only for the **debug** preset. See [docs/how-to/build-and-test.md](docs/how-to/build-and-test.md).
@@ -130,7 +133,7 @@ Contributions are welcome. Please:
 1. Fork the repository and create a feature branch.
 2. Match existing C++ style (see `.clang-format`). With a debug configure: `cmake --build --preset debug --target format`.
 3. Treat warnings as errors — keep the build clean under the project flags.
-4. Add or update unit tests under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, or `tests/tower/`.
+4. Add or update unit tests under `tests/engine/`, `tests/arkanoid/`, `tests/tetris/`, `tests/syndicate/`, `tests/snake/`, `tests/asteroids/`, `tests/dodger/`, `tests/tower/`, or `tests/tappy/`.
 5. List every new `.cpp` in that module's `CMakeLists.txt`.
 6. Keep `docs/` and `games/<game>/docs/` current for files listed in a doc's `related_code` (see `docs/index.md` and [`AGENTS.md`](AGENTS.md)).
 7. Open a pull request with a short description of the change.

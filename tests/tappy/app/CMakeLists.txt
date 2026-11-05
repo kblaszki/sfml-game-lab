@@ -25,3 +25,10 @@ add_unit_test(tappy_feedback_test
     DEPENDENCIES
         tappy_app
 )
+
+add_unit_test(tappy_sprite_bank_test
+    SOURCES
+        SpriteBankTest.cpp
+    DEPENDENCIES
+        tappy_app
+)
