@@ -20,12 +20,13 @@ last_reviewed: 2026-11-05
 # Tappy assets
 
 Optional atlas at `assets/tappy/atlas.png` + `atlas.txt`. `main` loads both into `SpriteBank` when present.
+Regions are separated by transparent padding so bilinear filtering (`textureFile` smooth) does not bleed hills/rocks into the plane.
 
 | Region | Role |
 |--------|------|
 | `bg/sky` | Full-screen sky |
 | `bg/hills` | Parallax mid ground |
-| `player/blue` | Plane |
+| `player/blue` | Plane (faces +X) |
 | `gate/rockTop` | Upper pillar |
 | `gate/rockBottom` | Lower pillar |
 
