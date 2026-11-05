@@ -13,6 +13,8 @@ sgl::tower::SoundIds makeIds()
         .jump = sgl::SoundId{.id = 1},
         .land = sgl::SoundId{.id = 2},
         .die = sgl::SoundId{.id = 3},
+        .wall = sgl::SoundId{.id = 4},
+        .bonus = sgl::SoundId{.id = 5},
     };
 }
 
@@ -44,6 +46,23 @@ TEST(FeedbackTest, diedPlaysDie)
     ASSERT_EQ(audio.plays.size(), 1u);
     EXPECT_EQ(audio.plays[0].id, ids.die);
     EXPECT_FLOAT_EQ(audio.plays[0].volume, 1.f);
+}
+
+TEST(FeedbackTest, wallAndBonusPlay)
+{
+    sgl::AudioSpy audio;
+    const auto ids = makeIds();
+    sgl::tower::Feedback feedback{audio, ids};
+
+    const sgl::tower::TowerEvent events[] = {
+        sgl::tower::WallBounced{},
+        sgl::tower::BonusPicked{.kind = sgl::tower::BonusKind::Speed, .points = 0},
+    };
+    feedback.onEvents(events);
+
+    ASSERT_EQ(audio.plays.size(), 2u);
+    EXPECT_EQ(audio.plays[0].id, ids.wall);
+    EXPECT_EQ(audio.plays[1].id, ids.bonus);
 }
 
 TEST(FeedbackTest, landAndDiePlayInOrder)

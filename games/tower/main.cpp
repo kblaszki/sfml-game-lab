@@ -44,6 +44,14 @@ void assignSound(sgl::tower::SoundIds& ids, std::string_view key, sgl::SoundId i
     {
         ids.die = id;
     }
+    else if(key == "wall")
+    {
+        ids.wall = id;
+    }
+    else if(key == "bonus")
+    {
+        ids.bonus = id;
+    }
 }
 
 } // namespace

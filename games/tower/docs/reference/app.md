@@ -48,8 +48,8 @@ related_docs:
   - ../../../../docs/reference/pause-overlay.md
   - ../../../../docs/reference/source-layout.md
   - ../../../../docs/explanation/architecture.md
-keywords: [tower, app, bindTower, TowerActions, PlayScene, PauseScene, GameOverScene, MainMenuScene, SceneStack, Sounds, Feedback, HighScoreTable, SpriteBank, RectCmd, camera, screenY]
-last_reviewed: 2026-11-04
+keywords: [tower, app, bindTower, TowerActions, PlayScene, PauseScene, GameOverScene, MainMenuScene, SceneStack, Sounds, Feedback, HighScoreTable, SpriteBank, RectCmd, camera, screenY, autojump, bonuses]
+last_reviewed: 2026-11-05
 ---
 
 # Tower app
@@ -79,13 +79,13 @@ Executable `tower` (`games/tower/main.cpp`) links `tower_app` and `sgl_sfml`, de
 
 ## Input mapping
 
-`toSimInput` copies **held** left and right into `SimInput`. A key that stays down keeps the player running. Both together cancel inside the sim. `jump` is the **pressed** edge only, so holding the key after takeoff does not jump again on the next landing. Pause and menus read the pressed edge themselves.
+`toSimInput` copies **held** left, right, and jump into `SimInput`. Holding jump while grounded (including after each landing) keeps autojumping. Pause and menus still read the pressed edge themselves.
 
 ## Sounds
 
-`soundSpecs()` returns a span of `{key, Pcm}` for **jump**, **land**, and **die**. Each buffer is built with `sgl::blip`. `SoundIds` holds the uploaded `SoundId` handles. `main.cpp` uploads every spec through `platform.audio().upload` (`SfmlAudio&`) and stores the ids in `AppServices`.
+`soundSpecs()` returns a span of `{key, Pcm}` for **jump**, **land**, **die**, **wall**, and **bonus**. Each buffer is built with `sgl::blip`. `SoundIds` holds the uploaded `SoundId` handles. `main.cpp` uploads every spec through `platform.audio().upload` (`SfmlAudio&`) and stores the ids in `AppServices`.
 
-`PlayScene` plays **jump** when the jump action is pressed and `player().grounded` is true before `step`. The sim has no jump event. `Feedback::onEvents` plays **land** for `Landed` and **die** for `Died`.
+`PlayScene` plays **jump** only when a takeoff actually happens: grounded before `step`, jump held, and airborne with `vy > 0` after `step`. `Feedback::onEvents` plays **land** for `Landed`, **die** for `Died`, **wall** for `WallBounced`, and **bonus** for `BonusPicked`.
 
 ## High scores
 
@@ -126,6 +126,6 @@ Body and platform `pos` is the bottom-left, so the rect's screen top-left uses t
 
 `screenTop = kViewH - (pos.y + size.y - cameraBottom)`
 
-When `SpriteBank` has the region, play draws a `SpriteCmd`: `bg/sky`, `plat/ice` on each platform, and `player/idle` or `player/jump`. Missing regions fall back to `RectCmd`s (`fieldFill`, `platformFill`, `playerFill`). Score is a `TextCmd` (`"Score N"`) on `Layer::Hud`. The number is the sim score for this run.
+When `SpriteBank` has the region, play draws a `SpriteCmd`: `bg/sky`, `plat/ice` on each platform, `player/idle` or `player/jump`, and optional `bonus/speed`, `bonus/jump`, `bonus/points`. Missing regions fall back to `RectCmd`s (`fieldFill`, `platformFill`, `playerFill`, Theme bonus fills). Score is a `TextCmd` (`"Score N"`) on `Layer::Hud`. The number is the sim score for this run.
 
 `PlayScene::game()` exposes the sim for headless tests. Those tests drive `SceneStack` with `InputState` and open no window (`tower_scenes_test`, `tower_play_scene_test`, `tower_sounds_test`, `tower_feedback_test`, `tower_sprite_bank_test`).

@@ -24,16 +24,16 @@ related_docs:
   - ../../../../docs/explanation/architecture.md
   - ../../../../docs/reference/pause-overlay.md
 keywords: [tower, scenes, menu, pause, game over, SceneStack, RequestPause, camera, screenY, sounds, high scores, SpriteBank]
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-05
 ---
 
 # Tower scene flow
 
-The window is a consumer of `TowerGame`. Running, jumping, platforms, the rising camera, score, and death stay in `tower_sim` ([sim](../reference/sim.md)). Scenes map `InputState` to `SimInput`, call `step`, and turn `player()`, `platforms()`, `cameraBottom()`, and `score()` into draw commands. They do not move the player themselves.
+The window is a consumer of `TowerGame`. Running, jumping, wall bounce, collectible bonuses, height-scaled caps, platforms, the rising camera, score, and death stay in `tower_sim` ([sim](../reference/sim.md)). Scenes map `InputState` to `SimInput` (held jump for autojump), call `step`, and turn `player()`, `platforms()`, `bonuses()`, `cameraBottom()`, and `score()` into draw commands. They do not move the player themselves.
 
 `main` owns the action map, the font id, the audio device, the sound ids, the high-score table, and the seed for the whole `App::run()`. It also owns an optional `SpriteBank` copied by value into `AppServices`. Factories copy `AppServices` by value; the `TowerActions`, `AudioI`, and `HighScoreTable` references inside it must outlive the stack. `Tuning` is a value, so a test can narrow the start platform and raise gravity before it builds `play`, then hold right until the fall emits `Died`.
 
-Play plays a jump blip when jump is pressed and the player is still grounded, then steps. `Feedback` plays land on `Landed` and die on `Died`. Game over inserts that run's score into a five-entry table and saves `tower.scores`. Drawing prefers atlas sprites (`bg/sky`, `plat/ice`, `player/idle`, `player/jump`) and falls back to colored rects when a region is missing ([assets](../reference/assets.md)).
+Play plays a jump blip only when takeoff actually happens (grounded → airborne with upward `vy` while jump is held), then steps. `Feedback` plays land, die, wall, and bonus blips from sim events. Game over inserts that run's score into a five-entry table and saves `tower.scores`. Drawing prefers atlas sprites (`bg/sky`, `plat/ice`, `player/idle`, `player/jump`, optional `bonus/*`) and falls back to colored rects when a region is missing ([assets](../reference/assets.md)).
 
 ```mermaid
 stateDiagram-v2

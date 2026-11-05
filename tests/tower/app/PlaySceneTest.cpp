@@ -31,6 +31,8 @@ sgl::tower::SoundIds testSoundIds()
         .jump = sgl::SoundId{.id = 1},
         .land = sgl::SoundId{.id = 2},
         .die = sgl::SoundId{.id = 3},
+        .wall = sgl::SoundId{.id = 4},
+        .bonus = sgl::SoundId{.id = 5},
     };
 }
 
@@ -141,7 +143,7 @@ TEST(PlaySceneTest, drawsPlayerAndPlatformsWithWorldYUp)
     EXPECT_TRUE(drewHigherPlatformAbove);
 }
 
-TEST(PlaySceneTest, rightIsHeldAndJumpIsPressedEdge)
+TEST(PlaySceneTest, rightAndJumpAreHeld)
 {
     Fixture f;
     f.services.tuning.startPlatformW = sgl::tower::kWorldW;
@@ -183,6 +185,27 @@ TEST(PlaySceneTest, rightIsHeldAndJumpIsPressedEdge)
     }
     EXPECT_TRUE(heardLand);
 
+    // Space still held → autojump on the landing frame's next step.
+    const std::size_t playsBeforeAutojump = f.audio.plays.size();
+    f.stack.update(input, sgl::kTick);
+    EXPECT_FALSE(play->game().player().grounded);
+    ASSERT_GT(f.audio.plays.size(), playsBeforeAutojump);
+    EXPECT_EQ(f.audio.plays.back().id, f.sounds.jump);
+
+    // Release jump; after the next landing, stay grounded.
+    input.apply(sgl::KeyUp{.key = sgl::Key::Space}, f.map);
+    input.beginFrame();
+    landed = false;
+    for(int i = 0; i < 240 && !play->game().over(); ++i)
+    {
+        f.stack.update(input, sgl::kTick);
+        if(play->game().player().grounded)
+        {
+            landed = true;
+            break;
+        }
+    }
+    ASSERT_TRUE(landed);
     f.stack.update(input, sgl::kTick);
     EXPECT_TRUE(play->game().player().grounded);
 

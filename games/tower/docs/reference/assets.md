@@ -18,7 +18,7 @@ related_docs:
   - ../../../../docs/reference/source-layout.md
   - ../../../../docs/explanation/architecture.md
 keywords: [tower, atlas, SpriteBank, Kenney, CC0, sprites, procedural fallback, ice, jumper]
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-05
 ---
 
 # Tower assets
@@ -39,8 +39,11 @@ Optional raster pack for Tower presentation. When both `assets/tower/atlas.png` 
 | `player/idle` | Grounded jumper | Jumper Pack `bunny1_stand.png` |
 | `player/jump` | Airborne jumper | Jumper Pack `bunny1_jump.png` |
 | `plat/ice` | Ice platform tile, scaled to each platform box | Ice World `iceBlock.png` |
+| `bonus/speed` | Optional speed pickup | — |
+| `bonus/jump` | Optional jump pickup | — |
+| `bonus/points` | Optional points pickup | — |
 
-`SpriteBank::sprite(name, pos, size, tint, rotationDeg)` returns `nullopt` when the name is absent. `rotationDeg` defaults to **0**. `pos` is the top-left of the destination box; the SFML adapter rotates about the box center.
+Missing bonus regions use Theme `RectCmd` fills (cyan / gold / magenta). `SpriteBank::sprite(name, pos, size, tint, rotationDeg)` returns `nullopt` when the name is absent. `rotationDeg` defaults to **0**. `pos` is the top-left of the destination box; the SFML adapter rotates about the box center.
 
 `PlayScene` uses `player/idle` while `player().grounded` and `player/jump` otherwise. When `vel.x < 0`, it negates `scale.x` and shifts `position.x` by the destination width. `toSprite` places the center at `position + halfSize * scale`, so that shift keeps the mirrored sprite in the same box. The packed bunny faces the camera, so the mirror is slight.
 

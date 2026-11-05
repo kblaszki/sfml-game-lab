@@ -7,7 +7,7 @@
 namespace sgl::tower
 {
 
-// Held left and right. Jump is the pressed edge, so a key that stays down does not jump again.
+// Held left, right, and jump (held jump autojumps on each landing).
 [[nodiscard]] SimInput toSimInput(const sgl::InputState& input, const TowerActions& actions);
 
 } // namespace sgl::tower

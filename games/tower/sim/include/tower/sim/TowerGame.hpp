@@ -20,17 +20,26 @@ public:
 
     [[nodiscard]] PlayerView player() const noexcept;
     [[nodiscard]] const std::vector<PlatformView>& platforms() const noexcept;
+    [[nodiscard]] const std::vector<BonusView>& bonuses() const noexcept;
     [[nodiscard]] float cameraBottom() const noexcept;
     [[nodiscard]] int score() const noexcept;
     [[nodiscard]] bool over() const noexcept;
+    [[nodiscard]] float runSpeedCap() const noexcept;
+    [[nodiscard]] float jumpSpeedEffective() const noexcept;
 
 private:
     void spawnStart();
     void spawnBand(int band);
+    void maybeSpawnBonus(const PlatformView& platform);
     void ensurePlatforms();
     void cullPlatforms();
+    void cullBonuses();
     void notePeak() noexcept;
     void tryLand(float previousFeet, std::vector<TowerEvent>& events);
+    void bounceWalls(std::vector<TowerEvent>& events);
+    void collectBonuses(std::vector<TowerEvent>& events);
+    void tickBoosts(float seconds) noexcept;
+    [[nodiscard]] float heightScale() const noexcept;
     [[nodiscard]] float widthAt(float surfaceY) const noexcept;
     [[nodiscard]] bool overlapsX(const PlatformView& platform) const noexcept;
     [[nodiscard]] bool supported() const noexcept;
@@ -39,8 +48,11 @@ private:
     sgl::Pcg32 rng_;
     PlayerView player_{};
     std::vector<PlatformView> platforms_{};
+    std::vector<BonusView> bonuses_{};
     float cameraBottom_{0.f};
     float peakFeet_{0.f};
+    float speedBoostLeft_{0.f};
+    float jumpBoostLeft_{0.f};
     int nextBand_{1};
     int score_{0};
     bool over_{false};

@@ -11,6 +11,9 @@ namespace
 
 using sgl::kTick;
 using sgl::Seconds;
+using sgl::tower::BonusKind;
+using sgl::tower::BonusPicked;
+using sgl::tower::BonusView;
 using sgl::tower::Died;
 using sgl::tower::kViewH;
 using sgl::tower::kWorldW;
@@ -21,6 +24,7 @@ using sgl::tower::SimInput;
 using sgl::tower::TowerEvent;
 using sgl::tower::TowerGame;
 using sgl::tower::Tuning;
+using sgl::tower::WallBounced;
 
 constexpr int kDeterminismSteps = 180;
 
@@ -54,11 +58,32 @@ void expectSameState(const TowerGame& left, const TowerGame& right)
         EXPECT_EQ(platformsLeft[i].pos, platformsRight[i].pos);
         EXPECT_EQ(platformsLeft[i].size, platformsRight[i].size);
     }
+
+    const std::vector<BonusView>& bonusesLeft = left.bonuses();
+    const std::vector<BonusView>& bonusesRight = right.bonuses();
+    ASSERT_EQ(bonusesLeft.size(), bonusesRight.size());
+    for(std::size_t i = 0; i < bonusesLeft.size(); ++i)
+    {
+        EXPECT_EQ(bonusesLeft[i].pos, bonusesRight[i].pos);
+        EXPECT_EQ(bonusesLeft[i].size, bonusesRight[i].size);
+        EXPECT_EQ(bonusesLeft[i].kind, bonusesRight[i].kind);
+    }
+    EXPECT_FLOAT_EQ(left.runSpeedCap(), right.runSpeedCap());
+    EXPECT_FLOAT_EQ(left.jumpSpeedEffective(), right.jumpSpeedEffective());
 }
 
 [[nodiscard]] bool sameEvent(const TowerEvent& left, const TowerEvent& right)
 {
-    return left.index() == right.index();
+    if(left.index() != right.index())
+    {
+        return false;
+    }
+    if(const auto* a = std::get_if<BonusPicked>(&left))
+    {
+        const auto* b = std::get_if<BonusPicked>(&right);
+        return b != nullptr && a->kind == b->kind && a->points == b->points;
+    }
+    return true;
 }
 
 } // namespace
@@ -335,4 +360,249 @@ TEST(TowerGameShould, scoreTracksPeakHeight)
     }
     EXPECT_GT(falling.score(), 0);
     EXPECT_FALSE(falling.over());
+}
+
+TEST(TowerGameShould, heldJumpAutojumpsAfterLand)
+{
+    Tuning tuning;
+    tuning.startPlatformW = kWorldW;
+    tuning.iceFriction = 0.f;
+    TowerGame game{1, tuning};
+
+    SimInput jump;
+    jump.jump = true;
+    game.step(jump, kTick);
+    ASSERT_FALSE(game.player().grounded);
+
+    bool landed = false;
+    for(int i = 0; i < 240 && !game.over(); ++i)
+    {
+        const std::vector<TowerEvent> events = game.step(jump, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(std::holds_alternative<Landed>(event))
+            {
+                landed = true;
+            }
+        }
+        if(landed)
+        {
+            break;
+        }
+    }
+    ASSERT_TRUE(landed);
+
+    // Still holding jump: next step while grounded must take off again.
+    if(game.player().grounded)
+    {
+        game.step(jump, kTick);
+    }
+    EXPECT_FALSE(game.player().grounded);
+    EXPECT_GT(game.player().vel.y, 0.f);
+}
+
+TEST(TowerGameShould, wallBounceReversesVx)
+{
+    Tuning tuning;
+    tuning.startPlatformW = kWorldW;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 0.f;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 400.f;
+    tuning.wallBounce = 0.95f;
+    TowerGame game{1, tuning};
+
+    SimInput left;
+    left.left = true;
+    bool bounced = false;
+    for(int i = 0; i < 120 && !game.over(); ++i)
+    {
+        const std::vector<TowerEvent> events = game.step(left, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(std::holds_alternative<WallBounced>(event))
+            {
+                bounced = true;
+            }
+        }
+        if(bounced)
+        {
+            break;
+        }
+    }
+
+    EXPECT_TRUE(bounced);
+    EXPECT_FLOAT_EQ(game.player().pos.x, 0.f);
+    EXPECT_GT(game.player().vel.x, 0.f);
+}
+
+TEST(TowerGameShould, heightRaisesRunSpeedCap)
+{
+    Tuning tuning;
+    tuning.gravity = 0.f;
+    tuning.jumpSpeed = 1000.f;
+    tuning.heightAccel = 0.00015f;
+    tuning.heightAccelCap = 0.55f;
+    tuning.iceFriction = 0.f;
+    TowerGame game{1, tuning};
+    const float baseCap = game.runSpeedCap();
+    EXPECT_FLOAT_EQ(baseCap, tuning.maxRunSpeed);
+
+    SimInput jump;
+    jump.jump = true;
+    game.step(jump, Seconds{1.f});
+    EXPECT_GT(game.player().pos.y, 0.f);
+    EXPECT_GT(game.runSpeedCap(), baseCap);
+    EXPECT_LT(game.runSpeedCap(), tuning.maxRunSpeed * (1.f + tuning.heightAccelCap) + 0.01f);
+}
+
+[[nodiscard]] bool chaseBonus(TowerGame& game, BonusKind want, int maxSteps)
+{
+    for(int i = 0; i < maxSteps && !game.over(); ++i)
+    {
+        const BonusView* target = nullptr;
+        for(const BonusView& bonus: game.bonuses())
+        {
+            if(bonus.kind == want)
+            {
+                target = &bonus;
+                break;
+            }
+        }
+        if(target == nullptr)
+        {
+            return false;
+        }
+
+        SimInput move;
+        const float playerCenter = game.player().pos.x + game.player().size.x * 0.5f;
+        const float bonusCenter = target->pos.x + target->size.x * 0.5f;
+        move.right = bonusCenter >= playerCenter;
+        move.left = !move.right;
+        move.jump = game.player().grounded;
+
+        const std::vector<TowerEvent> events = game.step(move, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(const auto* picked = std::get_if<BonusPicked>(&event))
+            {
+                if(picked->kind == want)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+TEST(TowerGameShould, collectingPointsBonusAddsScore)
+{
+    Tuning tuning;
+    tuning.bonusChance = 1.f;
+    tuning.pointsBonus = 50;
+    tuning.gravity = 0.f;
+    tuning.iceFriction = 0.f;
+    tuning.startPlatformW = kWorldW;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 2000.f;
+    tuning.bandHeight = 60.f;
+    tuning.jumpSpeed = 90.f;
+    tuning.heightAccel = 0.f;
+
+    bool found = false;
+    for(std::uint64_t seed = 1; seed < 300 && !found; ++seed)
+    {
+        TowerGame game{seed, tuning};
+        bool hasPoints = false;
+        for(const BonusView& bonus: game.bonuses())
+        {
+            hasPoints = hasPoints || bonus.kind == BonusKind::Points;
+        }
+        if(!hasPoints)
+        {
+            continue;
+        }
+        const int scoreAtStart = game.score();
+        bool sawPoints = false;
+        int pointsAwarded = 0;
+        TowerGame again{seed, tuning};
+        for(int i = 0; i < 400 && !again.over() && !sawPoints; ++i)
+        {
+            const BonusView* target = nullptr;
+            for(const BonusView& bonus: again.bonuses())
+            {
+                if(bonus.kind == BonusKind::Points)
+                {
+                    target = &bonus;
+                    break;
+                }
+            }
+            if(target == nullptr)
+            {
+                break;
+            }
+            SimInput move;
+            const float playerCenter = again.player().pos.x + again.player().size.x * 0.5f;
+            const float bonusCenter = target->pos.x + target->size.x * 0.5f;
+            move.right = bonusCenter >= playerCenter;
+            move.left = !move.right;
+            move.jump = again.player().grounded;
+            const int before = again.score();
+            const std::vector<TowerEvent> events = again.step(move, kTick);
+            for(const TowerEvent& event: events)
+            {
+                if(const auto* picked = std::get_if<BonusPicked>(&event))
+                {
+                    if(picked->kind == BonusKind::Points)
+                    {
+                        EXPECT_EQ(picked->points, tuning.pointsBonus);
+                        pointsAwarded = picked->points;
+                        EXPECT_GE(again.score(), before + pointsAwarded);
+                        sawPoints = true;
+                    }
+                }
+            }
+        }
+        ASSERT_TRUE(sawPoints);
+        EXPECT_EQ(pointsAwarded, tuning.pointsBonus);
+        EXPECT_GE(again.score(), scoreAtStart + tuning.pointsBonus);
+        found = true;
+    }
+    EXPECT_TRUE(found);
+}
+
+TEST(TowerGameShould, speedBoostRaisesRunCap)
+{
+    Tuning tuning;
+    tuning.bonusChance = 1.f;
+    tuning.speedBoostMul = 1.45f;
+    tuning.boostDuration = 4.f;
+    tuning.gravity = 0.f;
+    tuning.iceFriction = 0.f;
+    tuning.startPlatformW = kWorldW;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 320.f;
+    tuning.bandHeight = 60.f;
+    tuning.jumpSpeed = 90.f;
+    tuning.heightAccel = 0.f;
+
+    bool found = false;
+    for(std::uint64_t seed = 1; seed < 300 && !found; ++seed)
+    {
+        TowerGame game{seed, tuning};
+        bool hasSpeed = false;
+        for(const BonusView& bonus: game.bonuses())
+        {
+            hasSpeed = hasSpeed || bonus.kind == BonusKind::Speed;
+        }
+        if(!hasSpeed)
+        {
+            continue;
+        }
+        ASSERT_TRUE(chaseBonus(game, BonusKind::Speed, 400));
+        EXPECT_NEAR(game.runSpeedCap(), tuning.maxRunSpeed * tuning.speedBoostMul, 0.01f);
+        found = true;
+    }
+    EXPECT_TRUE(found);
 }

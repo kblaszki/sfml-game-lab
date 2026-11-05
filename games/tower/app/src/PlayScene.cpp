@@ -31,9 +31,6 @@ constexpr sgl::Color kWhite{255, 255, 255, 255};
     };
 }
 
-// SfmlDraw places the sprite center at position + halfSize * scale. A negative
-// scale.x needs the top-left shifted by the destination width so the flip stays
-// inside the same box.
 void faceLeft(sgl::SpriteCmd& sprite)
 {
     if(sprite.scale.x < 0.f)
@@ -42,6 +39,34 @@ void faceLeft(sgl::SpriteCmd& sprite)
     }
     sprite.position.x += sprite.source.size.x * sprite.scale.x;
     sprite.scale.x = -sprite.scale.x;
+}
+
+[[nodiscard]] sgl::Color bonusFill(BonusKind kind)
+{
+    switch(kind)
+    {
+    case BonusKind::Speed:
+        return bonusSpeedFill;
+    case BonusKind::Jump:
+        return bonusJumpFill;
+    case BonusKind::Points:
+        return bonusPointsFill;
+    }
+    return bonusPointsFill;
+}
+
+[[nodiscard]] std::string_view bonusSpriteName(BonusKind kind)
+{
+    switch(kind)
+    {
+    case BonusKind::Speed:
+        return "bonus/speed";
+    case BonusKind::Jump:
+        return "bonus/jump";
+    case BonusKind::Points:
+        return "bonus/points";
+    }
+    return "bonus/points";
 }
 
 } // namespace
@@ -67,13 +92,13 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
         return;
     }
 
-    const bool takeoff = input.action(services_.actions.jump).pressed && game_.player().grounded;
-    if(takeoff)
+    const bool wasGrounded = game_.player().grounded;
+    const SimInput simInput = toSimInput(input, services_.actions);
+    const auto events = game_.step(simInput, dt);
+    if(wasGrounded && simInput.jump && !game_.player().grounded && game_.player().vel.y > 0.f)
     {
         services_.audio.play(services_.sounds.jump, 1.f);
     }
-
-    const auto events = game_.step(toSimInput(input, services_.actions), dt);
     feedback_.onEvents(events);
     for(const TowerEvent& event: events)
     {
@@ -118,6 +143,25 @@ void PlayScene::render(sgl::RenderQueue& queue) const
                        sgl::RectCmd{
                            .rect = rect,
                            .fill = platformFill,
+                       });
+        }
+        depth += 1.f;
+    }
+
+    for(const BonusView& bonus: game_.bonuses())
+    {
+        const sgl::Rect<float> rect = toScreen(bonus.pos, bonus.size, camera);
+        if(const auto sprite = services_.sprites.sprite(bonusSpriteName(bonus.kind), rect.pos, rect.size, kWhite))
+        {
+            queue.push(sgl::Layer::World, depth, *sprite);
+        }
+        else
+        {
+            queue.push(sgl::Layer::World,
+                       depth,
+                       sgl::RectCmd{
+                           .rect = rect,
+                           .fill = bonusFill(bonus.kind),
                        });
         }
         depth += 1.f;

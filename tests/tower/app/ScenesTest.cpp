@@ -34,6 +34,8 @@ sgl::tower::SoundIds testSoundIds()
         .jump = sgl::SoundId{.id = 1},
         .land = sgl::SoundId{.id = 2},
         .die = sgl::SoundId{.id = 3},
+        .wall = sgl::SoundId{.id = 4},
+        .bonus = sgl::SoundId{.id = 5},
     };
 }
 

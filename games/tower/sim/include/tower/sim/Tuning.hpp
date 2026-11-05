@@ -17,6 +17,16 @@ struct Tuning
     float minPlatformW{80.f};
     float deathMargin{40.f};
     float bandHeight{120.f};
+    float wallBounce{0.95f};
+    float wallKick{220.f};
+    float heightAccel{0.00015f};
+    float heightAccelCap{0.55f};
+    float bonusSize{28.f};
+    float bonusChance{0.22f};
+    float speedBoostMul{1.45f};
+    float jumpBoostMul{1.35f};
+    float boostDuration{4.f};
+    int pointsBonus{50};
 };
 
 } // namespace sgl::tower
