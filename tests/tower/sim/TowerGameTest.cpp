@@ -15,6 +15,7 @@ using sgl::tower::BonusKind;
 using sgl::tower::BonusPicked;
 using sgl::tower::BonusView;
 using sgl::tower::Died;
+using sgl::tower::EdgeJumped;
 using sgl::tower::kViewH;
 using sgl::tower::kWorldW;
 using sgl::tower::Landed;
@@ -70,6 +71,9 @@ void expectSameState(const TowerGame& left, const TowerGame& right)
     }
     EXPECT_FLOAT_EQ(left.runSpeedCap(), right.runSpeedCap());
     EXPECT_FLOAT_EQ(left.jumpSpeedEffective(), right.jumpSpeedEffective());
+    EXPECT_EQ(left.combo(), right.combo());
+    EXPECT_FLOAT_EQ(left.playLeft(), right.playLeft());
+    EXPECT_FLOAT_EQ(left.playRight(), right.playRight());
 }
 
 [[nodiscard]] bool sameEvent(const TowerEvent& left, const TowerEvent& right)
@@ -356,7 +360,8 @@ TEST(TowerGameShould, scoreTracksPeakHeight)
         input.jump = i == 0;
         falling.step(input, kTick);
         peakFeet = std::max(peakFeet, falling.player().pos.y);
-        EXPECT_EQ(falling.score(), static_cast<int>(std::floor(peakFeet)));
+        // Score is at least peak height; combo land awards can push it higher.
+        EXPECT_GE(falling.score(), static_cast<int>(std::floor(peakFeet)));
     }
     EXPECT_GT(falling.score(), 0);
     EXPECT_FALSE(falling.over());
@@ -410,6 +415,7 @@ TEST(TowerGameShould, wallBounceReversesVx)
     tuning.moveAccel = 100000.f;
     tuning.maxRunSpeed = 400.f;
     tuning.wallBounce = 0.95f;
+    tuning.wallThickness = 120.f;
     TowerGame game{1, tuning};
 
     SimInput left;
@@ -432,8 +438,336 @@ TEST(TowerGameShould, wallBounceReversesVx)
     }
 
     EXPECT_TRUE(bounced);
-    EXPECT_FLOAT_EQ(game.player().pos.x, 0.f);
+    EXPECT_FLOAT_EQ(game.player().pos.x, game.playLeft());
     EXPECT_GT(game.player().vel.x, 0.f);
+}
+
+TEST(TowerGameShould, platformsStayInsideShaft)
+{
+    Tuning tuning;
+    tuning.wallThickness = 120.f;
+    tuning.bandHeight = 80.f;
+    TowerGame game{7, tuning};
+    for(int i = 0; i < 60; ++i)
+    {
+        game.step({}, kTick);
+    }
+
+    const float left = game.playLeft();
+    const float right = game.playRight();
+    ASSERT_FALSE(game.platforms().empty());
+    for(const PlatformView& platform: game.platforms())
+    {
+        EXPECT_GE(platform.pos.x, left - 0.01f);
+        EXPECT_LE(platform.pos.x + platform.size.x, right + 0.01f);
+    }
+}
+
+TEST(TowerGameShould, airborneWallBoostScalesWithSpeed)
+{
+    Tuning tuning;
+    tuning.startPlatformW = kWorldW;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 0.f;
+    tuning.wallThickness = 100.f;
+    tuning.wallBounce = 1.f;
+    tuning.wallKickBase = 300.f;
+    tuning.wallKickSpeedMul = 1.f;
+    tuning.wallComboMul = 0.f;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 400.f;
+    TowerGame game{1, tuning};
+
+    SimInput jump;
+    jump.jump = true;
+    game.step(jump, kTick);
+    ASSERT_FALSE(game.player().grounded);
+
+    SimInput left;
+    left.left = true;
+    bool bounced = false;
+    for(int i = 0; i < 180 && !game.over(); ++i)
+    {
+        const std::vector<TowerEvent> events = game.step(left, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(std::holds_alternative<WallBounced>(event))
+            {
+                bounced = true;
+            }
+        }
+        if(bounced)
+        {
+            break;
+        }
+    }
+    ASSERT_TRUE(bounced);
+    EXPECT_GT(game.player().vel.y, tuning.wallKickBase);
+}
+
+TEST(TowerGameShould, groundedWallHitDoesNotKick)
+{
+    Tuning tuning;
+    tuning.startPlatformW = kWorldW;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 0.f;
+    tuning.wallThickness = 80.f;
+    tuning.wallKickBase = 500.f;
+    tuning.wallKickSpeedMul = 2.f;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 400.f;
+    TowerGame game{1, tuning};
+    ASSERT_TRUE(game.player().grounded);
+
+    SimInput left;
+    left.left = true;
+    bool bounced = false;
+    for(int i = 0; i < 120 && !game.over(); ++i)
+    {
+        const std::vector<TowerEvent> events = game.step(left, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(std::holds_alternative<WallBounced>(event))
+            {
+                bounced = true;
+            }
+        }
+        if(bounced)
+        {
+            break;
+        }
+    }
+    ASSERT_TRUE(bounced);
+    EXPECT_TRUE(game.player().grounded);
+    EXPECT_FLOAT_EQ(game.player().vel.y, 0.f);
+}
+
+TEST(TowerGameShould, edgeJumpBoostsAndEmits)
+{
+    Tuning tuning;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 0.f;
+    tuning.wallThickness = 0.f;
+    tuning.startPlatformW = 200.f;
+    tuning.edgeJumpMargin = 30.f;
+    tuning.edgeJumpMul = 1.25f;
+    tuning.comboJumpScale = 0.f;
+    tuning.heightAccel = 0.f;
+
+    TowerGame center{1, tuning};
+    SimInput jump;
+    jump.jump = true;
+    const std::vector<TowerEvent> centerEvents = center.step(jump, kTick);
+    EXPECT_FALSE(std::any_of(centerEvents.begin(), centerEvents.end(), [](const TowerEvent& event) {
+        return std::holds_alternative<EdgeJumped>(event);
+    }));
+    const float centerVy = center.player().vel.y;
+
+    TowerGame edge{1, tuning};
+    // Walk to the right edge of the start platform before jumping.
+    SimInput right;
+    right.right = true;
+    const PlatformView& start = edge.platforms().front();
+    const float rightEdge = start.pos.x + start.size.x;
+    for(int i = 0; i < 120 && edge.player().grounded; ++i)
+    {
+        const float feetCenter = edge.player().pos.x + edge.player().size.x * 0.5f;
+        if(rightEdge - feetCenter <= tuning.edgeJumpMargin)
+        {
+            break;
+        }
+        edge.step(right, kTick);
+    }
+    ASSERT_TRUE(edge.player().grounded);
+    const float feetCenter = edge.player().pos.x + edge.player().size.x * 0.5f;
+    ASSERT_LE(rightEdge - feetCenter, tuning.edgeJumpMargin);
+    const std::vector<TowerEvent> edgeEvents = edge.step(jump, kTick);
+    EXPECT_TRUE(std::any_of(edgeEvents.begin(), edgeEvents.end(), [](const TowerEvent& event) {
+        return std::holds_alternative<EdgeJumped>(event);
+    }));
+    EXPECT_GT(edge.player().vel.y, centerVy);
+}
+
+TEST(TowerGameShould, comboChainsOnQuickLandsAndAwardsPoints)
+{
+    Tuning tuning;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 2500.f;
+    tuning.jumpSpeed = 500.f;
+    tuning.startPlatformW = kWorldW;
+    tuning.wallThickness = 0.f;
+    tuning.bandHeight = 40.f;
+    tuning.comboWindow = 2.f;
+    tuning.comboPoints = 10;
+    tuning.comboJumpScale = 0.f;
+    tuning.heightAccel = 0.f;
+    TowerGame game{1, tuning};
+    EXPECT_EQ(game.combo(), 0);
+
+    SimInput jump;
+    jump.jump = true;
+    game.step(jump, kTick);
+
+    int lands = 0;
+    int scoreAfterFirst = 0;
+    for(int i = 0; i < 300 && lands < 2 && !game.over(); ++i)
+    {
+        SimInput input;
+        input.jump = game.player().grounded;
+        const int before = game.score();
+        const std::vector<TowerEvent> events = game.step(input, kTick);
+        for(const TowerEvent& event: events)
+        {
+            if(std::holds_alternative<Landed>(event))
+            {
+                ++lands;
+                if(lands == 1)
+                {
+                    EXPECT_EQ(game.combo(), 1);
+                    scoreAfterFirst = game.score();
+                    EXPECT_GE(scoreAfterFirst, before + tuning.comboPoints);
+                }
+                else if(lands == 2)
+                {
+                    EXPECT_EQ(game.combo(), 2);
+                    EXPECT_GE(game.score(), scoreAfterFirst + tuning.comboPoints * 2);
+                }
+            }
+        }
+    }
+    EXPECT_EQ(lands, 2);
+}
+
+TEST(TowerGameShould, wallBounceRefreshesComboWindow)
+{
+    Tuning tuning;
+    tuning.iceFriction = 0.f;
+    tuning.gravity = 4000.f;
+    tuning.jumpSpeed = 400.f;
+    tuning.startPlatformW = kWorldW;
+    tuning.wallThickness = 40.f;
+    tuning.bandHeight = 200.f; // keep higher bands out of the way
+    tuning.comboWindow = 0.25f;
+    tuning.comboPoints = 10;
+    tuning.comboJumpScale = 0.f;
+    tuning.comboCap = 25;
+    tuning.heightAccel = 0.f;
+    tuning.wallKickBase = 50.f;
+    tuning.wallKickSpeedMul = 0.f;
+    tuning.wallComboMul = 0.f;
+    tuning.moveAccel = 100000.f;
+    tuning.maxRunSpeed = 600.f;
+    TowerGame game{3, tuning};
+
+    // Control: expire the window, land without a wall → combo stays 1.
+    {
+        SimInput jump;
+        jump.jump = true;
+        game.step(jump, kTick);
+        bool landed = false;
+        for(int i = 0; i < 240 && !game.over(); ++i)
+        {
+            for(const TowerEvent& event: game.step({}, kTick))
+            {
+                landed = landed || std::holds_alternative<Landed>(event);
+            }
+            if(landed)
+            {
+                break;
+            }
+        }
+        ASSERT_TRUE(landed);
+        EXPECT_EQ(game.combo(), 1);
+        for(int i = 0; i < 30; ++i)
+        {
+            game.step({}, kTick);
+        }
+        jump.jump = true;
+        game.step(jump, kTick);
+        landed = false;
+        for(int i = 0; i < 240 && !game.over(); ++i)
+        {
+            for(const TowerEvent& event: game.step({}, kTick))
+            {
+                if(std::holds_alternative<Landed>(event))
+                {
+                    landed = true;
+                    EXPECT_EQ(game.combo(), 1);
+                }
+            }
+            if(landed)
+            {
+                break;
+            }
+        }
+        ASSERT_TRUE(landed);
+    }
+
+    // Same setup, but an airborne wall bounce refreshes the timer so the next land chains.
+    TowerGame chained{3, tuning};
+    {
+        SimInput jump;
+        jump.jump = true;
+        chained.step(jump, kTick);
+        bool landed = false;
+        for(int i = 0; i < 240 && !chained.over(); ++i)
+        {
+            for(const TowerEvent& event: chained.step({}, kTick))
+            {
+                landed = landed || std::holds_alternative<Landed>(event);
+            }
+            if(landed)
+            {
+                break;
+            }
+        }
+        ASSERT_TRUE(landed);
+        EXPECT_EQ(chained.combo(), 1);
+        for(int i = 0; i < 30; ++i)
+        {
+            chained.step({}, kTick);
+        }
+
+        SimInput left;
+        left.left = true;
+        bool bounced = false;
+        for(int i = 0; i < 240 && !chained.over(); ++i)
+        {
+            left.jump = chained.player().grounded;
+            const bool wasAirborne = !chained.player().grounded;
+            const std::vector<TowerEvent> events = chained.step(left, kTick);
+            for(const TowerEvent& event: events)
+            {
+                if(std::holds_alternative<WallBounced>(event) && (wasAirborne || !chained.player().grounded))
+                {
+                    bounced = true;
+                }
+            }
+            if(bounced)
+            {
+                break;
+            }
+        }
+        ASSERT_TRUE(bounced);
+
+        landed = false;
+        for(int i = 0; i < 120 && !chained.over(); ++i)
+        {
+            for(const TowerEvent& event: chained.step({}, kTick))
+            {
+                if(std::holds_alternative<Landed>(event))
+                {
+                    landed = true;
+                    EXPECT_GE(chained.combo(), 2);
+                }
+            }
+            if(landed)
+            {
+                break;
+            }
+        }
+        EXPECT_TRUE(landed);
+    }
 }
 
 TEST(TowerGameShould, heightRaisesRunSpeedCap)

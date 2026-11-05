@@ -3,10 +3,10 @@
 #include <string_view>
 #include <tower/app/Sounds.hpp>
 
-TEST(SoundsTest, jumpLandDieWallAndBonusAreNonEmptyAndUnique)
+TEST(SoundsTest, jumpLandDieWallBonusAndEdgeAreNonEmptyAndUnique)
 {
     const auto specs = sgl::tower::soundSpecs();
-    ASSERT_EQ(specs.size(), 5u);
+    ASSERT_EQ(specs.size(), 6u);
 
     std::set<std::string_view> keys;
     for(const sgl::tower::SoundSpec& spec: specs)
@@ -22,4 +22,5 @@ TEST(SoundsTest, jumpLandDieWallAndBonusAreNonEmptyAndUnique)
     EXPECT_TRUE(keys.contains("die"));
     EXPECT_TRUE(keys.contains("wall"));
     EXPECT_TRUE(keys.contains("bonus"));
+    EXPECT_TRUE(keys.contains("edge"));
 }

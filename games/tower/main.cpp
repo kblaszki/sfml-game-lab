@@ -52,6 +52,10 @@ void assignSound(sgl::tower::SoundIds& ids, std::string_view key, sgl::SoundId i
     {
         ids.bonus = id;
     }
+    else if(key == "edge")
+    {
+        ids.edge = id;
+    }
 }
 
 } // namespace

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <sgl/render/DrawCommand.hpp>
 #include <sgl/render/RenderQueue.hpp>
 #include <sgl/scene/SceneContext.hpp>
@@ -95,7 +96,10 @@ void PlayScene::update(sgl::SceneContext& ctx, sgl::Seconds dt)
     const bool wasGrounded = game_.player().grounded;
     const SimInput simInput = toSimInput(input, services_.actions);
     const auto events = game_.step(simInput, dt);
-    if(wasGrounded && simInput.jump && !game_.player().grounded && game_.player().vel.y > 0.f)
+    const bool edged = std::any_of(events.begin(), events.end(), [](const TowerEvent& event) {
+        return std::holds_alternative<EdgeJumped>(event);
+    });
+    if(wasGrounded && simInput.jump && !game_.player().grounded && game_.player().vel.y > 0.f && !edged)
     {
         services_.audio.play(services_.sounds.jump, 1.f);
     }
@@ -128,6 +132,27 @@ void PlayScene::render(sgl::RenderQueue& queue) const
     }
 
     const float camera = game_.cameraBottom();
+    const float wallL = game_.playLeft();
+    const float wallR = game_.playRight();
+    if(wallL > 0.f)
+    {
+        queue.push(sgl::Layer::World,
+                   -2.f,
+                   sgl::RectCmd{
+                       .rect = {.pos = {0.f, 0.f}, .size = {wallL, designHeight}},
+                       .fill = wallFill,
+                   });
+    }
+    if(wallR < designWidth)
+    {
+        queue.push(sgl::Layer::World,
+                   -2.f,
+                   sgl::RectCmd{
+                       .rect = {.pos = {wallR, 0.f}, .size = {designWidth - wallR, designHeight}},
+                       .fill = wallFill,
+                   });
+    }
+
     float depth = 0.f;
     for(const PlatformView& platform: game_.platforms())
     {
@@ -203,6 +228,18 @@ void PlayScene::render(sgl::RenderQueue& queue) const
                    .position = scorePos,
                    .color = hudText,
                });
+    if(game_.combo() > 1)
+    {
+        queue.push(sgl::Layer::Hud,
+                   2.f,
+                   sgl::TextCmd{
+                       .font = services_.font,
+                       .text = "Combo " + std::to_string(game_.combo()),
+                       .size = 22,
+                       .position = {24.f, 52.f},
+                       .color = hudText,
+                   });
+    }
 }
 
 sgl::SceneTraits PlayScene::traits() const

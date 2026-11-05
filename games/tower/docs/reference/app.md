@@ -83,9 +83,9 @@ Executable `tower` (`games/tower/main.cpp`) links `tower_app` and `sgl_sfml`, de
 
 ## Sounds
 
-`soundSpecs()` returns a span of `{key, Pcm}` for **jump**, **land**, **die**, **wall**, and **bonus**. Each buffer is built with `sgl::blip`. `SoundIds` holds the uploaded `SoundId` handles. `main.cpp` uploads every spec through `platform.audio().upload` (`SfmlAudio&`) and stores the ids in `AppServices`.
+`soundSpecs()` returns a span of `{key, Pcm}` for **jump**, **land**, **die**, **wall**, **bonus**, and **edge**. Each buffer is built with `sgl::blip`. `SoundIds` holds the uploaded `SoundId` handles. `main.cpp` uploads every spec through `platform.audio().upload` (`SfmlAudio&`) and stores the ids in `AppServices`.
 
-`PlayScene` plays **jump** only when a takeoff actually happens: grounded before `step`, jump held, and airborne with `vy > 0` after `step`. `Feedback::onEvents` plays **land** for `Landed`, **die** for `Died`, **wall** for `WallBounced`, and **bonus** for `BonusPicked`.
+`PlayScene` plays **jump** only when a takeoff actually happens and the step did not emit `EdgeJumped`. `Feedback::onEvents` plays **land**, **die**, **wall**, **bonus**, and **edge** for the matching events.
 
 ## High scores
 
@@ -114,7 +114,7 @@ Buttons are `MenuModel` rows: main menu **Play** / **Quit**, pause **Resume** / 
 
 ## Playfield
 
-`PlayScene::render` reads `player()`, `platforms()`, `cameraBottom()`, and `score()`. It does not move them. Sim **+Y is up**. Screen **+Y is down**. `RectCmd::rect.pos` and `SpriteCmd::position` are the top-left of the unrotated bounds.
+`PlayScene::render` reads `player()`, `platforms()`, `bonuses()`, `playLeft()`/`playRight()`, `combo()`, `cameraBottom()`, and `score()`. It does not move them. Sim **+Y is up**. Screen **+Y is down**. `RectCmd::rect.pos` and `SpriteCmd::position` are the top-left of the unrotated bounds.
 
 A world point maps with:
 
@@ -126,6 +126,6 @@ Body and platform `pos` is the bottom-left, so the rect's screen top-left uses t
 
 `screenTop = kViewH - (pos.y + size.y - cameraBottom)`
 
-When `SpriteBank` has the region, play draws a `SpriteCmd`: `bg/sky`, `plat/ice` on each platform, `player/idle` or `player/jump`, and optional `bonus/speed`, `bonus/jump`, `bonus/points`. Missing regions fall back to `RectCmd`s (`fieldFill`, `platformFill`, `playerFill`, Theme bonus fills). Score is a `TextCmd` (`"Score N"`) on `Layer::Hud`. The number is the sim score for this run.
+After the sky, play draws full-height shaft wall `RectCmd`s (`wallFill`) for `[0, playLeft)` and `[playRight, kWorldW)`. When `SpriteBank` has the region, it draws a `SpriteCmd`: `bg/sky`, `plat/ice` on each platform, `player/idle` or `player/jump`, and optional `bonus/speed`, `bonus/jump`, `bonus/points`. Missing regions fall back to `RectCmd`s (`fieldFill`, `platformFill`, `playerFill`, Theme bonus fills). Score is a `TextCmd` (`"Score N"`) on `Layer::Hud`; `"Combo N"` appears when `combo() > 1`.
 
 `PlayScene::game()` exposes the sim for headless tests. Those tests drive `SceneStack` with `InputState` and open no window (`tower_scenes_test`, `tower_play_scene_test`, `tower_sounds_test`, `tower_feedback_test`, `tower_sprite_bank_test`).

@@ -20,6 +20,7 @@ void Feedback::onEvents(std::span<const TowerEvent> events)
                        [this](const Died&) { audio_.play(sounds_.die, 1.f); },
                        [this](const WallBounced&) { audio_.play(sounds_.wall, 1.f); },
                        [this](const BonusPicked&) { audio_.play(sounds_.bonus, 1.f); },
+                       [this](const EdgeJumped&) { audio_.play(sounds_.edge, 1.f); },
                    },
                    event);
     }

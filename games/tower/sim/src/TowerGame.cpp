@@ -43,11 +43,26 @@ std::vector<TowerEvent> TowerGame::step(const SimInput& input, sgl::Seconds dt)
 
     const float seconds = std::max(dt.count(), 0.f);
     tickBoosts(seconds);
+    timeSinceLand_ += seconds;
 
+    std::vector<TowerEvent> events;
     const bool wasGrounded = player_.grounded;
     if(input.jump && wasGrounded)
     {
-        player_.vel.y = jumpSpeedEffective();
+        float jump = jumpSpeedEffective();
+        if(const PlatformView* support = supportPlatform())
+        {
+            const float feetCenter = player_.pos.x + player_.size.x * 0.5f;
+            const float left = support->pos.x;
+            const float right = support->pos.x + support->size.x;
+            const bool nearEdge = feetCenter - left <= tuning_.edgeJumpMargin || right - feetCenter <= tuning_.edgeJumpMargin;
+            if(nearEdge)
+            {
+                jump *= tuning_.edgeJumpMul;
+                events.push_back(EdgeJumped{});
+            }
+        }
+        player_.vel.y = jump;
         player_.grounded = false;
     }
 
@@ -67,7 +82,6 @@ std::vector<TowerEvent> TowerGame::step(const SimInput& input, sgl::Seconds dt)
     const float previousFeet = player_.pos.y;
     player_.pos.x += player_.vel.x * seconds;
 
-    std::vector<TowerEvent> events;
     bounceWalls(events);
 
     if(player_.grounded && !supported())
@@ -98,8 +112,7 @@ std::vector<TowerEvent> TowerGame::step(const SimInput& input, sgl::Seconds dt)
     const float playerTop = player_.pos.y + player_.size.y;
     if(playerTop < cameraBottom_ - tuning_.deathMargin)
     {
-        over_ = true;
-        events.push_back(Died{});
+        onDied(events);
     }
     return events;
 }
@@ -129,9 +142,24 @@ int TowerGame::score() const noexcept
     return score_;
 }
 
+int TowerGame::combo() const noexcept
+{
+    return combo_;
+}
+
 bool TowerGame::over() const noexcept
 {
     return over_;
+}
+
+float TowerGame::playLeft() const noexcept
+{
+    return std::max(0.f, tuning_.wallThickness);
+}
+
+float TowerGame::playRight() const noexcept
+{
+    return std::max(playLeft(), kWorldW - std::max(0.f, tuning_.wallThickness));
 }
 
 float TowerGame::heightScale() const noexcept
@@ -157,14 +185,22 @@ float TowerGame::jumpSpeedEffective() const noexcept
     {
         jump *= tuning_.jumpBoostMul;
     }
+    if(combo_ > 1 && tuning_.comboJumpScale > 0.f && tuning_.comboCap > 1)
+    {
+        const int ranks = std::min(combo_ - 1, tuning_.comboCap - 1);
+        jump *= 1.f + tuning_.comboJumpScale * static_cast<float>(ranks);
+    }
     return jump;
 }
 
 void TowerGame::spawnStart()
 {
-    const float width = std::clamp(tuning_.startPlatformW, 0.f, kWorldW);
+    const float left = playLeft();
+    const float right = playRight();
+    const float shaft = std::max(0.f, right - left);
+    const float width = std::clamp(tuning_.startPlatformW, 0.f, shaft);
     platforms_.push_back(PlatformView{
-        Vec2f{(kWorldW - width) * 0.5f, -tuning_.platformH},
+        Vec2f{(left + right - width) * 0.5f, -tuning_.platformH},
         Vec2f{width, tuning_.platformH},
     });
 }
@@ -195,17 +231,48 @@ void TowerGame::maybeSpawnBonus(const PlatformView& platform)
 void TowerGame::spawnBand(int band)
 {
     const float surfaceY = static_cast<float>(band) * tuning_.bandHeight;
-    const float width = std::clamp(widthAt(surfaceY), 0.f, kWorldW);
-    const float maxX = std::max(0.f, kWorldW - width);
-    for(int slot = 0; slot < kPlatformsPerBand; ++slot)
+    const float left = playLeft();
+    const float right = playRight();
+    const float shaft = std::max(0.f, right - left);
+    const float width = std::clamp(widthAt(surfaceY), 0.f, shaft);
+    const float minX = left;
+    const float maxX = std::max(minX, right - width);
+
+    float firstX = (band % 2 == 0) ? minX : maxX;
+    if(maxX > minX)
     {
-        PlatformView platform{
-            Vec2f{rng_.uniformFloat(0.f, maxX), surfaceY - tuning_.platformH},
-            Vec2f{width, tuning_.platformH},
-        };
-        maybeSpawnBonus(platform);
-        platforms_.push_back(platform);
+        const float jitter = std::min(40.f, maxX - minX);
+        firstX = std::clamp(firstX + rng_.uniformFloat(-jitter * 0.25f, jitter * 0.25f), minX, maxX);
     }
+
+    PlatformView first{
+        Vec2f{firstX, surfaceY - tuning_.platformH},
+        Vec2f{width, tuning_.platformH},
+    };
+    maybeSpawnBonus(first);
+    platforms_.push_back(first);
+
+    if(kPlatformsPerBand < 2 || maxX <= minX)
+    {
+        return;
+    }
+
+    const float firstCenter = firstX + width * 0.5f;
+    const float gap = std::max(0.f, tuning_.maxSiblingGap);
+    const float secondMinCenter = firstCenter - gap;
+    const float secondMaxCenter = firstCenter + gap;
+    const float secondMinX = std::clamp(secondMinCenter - width * 0.5f, minX, maxX);
+    const float secondMaxX = std::clamp(secondMaxCenter - width * 0.5f, minX, maxX);
+    const float lo = std::min(secondMinX, secondMaxX);
+    const float hi = std::max(secondMinX, secondMaxX);
+    const float secondX = rng_.uniformFloat(lo, hi);
+
+    PlatformView second{
+        Vec2f{secondX, surfaceY - tuning_.platformH},
+        Vec2f{width, tuning_.platformH},
+    };
+    maybeSpawnBonus(second);
+    platforms_.push_back(second);
 }
 
 void TowerGame::ensurePlatforms()
@@ -244,16 +311,18 @@ void TowerGame::notePeak() noexcept
 
 void TowerGame::bounceWalls(std::vector<TowerEvent>& events)
 {
+    const float left = playLeft();
+    const float right = playRight();
     bool bounced = false;
-    if(player_.pos.x < 0.f)
+    if(player_.pos.x < left)
     {
-        player_.pos.x = 0.f;
+        player_.pos.x = left;
         player_.vel.x = std::abs(player_.vel.x) * tuning_.wallBounce;
         bounced = true;
     }
-    else if(player_.pos.x + player_.size.x > kWorldW)
+    else if(player_.pos.x + player_.size.x > right)
     {
-        player_.pos.x = kWorldW - player_.size.x;
+        player_.pos.x = right - player_.size.x;
         player_.vel.x = -std::abs(player_.vel.x) * tuning_.wallBounce;
         bounced = true;
     }
@@ -262,9 +331,17 @@ void TowerGame::bounceWalls(std::vector<TowerEvent>& events)
     {
         return;
     }
-    if(player_.vel.y < 0.f)
+
+    if(!player_.grounded)
     {
-        player_.vel.y = std::max(player_.vel.y, tuning_.wallKick);
+        float boost = tuning_.wallKickBase + tuning_.wallKickSpeedMul * std::abs(player_.vel.x);
+        if(combo_ > 0 && tuning_.wallComboMul > 0.f)
+        {
+            const int ranks = std::min(combo_, tuning_.comboCap);
+            boost *= 1.f + tuning_.wallComboMul * static_cast<float>(ranks);
+        }
+        player_.vel.y = std::max(player_.vel.y, boost);
+        timeSinceLand_ = 0.f;
     }
     events.push_back(WallBounced{});
 }
@@ -306,6 +383,13 @@ void TowerGame::tickBoosts(float seconds) noexcept
     jumpBoostLeft_ = std::max(0.f, jumpBoostLeft_ - seconds);
 }
 
+void TowerGame::onDied(std::vector<TowerEvent>& events)
+{
+    over_ = true;
+    combo_ = 0;
+    events.push_back(Died{});
+}
+
 void TowerGame::tryLand(float previousFeet, std::vector<TowerEvent>& events)
 {
     if(player_.grounded || player_.vel.y > 0.f)
@@ -336,6 +420,16 @@ void TowerGame::tryLand(float previousFeet, std::vector<TowerEvent>& events)
     player_.pos.y = landedTop;
     player_.vel.y = 0.f;
     player_.grounded = true;
+    if(timeSinceLand_ <= tuning_.comboWindow)
+    {
+        combo_ = std::min(combo_ + 1, std::max(tuning_.comboCap, 1));
+    }
+    else
+    {
+        combo_ = 1;
+    }
+    score_ += combo_ * tuning_.comboPoints;
+    timeSinceLand_ = 0.f;
     events.push_back(Landed{});
 }
 
@@ -356,15 +450,20 @@ bool TowerGame::overlapsX(const PlatformView& platform) const noexcept
 
 bool TowerGame::supported() const noexcept
 {
+    return supportPlatform() != nullptr;
+}
+
+const PlatformView* TowerGame::supportPlatform() const noexcept
+{
     for(const PlatformView& platform: platforms_)
     {
         const float top = platform.pos.y + platform.size.y;
         if(std::abs(player_.pos.y - top) <= kSurfaceEps && overlapsX(platform))
         {
-            return true;
+            return &platform;
         }
     }
-    return false;
+    return nullptr;
 }
 
 } // namespace sgl::tower

@@ -21,6 +21,7 @@ struct SoundIds
     sgl::SoundId die{};
     sgl::SoundId wall{};
     sgl::SoundId bonus{};
+    sgl::SoundId edge{};
 };
 
 [[nodiscard]] std::span<const SoundSpec> soundSpecs();

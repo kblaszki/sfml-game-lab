@@ -24,6 +24,10 @@ struct BonusPicked
     int points{};
 };
 
-using TowerEvent = std::variant<Landed, Died, WallBounced, BonusPicked>;
+struct EdgeJumped
+{
+};
+
+using TowerEvent = std::variant<Landed, Died, WallBounced, BonusPicked, EdgeJumped>;
 
 } // namespace sgl::tower

@@ -33,6 +33,7 @@ sgl::tower::SoundIds testSoundIds()
         .die = sgl::SoundId{.id = 3},
         .wall = sgl::SoundId{.id = 4},
         .bonus = sgl::SoundId{.id = 5},
+        .edge = sgl::SoundId{.id = 6},
     };
 }
 
@@ -141,6 +142,13 @@ TEST(PlaySceneTest, drawsPlayerAndPlatformsWithWorldYUp)
         drewHigherPlatformAbove = true;
     }
     EXPECT_TRUE(drewHigherPlatformAbove);
+
+    const float wallL = play->game().playLeft();
+    const float wallR = play->game().playRight();
+    ASSERT_GT(wallL, 0.f);
+    ASSERT_LT(wallR, sgl::tower::kWorldW);
+    EXPECT_EQ(countRect(queue, {.pos = {0.f, 0.f}, .size = {wallL, sgl::tower::kViewH}}), 1);
+    EXPECT_EQ(countRect(queue, {.pos = {wallR, 0.f}, .size = {sgl::tower::kWorldW - wallR, sgl::tower::kViewH}}), 1);
 }
 
 TEST(PlaySceneTest, rightAndJumpAreHeld)

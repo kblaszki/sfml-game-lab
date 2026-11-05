@@ -16,6 +16,7 @@ inline constexpr std::string_view uiFontRelativePath{"fonts/upheavtt.ttf"};
 inline constexpr sgl::Color titleIce{186, 220, 238};
 inline constexpr sgl::Color hudText{226, 232, 236};
 inline constexpr sgl::Color fieldFill{16, 22, 34};
+inline constexpr sgl::Color wallFill{48, 72, 96};
 inline constexpr sgl::Color platformFill{132, 124, 112};
 inline constexpr sgl::Color playerFill{242, 196, 92};
 inline constexpr sgl::Color bonusSpeedFill{80, 200, 220};

@@ -15,6 +15,7 @@ sgl::tower::SoundIds makeIds()
         .die = sgl::SoundId{.id = 3},
         .wall = sgl::SoundId{.id = 4},
         .bonus = sgl::SoundId{.id = 5},
+        .edge = sgl::SoundId{.id = 6},
     };
 }
 
@@ -63,6 +64,19 @@ TEST(FeedbackTest, wallAndBonusPlay)
     ASSERT_EQ(audio.plays.size(), 2u);
     EXPECT_EQ(audio.plays[0].id, ids.wall);
     EXPECT_EQ(audio.plays[1].id, ids.bonus);
+}
+
+TEST(FeedbackTest, edgeJumpedPlaysEdge)
+{
+    sgl::AudioSpy audio;
+    const auto ids = makeIds();
+    sgl::tower::Feedback feedback{audio, ids};
+
+    const sgl::tower::TowerEvent event = sgl::tower::EdgeJumped{};
+    feedback.onEvents(std::span{&event, 1});
+
+    ASSERT_EQ(audio.plays.size(), 1u);
+    EXPECT_EQ(audio.plays[0].id, ids.edge);
 }
 
 TEST(FeedbackTest, landAndDiePlayInOrder)

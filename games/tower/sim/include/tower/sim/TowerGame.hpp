@@ -23,7 +23,10 @@ public:
     [[nodiscard]] const std::vector<BonusView>& bonuses() const noexcept;
     [[nodiscard]] float cameraBottom() const noexcept;
     [[nodiscard]] int score() const noexcept;
+    [[nodiscard]] int combo() const noexcept;
     [[nodiscard]] bool over() const noexcept;
+    [[nodiscard]] float playLeft() const noexcept;
+    [[nodiscard]] float playRight() const noexcept;
     [[nodiscard]] float runSpeedCap() const noexcept;
     [[nodiscard]] float jumpSpeedEffective() const noexcept;
 
@@ -39,10 +42,12 @@ private:
     void bounceWalls(std::vector<TowerEvent>& events);
     void collectBonuses(std::vector<TowerEvent>& events);
     void tickBoosts(float seconds) noexcept;
+    void onDied(std::vector<TowerEvent>& events);
     [[nodiscard]] float heightScale() const noexcept;
     [[nodiscard]] float widthAt(float surfaceY) const noexcept;
     [[nodiscard]] bool overlapsX(const PlatformView& platform) const noexcept;
     [[nodiscard]] bool supported() const noexcept;
+    [[nodiscard]] const PlatformView* supportPlatform() const noexcept;
 
     Tuning tuning_{};
     sgl::Pcg32 rng_;
@@ -53,8 +58,10 @@ private:
     float peakFeet_{0.f};
     float speedBoostLeft_{0.f};
     float jumpBoostLeft_{0.f};
+    float timeSinceLand_{0.f};
     int nextBand_{1};
     int score_{0};
+    int combo_{0};
     bool over_{false};
 };
 
