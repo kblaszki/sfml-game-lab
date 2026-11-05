@@ -13,7 +13,7 @@ inline constexpr float designHeight{kWorldH};
 
 inline constexpr std::string_view uiFontRelativePath{"fonts/upheavtt.ttf"};
 
-inline constexpr sgl::Color titleSky{120, 190, 230};
+inline constexpr sgl::Color titleSky{255, 236, 120};
 inline constexpr sgl::Color hudText{236, 244, 250};
 inline constexpr sgl::Color fieldFill{90, 180, 230};
 inline constexpr sgl::Color hillsFill{70, 150, 100};
